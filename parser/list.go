@@ -14,6 +14,10 @@ type ListExp struct {
 // Eval evaluates each s-exp in the list and then evaluates the list itself
 // as an s-exp.
 func (le ListExp) Eval(env *reflection.Env) (interface{}, error) {
+	if len(le.List) == 0 {
+		return le.List, nil
+	}
+
 	val, err := le.List[0].Eval(env)
 	if err != nil {
 		return nil, err

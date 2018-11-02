@@ -28,6 +28,7 @@ Parens is just a collection of `lexer` and `parser` packages.
     - [x] basic `reflection` package with support for interop b/w `Go` and `lisp`
 - [x] Better `lexer` package
     - [x] Consider whitespaes as delimiters and generate errors
+    - [x] Support for `[]` (vector) and `'` (quote)
 - [ ] Better `parser` package
     - [ ] Support for macro functions
     - [ ] Better error reporting
@@ -36,5 +37,5 @@ Parens is just a collection of `lexer` and `parser` packages.
 - [ ] Better `reflection` package
     - [ ] Type promotion/conversion
     - [ ] Support for macro functions
-- [ ] REPL
+- [x] REPL
 - [ ] `Go` code generation?
