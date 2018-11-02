@@ -13,7 +13,7 @@ for your usecase.
     - Should have absolute bare minimum functionality.
 2. Flexible
     - Should be possible to control what is available
-    - Standard functions should be registered not build-in.
+    - Standard functions should be registered not built-in.
 3. Interoperable
     - Should be able to expose Go values inside LISP and vice versa without custom signatures.
 
