@@ -46,6 +46,7 @@ interpreter.Execute("(print parens-version)")
     - [x] basic `lexer` and `parser`
     - [x] basic `reflection` package with support for interop b/w `Go` and `lisp`
 - [x] Better `lexer` package
+    - [x] Good unit-test coverage [`97.9%` coverage]
     - [x] Consider whitespaes as delimiters and generate errors
     - [x] Support for `[]` (vector) and `'` (quote)
 - [ ] Better `parser` package
