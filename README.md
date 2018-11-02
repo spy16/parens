@@ -23,6 +23,23 @@ Parens is *NOT*:
 1. An implementaion of a particular LISP dialect (like scheme, common-lisp etc.)
 2. A new dialect if LISP
 
+
+## Usage
+
+Take a look at `cmd/parens/main.go` for a good example.
+
+Following is a simple interpreter setup:
+
+```go
+env := reflection.New()
+env.Bind("parens-version", "1.0.0")
+env.Bind("print", func(msg string) {
+	fmt.Println(msg)
+})
+interpreter := parens.New(env)
+interpreter.Execute("(print parens-version)")
+```
+
 ## TODO
 
 - [x] Basic working prototype
