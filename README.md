@@ -3,13 +3,9 @@
 # Parens
 
 Parens is a simple lisp implementation in `Go` (or `Golang`).
-
-Parens is not:
-
-1. Implementaion of particular LISP dialect (like scheme, common-lisp etc.)
-2. A new dialect
-
-Parens is just a collection of `lexer` and `parser` packages.
+More appropriately, Parens is just a collection of packages that
+you can embed in your Golang applications and build a domain language
+for your usecase.
 
 ## Goals:
 
@@ -20,6 +16,12 @@ Parens is just a collection of `lexer` and `parser` packages.
     - Standard functions should be registered not build-in.
 3. Interoperable
     - Should be able to expose Go values inside LISP and vice versa without custom signatures.
+
+
+Parens is *NOT*:
+
+1. An implementaion of a particular LISP dialect (like scheme, common-lisp etc.)
+2. A new dialect if LISP
 
 ## TODO
 
@@ -37,5 +39,6 @@ Parens is just a collection of `lexer` and `parser` packages.
 - [ ] Better `reflection` package
     - [ ] Type promotion/conversion
     - [ ] Support for macro functions
+    - [ ] Performance optimization ?
 - [x] REPL
 - [ ] `Go` code generation?
