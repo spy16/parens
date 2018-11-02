@@ -10,7 +10,7 @@ import (
 	"github.com/spy16/parens/reflection"
 )
 
-var program = []byte(`(print join "hello "world")`)
+var program = `(print join "hello "world")`
 
 func main() {
 	tokens, err := lexer.New(program).Tokens()

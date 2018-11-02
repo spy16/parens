@@ -20,7 +20,7 @@ type Interpreter struct {
 
 // Execute tokenizes, parses and executes the given LISP code.
 func (parens *Interpreter) Execute(src string) (interface{}, error) {
-	tokens, err := lexer.New([]byte(src)).Tokens()
+	tokens, err := lexer.New(src).Tokens()
 	if err != nil {
 		return nil, err
 	}

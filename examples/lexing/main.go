@@ -1,8 +1,6 @@
 package main
 
 import (
-	"strings"
-
 	"github.com/davecgh/go-spew/spew"
 	"github.com/spy16/parens/lexer"
 )
@@ -14,6 +12,6 @@ const sampleProgram = `
 `
 
 func main() {
-	lxr := lexer.New([]byte(strings.TrimSpace(sampleProgram)))
+	lxr := lexer.New(sampleProgram)
 	spew.Dump(lxr.Tokens())
 }

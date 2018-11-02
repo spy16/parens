@@ -56,7 +56,7 @@ func buildSExp(tokens *tokenQueue) (SExp, error) {
 		}
 		return ne, nil
 
-	case lexer.SSTRING, lexer.DSTRING:
+	case lexer.STRING:
 		se := StringExp{
 			Token: *token,
 		}

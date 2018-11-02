@@ -13,8 +13,5 @@ type StringExp struct {
 }
 
 func (se StringExp) Eval(_ *reflection.Env) (interface{}, error) {
-	if se.Token.Type == lexer.SSTRING {
-		return strings.Trim(se.Token.Value, "'"), nil
-	}
 	return strings.Trim(se.Token.Value, "\""), nil
 }
