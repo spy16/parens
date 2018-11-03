@@ -1,27 +1,20 @@
 package repl
 
 import (
+	"bufio"
 	"context"
 	"fmt"
-	"io"
+	"os"
 	"reflect"
 	"strings"
-
-	"github.com/c-bata/go-prompt"
 )
 
 // New initializes a REPL session with given evaluator.
-func New(exec Executor, completer prompt.Completer) *REPL {
-	if completer == nil {
-		completer = func(prompt.Document) []prompt.Suggest {
-			return nil
-		}
-	}
-
+func New(exec Executor) *REPL {
 	return &REPL{
-		exec:     exec,
-		prompt:   ">> ",
-		prompter: newPrompter(completer),
+		Exec:     exec,
+		ReadIn:   defaultReadIn,
+		WriteOut: defaultWriteOut,
 	}
 }
 
@@ -33,46 +26,59 @@ type Executor interface {
 
 // REPL represents a session of read-eval-print-loop.
 type REPL struct {
-	exec     Executor
-	banner   string
-	prompt   string
-	prompter *prompt.Prompt
+	Exec   Executor
+	Banner string
+
+	ReadIn   ReadInFunc
+	WriteOut WriteOutFunc
 }
 
 // Start the REPL which reads from in and writes results to out.
-func (repl *REPL) Start(ctx context.Context, out io.Writer, errOut io.Writer) error {
-	if len(repl.banner) > 0 {
-		fmt.Fprintln(out, repl.banner)
+func (repl *REPL) Start(ctx context.Context) error {
+	if len(repl.Banner) > 0 {
+		repl.WriteOut(repl.Banner, nil)
 	}
 
 	for {
 		select {
 		case <-ctx.Done():
+			repl.WriteOut("Bye!", nil)
 			return nil
+
 		default:
-			expr := repl.prompter.Input()
+			expr, err := repl.ReadIn()
+			if err != nil {
+				repl.WriteOut(nil, fmt.Errorf("read failed: %s", err))
+				continue
+			}
+
 			if len(strings.TrimSpace(expr)) == 0 {
 				continue
 			}
 
-			result, err := repl.exec.Execute(expr)
-			if err != nil {
-				fmt.Fprintf(errOut, "error: %s\n", err)
-			} else {
-				fmt.Fprintln(out, formatResult(result))
-			}
+			repl.WriteOut(repl.Exec.Execute(expr))
 		}
 	}
 }
 
-// SetBanner sets the message displayed at startup.
-func (repl *REPL) SetBanner(banner string) {
-	repl.banner = banner
+// ReadInFunc implementation is used by the REPL to read input.
+type ReadInFunc func() (string, error)
+
+// WriteOutFunc implementation is used by the REPL to write result.
+type WriteOutFunc func(res interface{}, err error)
+
+func defaultWriteOut(v interface{}, err error) {
+	if err != nil {
+		fmt.Fprintf(os.Stdout, "error: %s\n", err)
+	} else {
+		fmt.Fprintln(os.Stdout, formatResult(v))
+	}
 }
 
-func newPrompter(completer prompt.Completer) *prompt.Prompt {
-	prm := prompt.New(nil, completer)
-	return prm
+func defaultReadIn() (string, error) {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("> ")
+	return reader.ReadString('\n')
 }
 
 func formatResult(v interface{}) string {
