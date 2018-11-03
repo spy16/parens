@@ -66,8 +66,6 @@ func (repl *REPL) readAndExecute() bool {
 		return false
 	}
 
-	fmt.Println(expr)
-
 	if len(strings.TrimSpace(expr)) == 0 {
 		return false
 	}

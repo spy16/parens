@@ -1,7 +1,6 @@
 package utfstrings
 
 import (
-	"fmt"
 	"unicode/utf8"
 )
 
@@ -57,7 +56,6 @@ func (cur Cursor) Build(move MoveFunc) string {
 	for {
 		move(&cur)
 		ru := cur.Next()
-		fmt.Printf("-> '%c'\n", ru)
 		if ru == EOS {
 			break
 		}

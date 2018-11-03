@@ -8,12 +8,16 @@ import (
 	"github.com/spy16/parens/reflection"
 )
 
-var (
-	ErrEOF = errors.New("end of file")
-)
+// ErrEOF is returned when the parser has consumed all tokens.
+var ErrEOF = errors.New("end of file")
 
 // Parse the slice of tokens and build an AST
-func Parse(tokens []lexer.Token) (SExp, error) {
+func Parse(src string) (SExp, error) {
+	tokens, err := lexer.New(src).Tokens()
+	if err != nil {
+		return nil, err
+	}
+
 	return buildSExp(&tokenQueue{tokens: tokens})
 }
 
