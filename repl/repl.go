@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"reflect"
 	"strings"
@@ -46,19 +47,31 @@ func (repl *REPL) Start(ctx context.Context) error {
 			return nil
 
 		default:
-			expr, err := repl.ReadIn()
-			if err != nil {
-				repl.WriteOut(nil, fmt.Errorf("read failed: %s", err))
-				continue
+			shouldExit := repl.readAndExecute()
+			if shouldExit {
+				repl.WriteOut("Bye!", nil)
+				return nil
 			}
-
-			if len(strings.TrimSpace(expr)) == 0 {
-				continue
-			}
-
-			repl.WriteOut(repl.Exec.Execute(expr))
 		}
 	}
+}
+
+func (repl *REPL) readAndExecute() bool {
+	expr, err := repl.ReadIn()
+	if err != nil {
+		if err == io.EOF {
+			return true
+		}
+		repl.WriteOut(nil, fmt.Errorf("read failed: %s", err))
+		return false
+	}
+
+	if len(strings.TrimSpace(expr)) == 0 {
+		return false
+	}
+
+	repl.WriteOut(repl.Exec.Execute(expr))
+	return false
 }
 
 // ReadInFunc implementation is used by the REPL to read input.
