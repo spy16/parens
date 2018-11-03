@@ -12,7 +12,7 @@ type StringExp struct {
 }
 
 // Eval returns unquoted version of the STRING token.
-func (se StringExp) Eval(_ *reflection.Env) (interface{}, error) {
+func (se StringExp) Eval(_ *reflection.Scope) (interface{}, error) {
 	return unquoteStr(se.Token.Value), nil
 }
 

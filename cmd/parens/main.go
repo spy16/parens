@@ -10,9 +10,9 @@ import (
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	env := makeEnv()
-	env.Bind("exit", cancel)
-	interpreter := parens.New(env)
+	scope := makeGlobalScope()
+	scope.Bind("exit", cancel)
+	interpreter := parens.New(scope)
 
 	repl := repl.New(interpreter)
 	repl.Banner = "Welcome to Parens REPL!\nType \"(exit)\" or Ctrl+D to exit!"

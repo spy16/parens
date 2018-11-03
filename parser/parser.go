@@ -23,7 +23,7 @@ func Parse(src string) (SExp, error) {
 
 // SExp represents a symbolic expression.
 type SExp interface {
-	Eval(env *reflection.Env) (interface{}, error)
+	Eval(env *reflection.Scope) (interface{}, error)
 }
 
 func buildSExp(tokens *tokenQueue) (SExp, error) {

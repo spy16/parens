@@ -14,7 +14,7 @@ type NumberExp struct {
 }
 
 // Eval for a number returns itself.
-func (ne NumberExp) Eval(env *reflection.Env) (interface{}, error) {
+func (ne NumberExp) Eval(scope *reflection.Scope) (interface{}, error) {
 	if ne.number == nil {
 		num, err := strconv.ParseFloat(ne.Token.Value, 64)
 		if err != nil {

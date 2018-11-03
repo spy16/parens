@@ -17,6 +17,6 @@ func (se SymbolExp) ExpType() string {
 }
 
 // Eval returns the symbol name itself.
-func (se SymbolExp) Eval(env *reflection.Env) (interface{}, error) {
-	return env.Get(se.Symbol)
+func (se SymbolExp) Eval(scope *reflection.Scope) (interface{}, error) {
+	return scope.Get(se.Symbol)
 }

@@ -12,8 +12,8 @@ import (
 )
 
 func TestExecute_Success(t *testing.T) {
-	env := reflection.New()
-	par := parens.New(env)
+	scope := reflection.NewScope(nil)
+	par := parens.New(scope)
 	par.Parse = mockParseFn(mockSExp(10, nil), nil)
 
 	res, err := par.Execute("10")
@@ -23,8 +23,8 @@ func TestExecute_Success(t *testing.T) {
 }
 
 func TestExecute_EvalFailure(t *testing.T) {
-	env := reflection.New()
-	par := parens.New(env)
+	scope := reflection.NewScope(nil)
+	par := parens.New(scope)
 	par.Parse = mockParseFn(mockSExp(nil, errors.New("failed")), nil)
 
 	res, err := par.Execute("(hello)")
@@ -34,8 +34,8 @@ func TestExecute_EvalFailure(t *testing.T) {
 }
 
 func TestExecute_ParseFailure(t *testing.T) {
-	env := reflection.New()
-	par := parens.New(env)
+	scope := reflection.NewScope(nil)
+	par := parens.New(scope)
 	par.Parse = mockParseFn(nil, errors.New("failed"))
 
 	res, err := par.Execute("(hello)")
@@ -45,7 +45,7 @@ func TestExecute_ParseFailure(t *testing.T) {
 }
 
 func mockSExp(v interface{}, err error) parser.SExp {
-	return sexpMock(func(env *reflection.Env) (interface{}, error) {
+	return sexpMock(func(scope *reflection.Scope) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
@@ -62,8 +62,8 @@ func mockParseFn(sexp parser.SExp, err error) parens.ParseFn {
 	}
 }
 
-type sexpMock func(env *reflection.Env) (interface{}, error)
+type sexpMock func(scope *reflection.Scope) (interface{}, error)
 
-func (sm sexpMock) Eval(env *reflection.Env) (interface{}, error) {
-	return sm(env)
+func (sm sexpMock) Eval(scope *reflection.Scope) (interface{}, error) {
+	return sm(scope)
 }

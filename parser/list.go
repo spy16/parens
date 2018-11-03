@@ -13,12 +13,12 @@ type ListExp struct {
 
 // Eval evaluates each s-exp in the list and then evaluates the list itself
 // as an s-exp.
-func (le ListExp) Eval(env *reflection.Env) (interface{}, error) {
+func (le ListExp) Eval(scope *reflection.Scope) (interface{}, error) {
 	if len(le.List) == 0 {
 		return le.List, nil
 	}
 
-	val, err := le.List[0].Eval(env)
+	val, err := le.List[0].Eval(scope)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +30,7 @@ func (le ListExp) Eval(env *reflection.Env) (interface{}, error) {
 
 	args := []interface{}{}
 	for i := 1; i < len(le.List); i++ {
-		arg, err := le.List[i].Eval(env)
+		arg, err := le.List[i].Eval(scope)
 		if err != nil {
 			return nil, err
 		}

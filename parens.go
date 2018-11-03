@@ -6,22 +6,20 @@ import (
 )
 
 // New initializes new parens LISP interpreter with given env.
-func New(env *reflection.Env) *Interpreter {
+func New(scope *reflection.Scope) *Interpreter {
 	return &Interpreter{
-		Env:   env,
+		Scope: scope,
 		Parse: parser.Parse,
 	}
 }
 
-// ParseFn is responsible for tokenizing and building SExp
-// out of tokens.
+// ParseFn is responsible for tokenizing and building SExp out of tokens.
 type ParseFn func(src string) (parser.SExp, error)
 
-// Interpreter represents the LISP interpreter instance. You can
-// provide your own implementations of LexFn and ParseFn to extend
-// the interpreter.
+// Interpreter represents the LISP interpreter instance. You can provide
+// your own implementations of ParseFn to extend the interpreter.
 type Interpreter struct {
-	*reflection.Env
+	Scope *reflection.Scope
 
 	// Parse is used to build SExp/AST from source.
 	Parse ParseFn
@@ -34,7 +32,7 @@ func (parens *Interpreter) Execute(src string) (interface{}, error) {
 		return nil, err
 	}
 
-	res, err := sexp.Eval(parens.Env)
+	res, err := sexp.Eval(parens.Scope)
 	if err != nil {
 		return nil, err
 	}

@@ -15,17 +15,17 @@ Functions:
 2. (tokenize src) - Tokenize src and display
 `
 
-func makeEnv() *reflection.Env {
-	env := reflection.New()
-	env.Bind("parens-version", version)
+func makeGlobalScope() *reflection.Scope {
+	scope := reflection.NewScope(nil)
+	scope.Bind("parens-version", version)
 
-	env.Bind("?", func() string {
+	scope.Bind("?", func() string {
 		return help
 	})
 
-	env.Bind("tokenize", func(src string) ([]lexer.Token, error) {
+	scope.Bind("tokenize", func(src string) ([]lexer.Token, error) {
 		return lexer.New(src).Tokens()
 	})
 
-	return env
+	return scope
 }
