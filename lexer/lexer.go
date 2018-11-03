@@ -2,10 +2,9 @@ package lexer
 
 import (
 	"errors"
-	"unicode/utf8"
-)
 
-const eof = -1
+	"github.com/spy16/parens/lexer/utfstrings"
+)
 
 // ErrEOF is returned when the lexer reaches the end of file.
 var ErrEOF = errors.New("end of file")
@@ -14,21 +13,15 @@ var ErrEOF = errors.New("end of file")
 // contain any UTF-8 characters.
 func New(src string) *Lexer {
 	return &Lexer{
-		src: src,
+		cur: utfstrings.Cursor{
+			String: src,
+		},
 	}
 }
 
 // Lexer performs lexical analysis of LISP.
 type Lexer struct {
-	cursor
-
-	src string
-}
-
-type cursor struct {
-	pos   int
-	start int
-	width int
+	cur utfstrings.Cursor
 }
 
 // Tokens runs through the entire source and returns tokens.
@@ -57,17 +50,17 @@ func (lex *Lexer) Next() (*Token, error) {
 	}
 
 	token := Token{}
-	token.Start = lex.start
-	token.Value = lex.src[lex.start:lex.pos]
+	token.Start = lex.cur.Start
+	token.Value = lex.cur.String[lex.cur.Start:lex.cur.Pos]
 	token.Type = tokenType
 
-	lex.start = lex.pos
+	lex.cur.Start = lex.cur.Pos
 	return &token, nil
 }
 
 func (lex *Lexer) nextTokenType() (TokenType, error) {
-	switch ru := lex.next(); {
-	case ru == eof:
+	switch ru := lex.cur.Next(); {
+	case ru == utfstrings.EOS:
 		return "", ErrEOF
 
 	case ru == '\'':
@@ -92,54 +85,30 @@ func (lex *Lexer) nextTokenType() (TokenType, error) {
 		return WHITESPACE, nil
 
 	case ru == '"':
-		lex.backup()
-		if err := scanString(lex); err != nil {
+		lex.cur.Backup()
+		if err := scanString(&lex.cur); err != nil {
 			return "", err
 		}
 		return STRING, nil
 
 	case ru == ';':
-		lex.backup()
-		scanComment(lex)
+		lex.cur.Backup()
+		scanComment(&lex.cur)
 		return COMMENT, nil
 
 	default:
-		lex.backup()
-		oldCursor := lex.cursor
-		if scanNumber(lex) {
+		lex.cur.Backup()
+		oldSel := lex.cur.Selection
+		if scanNumber(&lex.cur) {
 			return NUMBER, nil
 		}
-		lex.cursor = oldCursor
+		lex.cur.Selection = oldSel
 
-		if scanSymbol(lex) {
+		if scanSymbol(&lex.cur) {
 			return SYMBOL, nil
 		}
-		lex.cursor = oldCursor
+		lex.cur.Selection = oldSel
 
-		return "", scanInvalidToken(lex)
+		return "", scanInvalidToken(&lex.cur)
 	}
-}
-
-// next returns the next rune in the input.
-func (lex *Lexer) next() rune {
-	if int(lex.pos) >= len(lex.src) {
-		lex.width = 0
-		return eof
-	}
-	ru, width := utf8.DecodeRuneInString(lex.src[lex.pos:])
-	lex.width = width
-	lex.pos += lex.width
-	return ru
-}
-
-// peek returns but does not consume the next rune in the input.
-func (lex *Lexer) peek() rune {
-	r := lex.next()
-	lex.backup()
-	return r
-}
-
-// backup steps back one rune. Can only be called once per call of next.
-func (lex *Lexer) backup() {
-	lex.pos -= lex.width
 }

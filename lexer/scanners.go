@@ -5,29 +5,31 @@ import (
 	"regexp"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/spy16/parens/lexer/utfstrings"
 )
 
 var numberRegex = regexp.MustCompile("^(\\+|-)?\\d+(\\.\\d+)?$")
 
-// scanComment advances the lexer till line-break or eof.
-func scanComment(lex *Lexer) {
+// scanComment advances the cursor till line-break or eof.
+func scanComment(cur *utfstrings.Cursor) {
 	for {
-		ru := lex.next()
-		if ru == '\n' || ru == '\r' || ru == eof {
+		ru := cur.Next()
+		if ru == '\n' || ru == '\r' || ru == utfstrings.EOS {
 			break
 		}
 	}
 }
 
-// scanNumber advances the lexer till a delimiting character
+// scanNumber advances the cursor till a delimiting character
 // is reached and collects all characters. If the collected
 // characters don't match a number regex, returns false.
-func scanNumber(lex *Lexer) bool {
+func scanNumber(cur *utfstrings.Cursor) bool {
 	numStr := ""
 	for {
-		ru := lex.next()
-		if isSepratingChar(ru) || ru == eof {
-			lex.backup()
+		ru := cur.Next()
+		if isSepratingChar(ru) || ru == utfstrings.EOS {
+			cur.Backup()
 			break
 		}
 		numStr = fmt.Sprintf("%s%c", numStr, ru)
@@ -39,17 +41,17 @@ func scanNumber(lex *Lexer) bool {
 	return false
 }
 
-// scanSymbol advances the lexer until delimiting character is
-// reached or a invalid rune is reached. resets the lexer position
+// scanSymbol advances the cursor until delimiting character is
+// reached or a invalid rune is reached. resets the cursor position
 // in case of invalid rune.
-func scanSymbol(lex *Lexer) bool {
+func scanSymbol(cur *utfstrings.Cursor) bool {
 	runes := []rune{}
 	for {
-		ru := lex.next()
-		if ru == eof {
+		ru := cur.Next()
+		if ru == utfstrings.EOS {
 			break
 		} else if isSepratingChar(ru) {
-			lex.backup()
+			cur.Backup()
 			break
 		} else if !utf8.ValidRune(ru) {
 			return false
@@ -64,15 +66,15 @@ func scanSymbol(lex *Lexer) bool {
 	return true
 }
 
-func scanString(lex *Lexer) error {
-	lex.next() // consume double-quote
+func scanString(cur *utfstrings.Cursor) error {
+	cur.Next() // consume double-quote
 
 	for {
-		ru := lex.next()
+		ru := cur.Next()
 		if ru == '\\' {
-			nextRune := lex.peek()
+			nextRune := cur.Peek()
 			if nextRune == '"' || nextRune == 't' || nextRune == 'n' || nextRune == 'r' {
-				lex.next()
+				cur.Next()
 			}
 		}
 
@@ -80,7 +82,7 @@ func scanString(lex *Lexer) error {
 			return nil
 		}
 
-		if ru == eof {
+		if ru == utfstrings.EOS {
 			return fmt.Errorf("unterminated string")
 		}
 
@@ -89,13 +91,13 @@ func scanString(lex *Lexer) error {
 
 // scanInvalidToken scans the current unidentified token and returns
 // an error.
-func scanInvalidToken(lex *Lexer) error {
-	oldCursor := lex.cursor
+func scanInvalidToken(cur *utfstrings.Cursor) error {
+	oldSel := cur.Selection
 	unrec := ""
 	for {
-		ru := lex.next()
-		if ru == eof || isSepratingChar(ru) {
-			lex.cursor = oldCursor
+		ru := cur.Next()
+		if ru == utfstrings.EOS || isSepratingChar(ru) {
+			cur.Selection = oldSel
 			break
 		}
 

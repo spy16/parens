@@ -1,9 +1,8 @@
 package parser
 
 import (
-	"strings"
-
 	"github.com/spy16/parens/lexer"
+	"github.com/spy16/parens/lexer/utfstrings"
 	"github.com/spy16/parens/reflection"
 )
 
@@ -12,6 +11,21 @@ type StringExp struct {
 	Token lexer.Token
 }
 
+// Eval returns unquoted version of the STRING token.
 func (se StringExp) Eval(_ *reflection.Env) (interface{}, error) {
-	return strings.Trim(se.Token.Value, "\""), nil
+	return unquoteStr(se.Token.Value), nil
+}
+
+func unquoteStr(str string) string {
+	sc := &utfstrings.Cursor{
+		String: str[1 : len(str)-1],
+	}
+
+	final := sc.Build(func(cur *utfstrings.Cursor) {
+		if ru := cur.Next(); ru == '\\' && cur.Peek() == '"' {
+			return
+		}
+		cur.Backup()
+	})
+	return final
 }

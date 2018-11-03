@@ -76,7 +76,7 @@ func buildSExp(tokens *tokenQueue) (SExp, error) {
 		}
 		return se, nil
 
-	case lexer.WHITESPACE:
+	case lexer.WHITESPACE, lexer.NEWLINE:
 		return nil, nil
 
 	default:

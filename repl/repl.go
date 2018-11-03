@@ -66,6 +66,8 @@ func (repl *REPL) readAndExecute() bool {
 		return false
 	}
 
+	fmt.Println(expr)
+
 	if len(strings.TrimSpace(expr)) == 0 {
 		return false
 	}
@@ -91,7 +93,22 @@ func defaultWriteOut(v interface{}, err error) {
 func defaultReadIn() (string, error) {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("> ")
-	return reader.ReadString('\n')
+	src, err := reader.ReadString('\n')
+	if err != nil {
+		return "", err
+	}
+
+	// multiline source
+	if strings.HasSuffix(src, "\\\n") {
+		nl, err := defaultReadIn()
+		if err != nil {
+			return "", err
+		}
+
+		return strings.Trim(src, "\\\n") + "\n" + nl, nil
+	}
+
+	return strings.TrimSpace(src), nil
 }
 
 func formatResult(v interface{}) string {

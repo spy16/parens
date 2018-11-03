@@ -131,6 +131,21 @@ func TestLexer_Strings(suite *testing.T) {
 			result{lexer.STRING, `"hello world in \"english\""`},
 		)
 
+		checkValidTokens(t, `(tokenize "\"hello world\"")`,
+			result{lexer.LPAREN, "("},
+			result{lexer.SYMBOL, "tokenize"},
+			result{lexer.WHITESPACE, " "},
+			result{lexer.STRING, `"\"hello world\""`},
+			result{lexer.RPAREN, ")"},
+		)
+		checkValidTokens(t, `(tokenize "'hello'")`,
+			result{lexer.LPAREN, "("},
+			result{lexer.SYMBOL, "tokenize"},
+			result{lexer.WHITESPACE, " "},
+			result{lexer.STRING, `"'hello'"`},
+			result{lexer.RPAREN, ")"},
+		)
+
 		checkInvalidTokens(t, `"hello`, nil)
 	})
 
