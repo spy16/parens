@@ -2,13 +2,10 @@ package lexer
 
 import (
 	"errors"
-	"regexp"
 	"unicode/utf8"
 )
 
 const eof = -1
-
-var numberRegex = regexp.MustCompile("^(\\+|-)?\\d+(\\.\\d+)?$")
 
 // ErrEOF is returned when the lexer reaches the end of file.
 var ErrEOF = errors.New("end of file")
@@ -108,15 +105,18 @@ func (lex *Lexer) nextTokenType() (TokenType, error) {
 
 	default:
 		lex.backup()
+		oldCursor := lex.cursor
 		if scanNumber(lex) {
 			return NUMBER, nil
 		}
+		lex.cursor = oldCursor
 
 		if scanSymbol(lex) {
 			return SYMBOL, nil
 		}
+		lex.cursor = oldCursor
 
-		return "", &ErrUnrecognizedToken{val: ru}
+		return "", scanInvalidToken(lex)
 	}
 }
 

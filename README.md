@@ -49,6 +49,7 @@ interpreter.Execute("(print parens-version)")
     - [x] Good unit-test coverage [`97.9%` coverage]
     - [x] Consider whitespaes as delimiters and generate errors
     - [x] Support for `[]` (vector) and `'` (quote)
+    - [x] Enable all UTF-8 characters in symbols
 - [ ] Better `parser` package
     - [ ] Support for macro functions
     - [ ] Better error reporting

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"reflect"
 	"strings"
 
 	"github.com/c-bata/go-prompt"
@@ -58,7 +59,7 @@ func (repl *REPL) Start(ctx context.Context, out io.Writer, errOut io.Writer) er
 			if err != nil {
 				fmt.Fprintf(errOut, "error: %s\n", err)
 			} else {
-				fmt.Fprintln(out, result)
+				fmt.Fprintln(out, formatResult(result))
 			}
 		}
 	}
@@ -72,4 +73,15 @@ func (repl *REPL) SetBanner(banner string) {
 func newPrompter(completer prompt.Completer) *prompt.Prompt {
 	prm := prompt.New(nil, completer)
 	return prm
+}
+
+func formatResult(v interface{}) string {
+	rval := reflect.ValueOf(v)
+	switch rval.Kind() {
+	case reflect.Func:
+		return fmt.Sprintf("func()")
+
+	default:
+		return fmt.Sprint(v)
+	}
 }

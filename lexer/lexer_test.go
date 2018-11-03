@@ -209,8 +209,8 @@ func TestLexer_Symbols(suite *testing.T) {
 	})
 
 	suite.Run("UnicodeSymbols", func(t *testing.T) {
-		checkInvalidTokens(t, "≠", nil)
-		checkInvalidTokens(t, "∂", nil)
+		checkValidTokens(t, "≠", result{lexer.SYMBOL, "≠"})
+		checkValidTokens(t, "∂", result{lexer.SYMBOL, "∂"})
 	})
 }
 

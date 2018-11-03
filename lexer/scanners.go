@@ -2,13 +2,14 @@ package lexer
 
 import (
 	"fmt"
+	"regexp"
 	"unicode"
+	"unicode/utf8"
 )
 
-func isSepratingChar(ru rune) bool {
-	return oneOf(ru, ' ', '\t', '\n', '\r', '(', ')', '[', ']')
-}
+var numberRegex = regexp.MustCompile("^(\\+|-)?\\d+(\\.\\d+)?$")
 
+// scanComment advances the lexer till line-break or eof.
 func scanComment(lex *Lexer) {
 	for {
 		ru := lex.next()
@@ -18,11 +19,11 @@ func scanComment(lex *Lexer) {
 	}
 }
 
+// scanNumber advances the lexer till a delimiting character
+// is reached and collects all characters. If the collected
+// characters don't match a number regex, returns false.
 func scanNumber(lex *Lexer) bool {
-	oldCursor := lex.cursor
-
 	numStr := ""
-
 	for {
 		ru := lex.next()
 		if isSepratingChar(ru) || ru == eof {
@@ -31,32 +32,36 @@ func scanNumber(lex *Lexer) bool {
 		}
 		numStr = fmt.Sprintf("%s%c", numStr, ru)
 	}
-
 	if numberRegex.MatchString(numStr) {
 		return true
 	}
 
-	lex.cursor = oldCursor
 	return false
 }
 
+// scanSymbol advances the lexer until delimiting character is
+// reached or a invalid rune is reached. resets the lexer position
+// in case of invalid rune.
 func scanSymbol(lex *Lexer) bool {
-	oldCursor := lex.cursor
-
+	runes := []rune{}
 	for {
-		switch ru := lex.next(); {
-		case ru == eof:
-			return true
-
-		case isSepratingChar(ru):
+		ru := lex.next()
+		if ru == eof {
+			break
+		} else if isSepratingChar(ru) {
 			lex.backup()
-			return true
-
-		case !isAlphaNumeric(ru):
-			lex.cursor = oldCursor
+			break
+		} else if !utf8.ValidRune(ru) {
 			return false
 		}
+		runes = append(runes, ru)
 	}
+
+	if unicode.IsDigit(runes[0]) {
+		return false
+	}
+
+	return true
 }
 
 func scanString(lex *Lexer) error {
@@ -82,6 +87,24 @@ func scanString(lex *Lexer) error {
 	}
 }
 
+// scanInvalidToken scans the current unidentified token and returns
+// an error.
+func scanInvalidToken(lex *Lexer) error {
+	oldCursor := lex.cursor
+	unrec := ""
+	for {
+		ru := lex.next()
+		if ru == eof || isSepratingChar(ru) {
+			lex.cursor = oldCursor
+			break
+		}
+
+		unrec = fmt.Sprintf("%s%c", unrec, ru)
+	}
+
+	return &ErrUnrecognizedToken{val: unrec}
+}
+
 func oneOf(ru rune, set ...rune) bool {
 	for _, rs := range set {
 		if ru == rs {
@@ -91,7 +114,6 @@ func oneOf(ru rune, set ...rune) bool {
 	return false
 }
 
-// isAlphaNumeric reports whether r is a valid rune for an identifier.
-func isAlphaNumeric(r rune) bool {
-	return r == '>' || r == '<' || r == '=' || r == '-' || r == '+' || r == '*' || r == '&' || r == '_' || r == '/' || r == '?' || unicode.IsLetter(r) || unicode.IsDigit(r)
+func isSepratingChar(ru rune) bool {
+	return oneOf(ru, ' ', '\t', '\n', '\r', '(', ')', '[', ']')
 }
