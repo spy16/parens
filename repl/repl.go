@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"reflect"
 	"strings"
 )
 
@@ -107,15 +106,4 @@ func defaultReadIn() (string, error) {
 	}
 
 	return strings.TrimSpace(src), nil
-}
-
-func formatResult(v interface{}) string {
-	rval := reflect.ValueOf(v)
-	switch rval.Kind() {
-	case reflect.Func:
-		return fmt.Sprintf("func()")
-
-	default:
-		return fmt.Sprint(v)
-	}
 }
