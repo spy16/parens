@@ -32,7 +32,15 @@ func buildSExp(tokens *tokenQueue) (SExp, error) {
 	switch token.Type {
 	case lexer.LPAREN:
 		le := ListExp{}
-		for *tokens.TokenType(0) != lexer.RPAREN {
+
+		for {
+			next := tokens.Token(0)
+			if next == nil {
+				return nil, ErrEOF
+			}
+			if next.Type == lexer.RPAREN {
+				break
+			}
 			exp, err := buildSExp(tokens)
 			if err != nil {
 				return nil, err

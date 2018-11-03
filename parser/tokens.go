@@ -11,15 +11,7 @@ func (tq *tokenQueue) Token(index int) *lexer.Token {
 		return nil
 	}
 
-	return &(tq.tokens[0])
-}
-
-func (tq *tokenQueue) TokenType(index int) *lexer.TokenType {
-	if index >= len(tq.tokens) {
-		return nil
-	}
-
-	return &(tq.tokens[0].Type)
+	return &(tq.tokens[index])
 }
 
 // Pop removes and returns the the top element (i.e., 0th index) in the queue.
