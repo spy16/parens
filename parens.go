@@ -9,23 +9,40 @@ import (
 // New initializes new parens LISP interpreter with given env.
 func New(env *reflection.Env) *Interpreter {
 	return &Interpreter{
-		Env: env,
+		Env:   env,
+		Lex:   defaultLexFn,
+		Parse: defaultParseFn,
 	}
 }
 
-// Interpreter represents the LISP interpreter instance.
+// LexFn is responsible for reading the source and producing
+// tokens.
+type LexFn func(src string) ([]lexer.Token, error)
+
+// ParseFn is responsible for building SExp out of tokens.
+type ParseFn func(tokens []lexer.Token) (parser.SExp, error)
+
+// Interpreter represents the LISP interpreter instance. You can
+// provide your own implementations of LexFn and ParseFn to extend
+// the interpreter.
 type Interpreter struct {
 	*reflection.Env
+
+	// Lex is used to tokenize the given source.
+	Lex LexFn
+
+	// Parse is used to build SExp from tokens.
+	Parse ParseFn
 }
 
 // Execute tokenizes, parses and executes the given LISP code.
 func (parens *Interpreter) Execute(src string) (interface{}, error) {
-	tokens, err := lexer.New(src).Tokens()
+	tokens, err := parens.Lex(src)
 	if err != nil {
 		return nil, err
 	}
 
-	sexp, err := parser.Parse(tokens)
+	sexp, err := parens.Parse(tokens)
 	if err != nil {
 		return nil, err
 	}
@@ -36,4 +53,12 @@ func (parens *Interpreter) Execute(src string) (interface{}, error) {
 	}
 
 	return res, nil
+}
+
+func defaultLexFn(src string) ([]lexer.Token, error) {
+	return lexer.New(src).Tokens()
+}
+
+func defaultParseFn(tokens []lexer.Token) (parser.SExp, error) {
+	return parser.Parse(tokens)
 }

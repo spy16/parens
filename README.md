@@ -59,5 +59,6 @@ interpreter.Execute("(print parens-version)")
     - [ ] Type promotion/conversion
     - [ ] Support for macro functions
     - [ ] Performance optimization ?
+- [ ] Scopes (necessary to support `defun` macros)
 - [x] REPL
 - [ ] `Go` code generation?
