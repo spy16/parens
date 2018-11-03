@@ -59,7 +59,7 @@ func buildSExp(tokens *tokenQueue) (SExp, error) {
 		tokens.Pop()
 		return le, nil
 
-	case lexer.RPAREN:
+	case lexer.RPAREN, lexer.RVECT:
 		return nil, ErrEOF
 
 	case lexer.NUMBER:
@@ -82,6 +82,31 @@ func buildSExp(tokens *tokenQueue) (SExp, error) {
 
 	case lexer.WHITESPACE, lexer.NEWLINE:
 		return nil, nil
+
+	case lexer.LVECT:
+		ve := &VectorExp{}
+
+		for {
+			next := tokens.Token(0)
+			if next == nil {
+				return nil, ErrEOF
+			}
+			if next.Type == lexer.RVECT {
+				break
+			}
+			exp, err := buildSExp(tokens)
+			if err != nil {
+				return nil, err
+			}
+
+			if exp == nil {
+				continue
+			}
+
+			ve.Vector = append(ve.Vector, exp)
+		}
+		tokens.Pop()
+		return ve, nil
 
 	default:
 		return nil, fmt.Errorf("unknown token type: %s", (token.Type))
