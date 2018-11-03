@@ -21,7 +21,17 @@ for your usecase.
 Parens is *NOT*:
 
 1. An implementaion of a particular LISP dialect (like scheme, common-lisp etc.)
-2. A new dialect if LISP
+2. A new dialect of LISP
+
+
+## Installation
+
+Parens is not meant for stand-alone usage. But there is a REPL which is meant to showcase
+features of parens and can be installed as below:
+
+```bash
+go get -u -v github.com/spy16/parens/cmd/parens
+```
 
 
 ## Usage
