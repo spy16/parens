@@ -61,13 +61,12 @@ interpreter.Execute("(print parens-version)")
     - [x] Support for `[]` (vector) and `'` (quote)
     - [x] Enable all UTF-8 characters in symbols
 - [ ] Better `parser` package
-    - [ ] Support for macro functions
+    - [x] Support for macro functions
+    - [x] Support for vectors `[]`
     - [ ] Better error reporting
     - [ ] Support for single-quote literals
-    - [ ] Support for vectors `[]`
 - [ ] Better `reflection` package
     - [ ] Type promotion/conversion
-    - [ ] Support for macro functions
     - [ ] Performance optimization ?
 - [x] Scopes
 - [x] REPL

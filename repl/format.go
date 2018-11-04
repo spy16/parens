@@ -6,6 +6,14 @@ import (
 )
 
 func formatResult(v interface{}) string {
+	if v == nil {
+		return "nil"
+	}
 	rval := reflect.ValueOf(v)
-	return fmt.Sprintf("kind=%s, value=%v", rval.Kind(), rval)
+	switch rval.Kind() {
+	case reflect.Func:
+		return fmt.Sprintf("<function: %s>", rval.String())
+	default:
+		return fmt.Sprintf("%v", rval)
+	}
 }

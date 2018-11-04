@@ -28,6 +28,10 @@ func (le ListExp) Eval(scope *reflection.Scope) (interface{}, error) {
 		return nil, reflection.ErrNotCallable
 	}
 
+	if macroFn, ok := val.(MacroFunc); ok {
+		return macroFn(scope, le.List[1:])
+	}
+
 	args := []interface{}{}
 	for i := 1; i < len(le.List); i++ {
 		arg, err := le.List[i].Eval(scope)
@@ -39,3 +43,6 @@ func (le ListExp) Eval(scope *reflection.Scope) (interface{}, error) {
 
 	return reflection.Call(reflectVal, args...)
 }
+
+// MacroFunc will recieve un-evaluated list of s-expressions.
+type MacroFunc func(scope *reflection.Scope, sexps []SExp) (interface{}, error)
