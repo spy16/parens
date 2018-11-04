@@ -54,7 +54,7 @@ func buildSExp(tokens *tokenQueue) (SExp, error) {
 				continue
 			}
 
-			le.List = append(le.List, exp)
+			le.list = append(le.list, exp)
 		}
 		tokens.Pop()
 		return le, nil

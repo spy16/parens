@@ -1,5 +1,7 @@
 > WIP
 
+![Parens](./parens.png)
+
 # Parens
 
 Parens is a simple lisp implementation in `Go` (or `Golang`).
