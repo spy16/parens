@@ -15,6 +15,6 @@ func main() {
 	interpreter := parens.New(scope)
 
 	repl := repl.New(interpreter)
-	repl.Banner = "Welcome to Parens REPL!\nType \"(exit)\" or Ctrl+D to exit!"
+	repl.Banner = "Welcome to Parens REPL!\nType \"(?)\" for help!"
 	repl.Start(ctx)
 }
