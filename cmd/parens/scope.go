@@ -14,9 +14,12 @@ const version = "1.0.0"
 const help = `
 Welcome to Parens!
 
-Functions:
-1. (exit)         - Exit the REPL
-2. (tokenize src) - Tokenize src and display
+Type (exit) or Ctrl+D or Ctrl+C to exit the REPL.
+
+See "cmd/parens/main.go" in the github repository for
+more information.
+
+https://github.com/spy16/parens
 `
 
 func makeGlobalScope() *reflection.Scope {
