@@ -35,7 +35,7 @@ func buildSExp(tokens *tokenQueue) (SExp, error) {
 
 	switch token.Type {
 	case lexer.LPAREN:
-		le := ListExp{}
+		le := &ListExp{}
 
 		for {
 			next := tokens.Token(0)
@@ -54,7 +54,7 @@ func buildSExp(tokens *tokenQueue) (SExp, error) {
 				continue
 			}
 
-			le.list = append(le.list, exp)
+			le.List = append(le.List, exp)
 		}
 		tokens.Pop()
 		return le, nil

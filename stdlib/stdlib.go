@@ -9,8 +9,18 @@ import (
 // given scope.
 func WithBuiltins(scope *reflection.Scope) {
 	builtins := map[string]interface{}{
-		"setq":    parser.MacroFunc(Setq),
+		// macros
+		"setq": parser.MacroFunc(Setq),
+		"cond": parser.MacroFunc(Conditional),
+		"let":  parser.MacroFunc(Let),
+
+		// functions
 		"inspect": parser.MacroFunc(Inspect),
+
+		// values
+		"true":  true,
+		"false": false,
+		"nil":   false,
 	}
 
 	for name, val := range builtins {
