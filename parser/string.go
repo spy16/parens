@@ -1,19 +1,18 @@
 package parser
 
 import (
-	"github.com/spy16/parens/lexer"
 	"github.com/spy16/parens/lexer/utfstrings"
 	"github.com/spy16/parens/reflection"
 )
 
 // StringExp represents single and double quoted strings.
 type StringExp struct {
-	Token lexer.Token
+	value string
 }
 
 // Eval returns unquoted version of the STRING token.
 func (se StringExp) Eval(_ *reflection.Scope) (interface{}, error) {
-	return unquoteStr(se.Token.Value), nil
+	return unquoteStr(se.value), nil
 }
 
 func unquoteStr(str string) string {

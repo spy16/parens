@@ -64,13 +64,13 @@ func buildSExp(tokens *tokenQueue) (SExp, error) {
 
 	case lexer.NUMBER:
 		ne := NumberExp{
-			Token: *token,
+			numStr: token.Value,
 		}
 		return ne, nil
 
 	case lexer.STRING:
 		se := StringExp{
-			Token: *token,
+			value: token.Value,
 		}
 		return se, nil
 
@@ -103,7 +103,7 @@ func buildSExp(tokens *tokenQueue) (SExp, error) {
 				continue
 			}
 
-			ve.Vector = append(ve.Vector, exp)
+			ve.vector = append(ve.vector, exp)
 		}
 		tokens.Pop()
 		return ve, nil

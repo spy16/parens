@@ -6,14 +6,14 @@ import (
 
 // VectorExp represents a vector form.
 type VectorExp struct {
-	Vector []SExp
+	vector []SExp
 }
 
 // Eval creates a golang slice.
 func (ve *VectorExp) Eval(scope *reflection.Scope) (interface{}, error) {
 	lst := []interface{}{}
 
-	for _, sexp := range ve.Vector {
+	for _, sexp := range ve.vector {
 		val, err := sexp.Eval(scope)
 		if err != nil {
 			return nil, err

@@ -5,8 +5,8 @@
 # Parens
 
 Parens is a simple lisp implementation in `Go` (or `Golang`).
-More appropriately, Parens is just a collection of packages that
-you can embed in your Golang applications and build a domain language
+More appropriately, Parens is a collection of packages that you
+can embed in your Golang applications and build a domain language
 for your usecase.
 
 ## Goals:
@@ -28,8 +28,8 @@ Parens is *NOT*:
 
 ## Installation
 
-Parens is not meant for stand-alone usage. But there is a REPL which is meant to showcase
-features of parens and can be installed as below:
+Parens is not meant for stand-alone usage. But there is a REPL which is
+meant to showcase features of parens and can be installed as below:
 
 ```bash
 go get -u -v github.com/spy16/parens/cmd/parens
@@ -40,16 +40,29 @@ go get -u -v github.com/spy16/parens/cmd/parens
 
 Take a look at `cmd/parens/main.go` for a good example.
 
+### Basic Usage
+
 Following is a simple interpreter setup:
 
 ```go
-env := reflection.New()
-env.Bind("parens-version", "1.0.0")
-env.Bind("print", func(msg string) {
-	fmt.Println(msg)
-})
-interpreter := parens.New(env)
+scope := stdlib.WithBuiltins(reflection.NewScope(nil))
+interpreter := parens.New(scope)
 interpreter.Execute("(print parens-version)")
+```
+
+### Macros
+
+Golang functions can be registered as macros into the interpreter
+as shown below (for more examples, see `./stdlib/macros.go`):
+
+```go
+func inspect(_ *reflection.Scope, _ string, sexps []parser.SExp) (interface{}, error) {
+    spew.Dump(sexps)
+    return nil, nil
+}
+
+scope := reflection.NewScope(nil)
+scope.Bind("inspect", parser.MacroFunc(inspect))
 ```
 
 ## TODO

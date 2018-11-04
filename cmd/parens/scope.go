@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/spy16/parens/lexer"
-	"github.com/spy16/parens/parser"
 	"github.com/spy16/parens/reflection"
 	"github.com/spy16/parens/stdlib"
 )
@@ -32,7 +31,6 @@ func makeGlobalScope() *reflection.Scope {
 		return lexer.New(src).Tokens()
 	})
 
-	scope.Bind("setq", parser.MacroFunc(stdlib.Setq))
-
+	stdlib.WithBuiltins(scope)
 	return scope
 }

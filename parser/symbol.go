@@ -1,14 +1,12 @@
 package parser
 
 import (
-	"github.com/spy16/parens/lexer"
 	"github.com/spy16/parens/reflection"
 )
 
 // SymbolExp represents a symbol.
 type SymbolExp struct {
 	Symbol string
-	Token  lexer.Token
 }
 
 // ExpType returns s-expression type name.

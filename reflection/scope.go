@@ -40,7 +40,7 @@ func (sc *Scope) Value(name string) (*Value, error) {
 		return sc.parent.Value(name)
 	}
 
-	return nil, ErrNameNotFound
+	return nil, fmt.Errorf("name '%s' not found", name)
 }
 
 func (sc *Scope) Get(name string) (interface{}, error) {

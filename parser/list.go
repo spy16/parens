@@ -29,7 +29,11 @@ func (le ListExp) Eval(scope *reflection.Scope) (interface{}, error) {
 	}
 
 	if macroFn, ok := val.(MacroFunc); ok {
-		return macroFn(scope, le.list[1:])
+		var name string
+		if sym, ok := le.list[0].(SymbolExp); ok {
+			name = sym.Symbol
+		}
+		return macroFn(scope, name, le.list[1:])
 	}
 
 	args := []interface{}{}
@@ -44,5 +48,8 @@ func (le ListExp) Eval(scope *reflection.Scope) (interface{}, error) {
 	return reflection.Call(reflectVal, args...)
 }
 
-// MacroFunc will recieve un-evaluated list of s-expressions.
-type MacroFunc func(scope *reflection.Scope, sexps []SExp) (interface{}, error)
+// MacroFunc will recieve un-evaluated list of s-expressions and the
+// current scope. In addition, if the macro was accessed through a name
+// the name will be passed as well. If the macro was not accessed by name
+// (e.g. was result of another list etc.), name will be empty string.
+type MacroFunc func(scope *reflection.Scope, name string, sexps []SExp) (interface{}, error)

@@ -56,7 +56,6 @@ func TestScope_Get(suite *testing.T) {
 
 		val, err := scope.Value("some-unknown-name")
 		require.Error(t, err)
-		assert.Equal(t, reflection.ErrNameNotFound, err)
 		assert.Nil(t, val)
 	})
 
