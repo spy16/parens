@@ -45,7 +45,8 @@ Take a look at `cmd/parens/main.go` for a good example.
 Following is a simple interpreter setup:
 
 ```go
-scope := stdlib.WithBuiltins(reflection.NewScope(nil))
+scope := reflection.NewScope(nil)
+stdlib.WithBuiltins(scope)
 interpreter := parens.New(scope)
 interpreter.Execute("(print parens-version)")
 ```
