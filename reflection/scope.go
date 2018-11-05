@@ -43,6 +43,7 @@ func (sc *Scope) Value(name string) (*Value, error) {
 	return nil, fmt.Errorf("name '%s' not found", name)
 }
 
+// Get returns the actual Go value bound to the given name.
 func (sc *Scope) Get(name string) (interface{}, error) {
 	val, err := sc.Value(name)
 	if err != nil {

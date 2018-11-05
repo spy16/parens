@@ -19,15 +19,12 @@ func Call(rVal reflect.Value, args ...interface{}) (interface{}, error) {
 
 	argVals := []reflect.Value{}
 	for i := 0; i < rType.NumIn(); i++ {
-		argVal := reflect.ValueOf(args[i])
-		actualArgType := argVal.Type()
-		expectedArgType := rType.In(i)
-
-		if actualArgType != expectedArgType {
-			return nil, fmt.Errorf("invalid argument type: expected=%s, actual=%s", expectedArgType, actualArgType)
+		convertedArgVal, err := convertValueType(args[i], rType.In(i))
+		if err != nil {
+			return nil, err
 		}
 
-		argVals = append(argVals, argVal)
+		argVals = append(argVals, convertedArgVal)
 	}
 
 	retVals := rVal.Call(argVals)
@@ -43,4 +40,13 @@ func Call(rVal reflect.Value, args ...interface{}) (interface{}, error) {
 		wrappedRetVals = append(wrappedRetVals, retVal.Interface())
 	}
 	return wrappedRetVals, nil
+}
+
+func convertValueType(v interface{}, expected reflect.Type) (reflect.Value, error) {
+	val := NewValue(v)
+	if val.RVal.Type() == expected {
+		return val.RVal, nil
+	}
+
+	return reflect.Value{}, fmt.Errorf("invalid argument type: expected=%s, actual=%s", expected, val.RVal.Type())
 }

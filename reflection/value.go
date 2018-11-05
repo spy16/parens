@@ -21,6 +21,7 @@ func (val *Value) ToInt() (int64, error) {
 	if isKind(val.RVal, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64) {
 		return val.RVal.Int(), nil
 	}
+
 	return 0, ErrConversionImpossible
 }
 
