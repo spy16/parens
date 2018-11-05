@@ -1,8 +1,6 @@
 package parser
 
 import (
-	"reflect"
-
 	"github.com/spy16/parens/reflection"
 )
 
@@ -23,11 +21,6 @@ func (le *ListExp) Eval(scope *reflection.Scope) (interface{}, error) {
 		return nil, err
 	}
 
-	reflectVal := reflect.ValueOf(val)
-	if reflectVal.Kind() != reflect.Func {
-		return nil, reflection.ErrNotCallable
-	}
-
 	if macroFn, ok := val.(MacroFunc); ok {
 		var name string
 		if sym, ok := le.List[0].(SymbolExp); ok {
@@ -45,7 +38,7 @@ func (le *ListExp) Eval(scope *reflection.Scope) (interface{}, error) {
 		args = append(args, arg)
 	}
 
-	return reflection.Call(reflectVal, args...)
+	return reflection.Call(val, args...)
 }
 
 // MacroFunc will recieve un-evaluated list of s-expressions and the

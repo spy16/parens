@@ -9,7 +9,7 @@ import (
 // NumberExp represents number s-expression.
 type NumberExp struct {
 	numStr string
-	number *float64
+	number interface{}
 }
 
 // Eval for a number returns itself.
@@ -23,5 +23,5 @@ func (ne NumberExp) Eval(scope *reflection.Scope) (interface{}, error) {
 		ne.number = &num
 	}
 
-	return *ne.number, nil
+	return ne.number, nil
 }

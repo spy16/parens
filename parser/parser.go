@@ -3,6 +3,7 @@ package parser
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 
 	"github.com/spy16/parens/lexer"
 	"github.com/spy16/parens/reflection"
@@ -11,14 +12,47 @@ import (
 // ErrEOF is returned when the parser has consumed all tokens.
 var ErrEOF = errors.New("end of file")
 
-// Parse the slice of tokens and build an AST
+// Parse tokenizes and parses the src to build an AST.
 func Parse(src string) (SExp, error) {
+	return parseData(src)
+}
+
+// ParseFile tokenizes and builds an AST from contents of the file.
+func ParseFile(file string) (SExp, error) {
+	data, err := ioutil.ReadFile(file)
+	if err != nil {
+		return nil, err
+	}
+
+	ast, err := parseData(string(data))
+	if err != nil {
+		return nil, err
+	}
+	ast.File = file
+	return ast, nil
+}
+
+func parseData(src string) (*AST, error) {
 	tokens, err := lexer.New(src).Tokens()
 	if err != nil {
 		return nil, err
 	}
 
-	return buildSExp(&tokenQueue{tokens: tokens})
+	sexp, err := buildSExp(&tokenQueue{tokens: tokens})
+	if err != nil {
+		return nil, err
+	}
+
+	return &AST{
+		SExp: sexp,
+	}, nil
+}
+
+// AST contains the root s-expression and file information.
+type AST struct {
+	SExp
+
+	File string
 }
 
 // SExp represents a symbolic expression.
