@@ -43,7 +43,7 @@ Following is a simple interpreter setup:
 
 ```go
 scope := reflection.NewScope(nil)
-stdlib.WithBuiltins(scope)
+stdlib.WithBuiltins(scope) // optional - only if standard functions are needed
 interpreter := parens.New(scope)
 interpreter.Execute("(print parens-version)")
 ```
