@@ -54,7 +54,7 @@ func mockSExp(v interface{}, err error) parser.SExp {
 }
 
 func mockParseFn(sexp parser.SExp, err error) parens.ParseFn {
-	return func(src string) (parser.SExp, error) {
+	return func(name, src string) (parser.SExp, error) {
 		if err != nil {
 			return nil, err
 		}
