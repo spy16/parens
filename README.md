@@ -43,9 +43,16 @@ Following is a simple interpreter setup:
 
 ```go
 scope := reflection.NewScope(nil)
-stdlib.WithBuiltins(scope) // optional - only if standard functions are needed
+
+// optional - only if standard functions are needed
+stdlib.WithBuiltins(scope)
+
+// custom bind. use any values!
+scope.Bind("message", "Hello World!")
+scope.Bind("π", 3.1412)
+
 interpreter := parens.New(scope)
-interpreter.Execute("(print parens-version)")
+interpreter.Execute(`(println message)`)
 ```
 
 ### Macros
@@ -81,7 +88,7 @@ scope.Bind("inspect", parser.MacroFunc(inspect))
     - [ ] Support for variadic functions
     - [ ] Support for methods
     - [ ] Type promotion/conversion
-    - [ ] Performance optimization ?
+- [ ] Performance Benchmark (optimization ?)
 - [x] Scopes
 - [x] REPL
 - [ ] `Go` code generation?
