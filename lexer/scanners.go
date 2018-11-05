@@ -83,7 +83,7 @@ func scanString(cur *utfstrings.Cursor) error {
 		}
 
 		if ru == utfstrings.EOS {
-			return fmt.Errorf("unterminated string")
+			return ErrUnterminatedString
 		}
 
 	}

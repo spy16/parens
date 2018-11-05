@@ -12,7 +12,7 @@ type Token struct {
 }
 
 func (token Token) String() string {
-	return fmt.Sprintf("Token{type=%s, position=%d:%d, value='%s'}",
+	return fmt.Sprintf("%s{%d:%d, '%s'}",
 		token.Type, token.Start, token.Start+len(token.Value), token.Value)
 }
 
