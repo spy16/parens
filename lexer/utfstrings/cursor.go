@@ -5,7 +5,7 @@ import (
 )
 
 // EOS is returned when cursor reaches the end of the string.
-const EOS = -1
+const EOS = int32(-1)
 
 // Cursor provides functions to navigate a Unicode string.
 type Cursor struct {
@@ -18,18 +18,18 @@ type Cursor struct {
 type Selection struct {
 	Start int
 	Pos   int
-	Width int
+	width int
 }
 
 // Next returns the next rune in the string.
 func (cur *Cursor) Next() rune {
 	if int(cur.Pos) >= len(cur.String) {
-		cur.Width = 0
+		cur.width = 0
 		return EOS
 	}
 	ru, width := utf8.DecodeRuneInString(cur.String[cur.Pos:])
-	cur.Width = width
-	cur.Pos += cur.Width
+	cur.width = width
+	cur.Pos += cur.width
 	return ru
 }
 
@@ -42,7 +42,8 @@ func (cur *Cursor) Peek() rune {
 
 // Backup steps back one rune. Can only be called once per call of next.
 func (cur *Cursor) Backup() {
-	cur.Pos -= cur.Width
+	cur.Pos -= cur.width
+	cur.width = 0
 }
 
 // Build will build a string from the cursor. move will be called before
@@ -50,6 +51,10 @@ func (cur *Cursor) Backup() {
 // runes. Build will always start from the beginning of the string. This
 // will not modify the original cursor since it has value receiver.
 func (cur Cursor) Build(move MoveFunc) string {
+	if len(cur.String) == 0 {
+		return ""
+	}
+
 	cur.Selection = Selection{}
 	rus := []rune{}
 
