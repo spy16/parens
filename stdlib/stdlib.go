@@ -12,6 +12,7 @@ import (
 func WithBuiltins(scope *reflection.Scope) {
 	builtins := map[string]interface{}{
 		// macros
+		"begin":   parser.MacroFunc(Begin),
 		"setq":    parser.MacroFunc(Setq),
 		"cond":    parser.MacroFunc(Conditional),
 		"let":     parser.MacroFunc(Let),

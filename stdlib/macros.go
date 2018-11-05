@@ -10,22 +10,27 @@ import (
 	"github.com/spy16/parens/reflection"
 )
 
-// Let creates a new sub-scope from the global scope and executes all the
-// sexps inside the new scope. Once the Let block ends, all the names bound
-// will be removed.
-func Let(scope *reflection.Scope, _ string, sexps []parser.SExp) (interface{}, error) {
-	localScope := reflection.NewScope(scope)
-
+// Begin executes all s-exps one by one and returns the result of last evaluation.
+func Begin(scope *reflection.Scope, _ string, sexps []parser.SExp) (interface{}, error) {
 	var val interface{}
 	var err error
 	for _, sexp := range sexps {
-		val, err = sexp.Eval(localScope)
+		val, err = sexp.Eval(scope)
 		if err != nil {
 			return nil, err
 		}
 
 	}
 	return val, nil
+}
+
+// Let creates a new sub-scope from the global scope and executes all the
+// sexps inside the new scope. Once the Let block ends, all the names bound
+// will be removed. In other words, Let is a begin with local scope.
+func Let(scope *reflection.Scope, name string, sexps []parser.SExp) (interface{}, error) {
+	localScope := reflection.NewScope(scope)
+
+	return Begin(localScope, name, sexps)
 }
 
 // Conditional is commonly know LISP (cond (test1 act1)...) construct.
