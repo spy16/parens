@@ -28,18 +28,6 @@ func TestLexer(suite *testing.T) {
 	)
 }
 
-func TestLexer_SingleQuote(t *testing.T) {
-	checkValidTokens(t, `(hello '())`,
-		result{lexer.LPAREN, "("},
-		result{lexer.SYMBOL, "hello"},
-		result{lexer.WHITESPACE, " "},
-		result{lexer.QUOTE, "'"},
-		result{lexer.LPAREN, "("},
-		result{lexer.RPAREN, ")"},
-		result{lexer.RPAREN, ")"},
-	)
-}
-
 func TestLexer_Parens(suite *testing.T) {
 	suite.Parallel()
 

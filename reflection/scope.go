@@ -18,6 +18,16 @@ type Scope struct {
 	vals   map[string]Value
 }
 
+// Root traverses the entire heirarchy of scopes and returns the topmost
+// one (i.e., the one with no parent).
+func (sc *Scope) Root() *Scope {
+	if sc.parent == nil {
+		return sc
+	}
+
+	return sc.parent.Root()
+}
+
 // Bind will bind the value to the given name. If a value already
 // exists for the given name, it will be overwritten.
 func (sc *Scope) Bind(name string, v interface{}) {

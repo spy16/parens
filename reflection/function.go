@@ -48,5 +48,9 @@ func convertValueType(v interface{}, expected reflect.Type) (reflect.Value, erro
 		return val.RVal, nil
 	}
 
+	if expected.Kind() == reflect.Interface {
+		return reflect.ValueOf(val.RVal.Interface()), nil
+	}
+
 	return reflect.Value{}, fmt.Errorf("invalid argument type: expected=%s, actual=%s", expected, val.RVal.Type())
 }

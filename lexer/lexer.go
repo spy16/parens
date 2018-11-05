@@ -63,9 +63,6 @@ func (lex *Lexer) nextTokenType() (TokenType, error) {
 	case ru == utfstrings.EOS:
 		return "", ErrEOF
 
-	case ru == '\'':
-		return QUOTE, nil
-
 	case ru == '(':
 		return LPAREN, nil
 

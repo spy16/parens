@@ -1,6 +1,8 @@
 package stdlib
 
 import (
+	"fmt"
+
 	"github.com/spy16/parens/parser"
 	"github.com/spy16/parens/reflection"
 )
@@ -14,6 +16,14 @@ func WithBuiltins(scope *reflection.Scope) {
 		"cond":    parser.MacroFunc(Conditional),
 		"let":     parser.MacroFunc(Let),
 		"inspect": parser.MacroFunc(Inspect),
+
+		// functions
+		"print": func(msg interface{}) {
+			fmt.Print(msg)
+		},
+		"println": func(msg interface{}) {
+			fmt.Println(msg)
+		},
 
 		// values
 		"true":  true,

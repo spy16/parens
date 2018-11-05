@@ -71,14 +71,15 @@ scope.Bind("inspect", parser.MacroFunc(inspect))
 - [x] Better `lexer` package
     - [x] Good unit-test coverage [`97.9%` coverage]
     - [x] Consider whitespaes as delimiters and generate errors
-    - [x] Support for `[]` (vector) and `'` (quote)
+    - [x] Support for `[]` (vector)
     - [x] Enable all UTF-8 characters in symbols
 - [ ] Better `parser` package
     - [x] Support for macro functions
     - [x] Support for vectors `[]`
     - [ ] Better error reporting
-    - [ ] Support for single-quote literals
 - [ ] Better `reflection` package
+    - [ ] Support for variadic functions
+    - [ ] Support for methods
     - [ ] Type promotion/conversion
     - [ ] Performance optimization ?
 - [x] Scopes
