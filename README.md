@@ -4,9 +4,7 @@
 
 # Parens
 
-Parens is a simple embeddable LISP implementation in `Go` (or `Golang`).
-More appropriately, Parens is a scripting layer for `Go` applications which
-uses LISP syntax.
+Parens is a LISP-like scripting layer for `Go` (or `Golang`).
 
 ## Goals:
 
