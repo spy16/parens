@@ -10,6 +10,10 @@
     (setq π 3)
     (printf "integer part of pi is %f\n" π))
 
+  ; value of π should now be reset to original
+  (printf "but real value of pi is %f\n" π)
+
+
   ; let's use some cool looking characters since
   ; parens supports UTF-8
   (setq ∂ 0)
@@ -19,9 +23,6 @@
   (println "1 + 2 =" (∑ 1 2))
   (println "false and nil are not same =" (≠ false nil))
 
-
-  ; value of π should now be reset to original
-  (printf "but real value of pi is %f\n" π)
 
   ; defining a lambda
   (setq square (lambda (a) (* a a)))
