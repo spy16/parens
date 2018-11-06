@@ -14,9 +14,9 @@ func main() {
 	scope := makeGlobalScope()
 	scope.Bind("exit", cancel)
 
-	interpreter := parens.New(scope)
+	exec := parens.New(scope)
 	if len(os.Args) == 2 {
-		_, err := interpreter.ExecuteFile(os.Args[1])
+		_, err := exec.ExecuteFile(os.Args[1])
 		if err != nil {
 			fmt.Printf("error: %s\n", err)
 			os.Exit(1)
@@ -24,8 +24,8 @@ func main() {
 		return
 	}
 
-	interpreter.DefaultSource = "<REPL>"
-	repl := parens.NewREPL(interpreter)
+	exec.DefaultSource = "<REPL>"
+	repl := parens.NewREPL(exec)
 	repl.Banner = "Welcome to Parens REPL!\nType \"(?)\" for help!"
 	repl.Start(ctx)
 }

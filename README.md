@@ -6,13 +6,82 @@ Parens is a LISP-like scripting layer for `Go` (or `Golang`).
 
 ## Goals:
 
-1. Simple
-    - Should have absolute bare minimum functionality.
-2. Flexible
-    - Should be possible to control what is available
-    - Standard functions should be registered not built-in.
-3. Interoperable
-    - Should be able to expose Go values inside LISP and vice versa without custom signatures.
+### 1. Simple
+
+Should have absolute bare minimum functionality.
+
+```go
+scope := reflection.NewScope(nil)
+exec := parens.New(scope)
+exec.Execute("10")
+```
+
+Above snippet gives you an interpreter that understands only literals. No symbol
+is available here at all. You get to decide what should be available.
+
+### 2. Flexible
+
+Should be possible to control what is available. Standard functions should be registered
+not built-in.
+
+```go
+stdlib.RegisterBuiltins(scope)
+```
+
+Adding this one line into the previous snippet allows you to include some minimal set
+of standard functions and macros like `let`, `cond`, `+`, `-`, `*`, `/` etc.
+
+### 3. Interoperable
+
+Should be able to expose Go values inside LISP and vice versa without custom signatures.
+
+```go
+// any Go value can be exposed to interpreter as shown here:
+scope.Bind("π", 3.1412)
+scope.Bind("banner", "Hello from Parens!")
+
+// functions can be bound directly
+scope.Bind("println", fmt.Println)
+scope.Bind("printf", fmt.Printf)
+
+// one bound you can use them just as easily:
+exec.Execute("(println banner)")
+exec.Execute("(printf \"value of π is = %f\" π))
+```
+
+
+### 4. Extensible Semantics
+
+Special constructs like `begin`, `cond`, `if` etc. can be added using Macros.
+
+```go
+// This is standard implementation of '(do expr*)' special-form from Clojure!
+func doMacro(scope *reflection.Scope, callName string, exps []parser.SExp) (interface{}, error) {
+    var val interface{}
+    var err error
+    for _, exp := range exps {
+        val, err = exp.Eval(scope)
+        if err != nil {
+            return nil, err
+        }
+    }
+
+    return val, nil
+}
+
+// register the macro func in the scope.
+scope.Bind("do", parser.MacroFunc(doMacro))
+
+// finally use it! value of 'val' should be 3.1412
+val, _ := exec.Execute(`
+(do
+    (println "Hello from parens")
+    (setq π 3.1412))
+`)
+
+```
+
+See `stdlib/macros.go` for some built-in macros.
 
 
 Parens is *NOT*:
@@ -38,49 +107,8 @@ file using `parens <filename>` command.
 
 Take a look at `cmd/parens/main.go` for a good example.
 
-### Basic Usage
-
-Following is a simple interpreter setup:
-
-```go
-scope := reflection.NewScope(nil)
-
-// optional - only if standard functions are needed
-stdlib.RegisterBuiltins(scope)
-
-// custom bind. use any values!
-scope.Bind("message", "Hello World!")
-scope.Bind("π", 3.1412)
-
-interpreter := parens.New(scope)
-interpreter.Execute(`(println message)`)
-```
-
-### Macros
-
-Golang functions can be registered as macros into the interpreter
-as shown below (for more examples, see `./stdlib/macros.go`):
-
-```go
-func inspect(_ *reflection.Scope, _ string, sexps []parser.SExp) (interface{}, error) {
-    spew.Dump(sexps)
-    return nil, nil
-}
-
-scope := reflection.NewScope(nil)
-scope.Bind("inspect", parser.MacroFunc(inspect))
-```
-
 ## TODO
 
-- [x] Basic working prototype
-    - [x] basic `lexer` and `parser`
-    - [x] basic `reflection` package with support for interop b/w `Go` and `lisp`
-- [x] Better `lexer` package
-    - [x] Good unit-test coverage [`97.9%` coverage]
-    - [x] Consider whitespaes as delimiters and generate errors
-    - [x] Support for `[]` (vector)
-    - [x] Enable all UTF-8 characters in symbols
 - [ ] Better `parser` package
     - [x] Support for macro functions
     - [x] Support for vectors `[]`
@@ -94,6 +122,4 @@ scope.Bind("inspect", parser.MacroFunc(inspect))
         - [x] any values to `interface{}` type
         - [ ] `intX` and `floatX` types to `int8`, `int16`, `float32` and vice versa?
 - [ ] Performance Benchmark (optimization ?)
-- [x] Scopes
-- [x] REPL
 - [ ] `Go` code generation?

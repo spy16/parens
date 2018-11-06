@@ -2,6 +2,7 @@ package parens
 
 import (
 	"io/ioutil"
+	"strings"
 
 	"github.com/spy16/parens/parser"
 	"github.com/spy16/parens/reflection"
@@ -44,6 +45,7 @@ func (parens *Interpreter) ExecuteFile(file string) (interface{}, error) {
 }
 
 func (parens *Interpreter) executeSrc(name, src string) (interface{}, error) {
+	src = strings.TrimSpace(src)
 	sexp, err := parens.Parse(name, src)
 	if err != nil {
 		return nil, err
