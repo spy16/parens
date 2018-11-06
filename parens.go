@@ -22,11 +22,8 @@ type ParseFn func(name, src string) (parser.SExp, error)
 // Interpreter represents the LISP interpreter instance. You can provide
 // your own implementations of ParseFn to extend the interpreter.
 type Interpreter struct {
-	Scope *reflection.Scope
-
-	// Parse is used to build SExp/AST from source.
-	Parse ParseFn
-
+	Scope         *reflection.Scope
+	Parse         ParseFn
 	DefaultSource string
 }
 

@@ -20,7 +20,7 @@ func (ne NumberExp) Eval(scope *reflection.Scope) (interface{}, error) {
 			return nil, err
 		}
 
-		ne.number = &num
+		ne.number = num
 	}
 
 	return ne.number, nil

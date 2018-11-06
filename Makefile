@@ -9,5 +9,8 @@ build:
 	@go build -o bin/parens ./cmd/parens/*.go
 
 test:
-	@go test -cover ./. ./lexer/... ./parser/... ./reflection/...
+	@go test -cover ./...
 
+
+benchmark:
+	@go test -bench=. ./...

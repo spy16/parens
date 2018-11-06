@@ -16,19 +16,41 @@ type Value struct {
 	RVal reflect.Value
 }
 
-// ToInt attempts converting the value to int64.
-func (val *Value) ToInt() (int64, error) {
-	if isKind(val.RVal, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64) {
+// To converts the value to requested kind if possible.
+func (val *Value) To(kind reflect.Kind) (interface{}, error) {
+	switch kind {
+	case reflect.Int, reflect.Int64:
+		return val.ToInt64()
+	case reflect.Float64:
+		return val.ToFloat64()
+	case reflect.String:
+		return val.ToString()
+	case reflect.Bool:
+		return val.ToBool()
+	case reflect.Interface:
+		return val.RVal.Interface(), nil
+	default:
+		return nil, ErrConversionImpossible
+	}
+}
+
+// ToInt64 attempts converting the value to int64.
+func (val *Value) ToInt64() (int64, error) {
+	if val.isInt() {
 		return val.RVal.Int(), nil
+	} else if val.isFloat() {
+		return int64(val.RVal.Float()), nil
 	}
 
 	return 0, ErrConversionImpossible
 }
 
-// ToFloat attempts converting the value to float64.
-func (val *Value) ToFloat() (float64, error) {
-	if isKind(val.RVal, reflect.Float32, reflect.Float64) {
+// ToFloat64 attempts converting the value to float64.
+func (val *Value) ToFloat64() (float64, error) {
+	if val.isFloat() {
 		return val.RVal.Float(), nil
+	} else if val.isInt() {
+		return float64(val.RVal.Int()), nil
 	}
 
 	return 0, ErrConversionImpossible
@@ -50,6 +72,14 @@ func (val *Value) ToString() (string, error) {
 	}
 
 	return "", ErrConversionImpossible
+}
+
+func (val *Value) isInt() bool {
+	return isKind(val.RVal, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64)
+}
+
+func (val *Value) isFloat() bool {
+	return isKind(val.RVal, reflect.Float32, reflect.Float64)
 }
 
 func isKind(rval reflect.Value, kinds ...reflect.Kind) bool {
