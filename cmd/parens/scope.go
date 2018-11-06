@@ -31,6 +31,6 @@ func makeGlobalScope() *reflection.Scope {
 		return lexer.New(src).Tokens()
 	})
 
-	stdlib.WithBuiltins(scope)
+	stdlib.RegisterBuiltins(scope)
 	return scope
 }

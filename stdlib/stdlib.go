@@ -8,9 +8,9 @@ import (
 	"github.com/spy16/parens/reflection"
 )
 
-// WithBuiltins registers different built-in functions into the
+// RegisterBuiltins registers different built-in functions into the
 // given scope.
-func WithBuiltins(scope *reflection.Scope) {
+func RegisterBuiltins(scope *reflection.Scope) {
 	builtins := map[string]interface{}{
 		// macros
 		"begin":   parser.MacroFunc(Begin),

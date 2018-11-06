@@ -36,8 +36,10 @@ func BenchmarkNonVariadicCall(suite *testing.B) {
 	})
 
 	suite.Run("WithTypeConversion", func(b *testing.B) {
+		// addFunc expects float64 but forcefully passing int64 which
+		// triggers type-conversion in parens' reflection package.
 		for i := 0; i < b.N; i++ {
-			reflection.Call(addFunc, []interface{}{int(1), int(2)}...)
+			reflection.Call(addFunc, []interface{}{int64(1), int64(2)}...)
 		}
 	})
 }
@@ -56,8 +58,10 @@ func BenchmarkVariadicCall(suite *testing.B) {
 	})
 
 	suite.Run("WithTypeConversion", func(b *testing.B) {
+		// sumFunc expects float64 but forcefully passing int64 which
+		// triggers type-conversion in parens' reflection package.
 		for i := 0; i < b.N; i++ {
-			reflection.Call(sumFunc, []interface{}{int(1), int(2)}...)
+			reflection.Call(sumFunc, []interface{}{int64(1), int64(2)}...)
 		}
 	})
 }

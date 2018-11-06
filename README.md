@@ -46,7 +46,7 @@ Following is a simple interpreter setup:
 scope := reflection.NewScope(nil)
 
 // optional - only if standard functions are needed
-stdlib.WithBuiltins(scope)
+stdlib.RegisterBuiltins(scope)
 
 // custom bind. use any values!
 scope.Bind("message", "Hello World!")
