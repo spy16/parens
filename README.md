@@ -40,13 +40,15 @@ Should be able to expose Go values inside LISP and vice versa without custom sig
 scope.Bind("π", 3.1412)
 scope.Bind("banner", "Hello from Parens!")
 
-// functions can be bound directly
+// functions can be bound directly.
+// variadic functions are supported too.
 scope.Bind("println", fmt.Println)
 scope.Bind("printf", fmt.Printf)
+scope.Bind("sin", math.Sin)
 
-// one bound you can use them just as easily:
+// once bound you can use them just as easily:
 exec.Execute("(println banner)")
-exec.Execute("(printf \"value of π is = %f\" π))
+exec.Execute(`(printf "value of π is = %f" π)`)
 ```
 
 
@@ -72,22 +74,20 @@ func doMacro(scope *reflection.Scope, callName string, exps []parser.SExp) (inte
 // register the macro func in the scope.
 scope.Bind("do", parser.MacroFunc(doMacro))
 
-// finally use it! value of 'val' should be 3.1412
-val, _ := exec.Execute(`
+// finally use it!
+src := `
 (do
     (println "Hello from parens")
     (setq π 3.1412))
-`)
+`
+// value of 'val' after below statement should be 3.1412
+val, _ := exec.Execute(src)
 
 ```
 
 See `stdlib/macros.go` for some built-in macros.
 
 
-Parens is *NOT*:
-
-1. An implementaion of a particular LISP dialect (like scheme, common-lisp etc.)
-2. A new dialect of LISP
 
 
 ## Installation
@@ -106,6 +106,13 @@ file using `parens <filename>` command.
 ## Usage
 
 Take a look at `cmd/parens/main.go` for a good example.
+
+
+## Parens is *NOT*:
+
+1. An implementaion of a particular LISP dialect (like scheme, common-lisp etc.)
+2. A new dialect of LISP
+
 
 ## TODO
 
