@@ -89,6 +89,10 @@ scope.Bind("inspect", parser.MacroFunc(inspect))
     - [x] Support for variadic functions
     - [ ] Support for methods
     - [ ] Type promotion/conversion
+        - [x] `intX` types to `int64` and `float64`
+        - [x] `floatX` types to `int64` and `float64`
+        - [x] any values to `interface{}` type
+        - [ ] `intX` and `floatX` types to `int8`, `int16`, `float32` and vice versa?
 - [ ] Performance Benchmark (optimization ?)
 - [x] Scopes
 - [x] REPL
