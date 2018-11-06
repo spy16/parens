@@ -79,9 +79,9 @@ func Let(scope *reflection.Scope, name string, sexps []parser.SExp) (interface{}
 // Tests can be any exressions that evaluate to non-nil and non-false
 // value.
 func Conditional(scope *reflection.Scope, _ string, sexps []parser.SExp) (interface{}, error) {
-	lists := []*parser.ListExp{}
+	lists := []parser.ListExp{}
 	for _, exp := range sexps {
-		listExp, ok := exp.(*parser.ListExp)
+		listExp, ok := exp.(parser.ListExp)
 
 		if !ok {
 			return nil, errors.New("all arguments must be lists")

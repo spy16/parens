@@ -123,7 +123,11 @@ func buildSExp(tokens *tokenQueue) (SExp, error) {
 		tokens.Pop()
 		return ve, nil
 
+	case lexer.COMMENT:
+		return nil, nil
+
 	default:
 		return nil, fmt.Errorf("unknown token type: %s", (token.Type))
 	}
+
 }

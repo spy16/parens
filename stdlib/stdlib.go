@@ -29,6 +29,10 @@ func RegisterBuiltins(scope *reflection.Scope) {
 		"*":       Mul,
 		"/":       Div,
 		"^":       math.Pow,
+		"==":      Eq,
+		"not":     Not,
+		">":       Gt,
+		"<":       Lt,
 
 		// values
 		"true":  true,

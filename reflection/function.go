@@ -10,7 +10,7 @@ import (
 func Call(callable interface{}, args ...interface{}) (interface{}, error) {
 	rVal := reflect.ValueOf(callable)
 	if rVal.Kind() != reflect.Func {
-		return nil, ErrNotCallable
+		return nil, fmt.Errorf("value of kind '%s' is not callable", rVal.Kind())
 	}
 	rType := rVal.Type()
 
