@@ -10,6 +10,48 @@ import (
 	"github.com/spy16/parens/reflection"
 )
 
+// Lambda macro is for defining lambdas. (lambda (params) body)
+func Lambda(scope *reflection.Scope, _ string, sexps []parser.SExp) (interface{}, error) {
+	if len(sexps) < 2 {
+		return nil, errors.New("at-least two arguments required")
+	}
+
+	paramList, ok := sexps[0].(parser.ListExp)
+	if !ok {
+		return nil, fmt.Errorf("first argument must be list of symbols, not '%s'", reflect.TypeOf(sexps[0]))
+	}
+
+	params := []string{}
+	for _, entry := range paramList.List {
+		sym, ok := entry.(parser.SymbolExp)
+		if !ok {
+			return nil, fmt.Errorf("param list must contain symbols, not '%s'", reflect.TypeOf(entry))
+		}
+
+		params = append(params, sym.Symbol)
+	}
+
+	lambdaFunc := func(args ...interface{}) interface{} {
+		if len(params) != len(args) {
+			panic(fmt.Errorf("requires %d arguments, got %d", len(params), len(args)))
+		}
+
+		localScope := reflection.NewScope(scope)
+		for i := range params {
+			localScope.Bind(params[i], args[i])
+		}
+
+		val, err := Begin(localScope, "", sexps[1:])
+		if err != nil {
+			panic(err)
+		}
+
+		return val
+	}
+
+	return lambdaFunc, nil
+}
+
 // Begin executes all s-exps one by one and returns the result of last evaluation.
 func Begin(scope *reflection.Scope, _ string, sexps []parser.SExp) (interface{}, error) {
 	var val interface{}

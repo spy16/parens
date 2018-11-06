@@ -11,7 +11,7 @@ type ListExp struct {
 
 // Eval evaluates each s-exp in the list and then evaluates the list itself
 // as an s-exp.
-func (le *ListExp) Eval(scope *reflection.Scope) (interface{}, error) {
+func (le ListExp) Eval(scope *reflection.Scope) (interface{}, error) {
 	if len(le.List) == 0 {
 		return le.List, nil
 	}

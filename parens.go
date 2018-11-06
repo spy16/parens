@@ -51,9 +51,24 @@ func (parens *Interpreter) executeSrc(name, src string) (interface{}, error) {
 		return nil, err
 	}
 
-	res, err := sexp.Eval(parens.Scope)
-	if err != nil {
-		return nil, err
+	var res interface{}
+	var evalErr error
+	safeWrapper := func() {
+		defer func() {
+			if v := recover(); v != nil {
+				if err, ok := v.(error); ok {
+					evalErr = err
+				}
+			}
+		}()
+
+		res, err = sexp.Eval(parens.Scope)
+		evalErr = err
+	}
+
+	safeWrapper()
+	if evalErr != nil {
+		return nil, evalErr
 	}
 
 	return res, nil

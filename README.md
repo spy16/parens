@@ -113,6 +113,8 @@ See `stdlib/macros.go` for some built-in macros.
 
 ## TODO
 
+- [ ] Better way to map error returns from Go functios to LISP
+    - [ ] `Result<interface{}, error>` type of design in Rust ?
 - [ ] Better `parser` package
     - [x] Support for macro functions
     - [x] Support for vectors `[]`

@@ -18,6 +18,7 @@ func RegisterBuiltins(scope *reflection.Scope) {
 		"cond":    parser.MacroFunc(Conditional),
 		"let":     parser.MacroFunc(Let),
 		"inspect": parser.MacroFunc(Inspect),
+		"lambda":  parser.MacroFunc(Lambda),
 
 		// functions
 		"print":   fmt.Print,
