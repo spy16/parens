@@ -4,6 +4,24 @@
 
 Parens is a LISP-like scripting layer for `Go` (or `Golang`).
 
+## Installation
+
+Parens is not meant for stand-alone usage. But there is a REPL which is
+meant to showcase features of parens and can be installed as below:
+
+```bash
+go get -u -v github.com/spy16/parens/cmd/parens
+```
+
+Then you can run `REPL` by running `parens` command. Or you can run a lisp
+file using `parens <filename>` command.
+
+
+## Usage
+
+Take a look at `cmd/parens/main.go` for a good example.
+
+
 ## Goals:
 
 ### 1. Simple
@@ -86,27 +104,6 @@ val, _ := exec.Execute(src)
 ```
 
 See `stdlib/macros.go` for some built-in macros.
-
-
-
-
-## Installation
-
-Parens is not meant for stand-alone usage. But there is a REPL which is
-meant to showcase features of parens and can be installed as below:
-
-```bash
-go get -u -v github.com/spy16/parens/cmd/parens
-```
-
-Then you can run `REPL` by running `parens` command. Or you can run a lisp
-file using `parens <filename>` command.
-
-
-## Usage
-
-Take a look at `cmd/parens/main.go` for a good example.
-
 
 ## Parens is *NOT*:
 
