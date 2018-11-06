@@ -1,4 +1,4 @@
-package repl
+package parens
 
 import (
 	"bufio"
@@ -9,8 +9,8 @@ import (
 	"strings"
 )
 
-// New initializes a REPL session with given evaluator.
-func New(exec Executor) *REPL {
+// NewREPL initializes a REPL session with given evaluator.
+func NewREPL(exec Executor) *REPL {
 	return &REPL{
 		Exec:     exec,
 		ReadIn:   defaultReadIn,

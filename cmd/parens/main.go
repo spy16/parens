@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/spy16/parens"
-	"github.com/spy16/parens/repl"
 )
 
 func main() {
@@ -26,7 +25,7 @@ func main() {
 	}
 
 	interpreter.DefaultSource = "<REPL>"
-	repl := repl.New(interpreter)
+	repl := parens.NewREPL(interpreter)
 	repl.Banner = "Welcome to Parens REPL!\nType \"(?)\" for help!"
 	repl.Start(ctx)
 }

@@ -16,3 +16,5 @@ bin/
 slick.yaml
 examples/expt/
 .vscode/
+
+.DS_Store
