@@ -18,3 +18,4 @@ examples/expt/
 .vscode/
 
 .DS_Store
+cmd/expt/

@@ -12,20 +12,11 @@ func Call(callable interface{}, args ...interface{}) (interface{}, error) {
 	if rVal.Kind() != reflect.Func {
 		return nil, ErrNotCallable
 	}
-
 	rType := rVal.Type()
-	if !rType.IsVariadic() && rType.NumIn() != len(args) {
-		return nil, ErrInvalidNumberOfArgs
-	}
 
-	argVals := []reflect.Value{}
-	for i := 0; i < rType.NumIn(); i++ {
-		convertedArgVal, err := convertValueType(args[i], rType.In(i))
-		if err != nil {
-			return nil, err
-		}
-
-		argVals = append(argVals, convertedArgVal)
+	argVals, err := makeArgs(rType, args...)
+	if err != nil {
+		return nil, err
 	}
 
 	retVals := rVal.Call(argVals)
@@ -41,6 +32,49 @@ func Call(callable interface{}, args ...interface{}) (interface{}, error) {
 		wrappedRetVals = append(wrappedRetVals, retVal.Interface())
 	}
 	return wrappedRetVals, nil
+}
+
+func makeArgs(rType reflect.Type, args ...interface{}) ([]reflect.Value, error) {
+	argVals := []reflect.Value{}
+
+	if rType.IsVariadic() {
+		nonVariadicLength := rType.NumIn() - 1
+		for i := 0; i < nonVariadicLength; i++ {
+			convertedArgVal, err := convertValueType(args[i], rType.In(i))
+			if err != nil {
+				return nil, err
+			}
+
+			argVals = append(argVals, convertedArgVal)
+		}
+
+		variadicType := rType.In(nonVariadicLength).Elem()
+		for i := nonVariadicLength; i < len(args); i++ {
+			convertedArgVal, err := convertValueType(args[i], variadicType)
+			if err != nil {
+				return nil, err
+			}
+
+			argVals = append(argVals, convertedArgVal)
+		}
+
+		return argVals, nil
+	}
+
+	if rType.NumIn() != len(args) {
+		return nil, ErrInvalidNumberOfArgs
+	}
+
+	for i := 0; i < rType.NumIn(); i++ {
+		convertedArgVal, err := convertValueType(args[i], rType.In(i))
+		if err != nil {
+			return nil, err
+		}
+
+		argVals = append(argVals, convertedArgVal)
+	}
+
+	return argVals, nil
 }
 
 func convertValueType(v interface{}, expected reflect.Type) (reflect.Value, error) {

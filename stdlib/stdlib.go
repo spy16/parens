@@ -19,12 +19,8 @@ func WithBuiltins(scope *reflection.Scope) {
 		"inspect": parser.MacroFunc(Inspect),
 
 		// functions
-		"print": func(msg interface{}) {
-			fmt.Print(msg)
-		},
-		"println": func(msg interface{}) {
-			fmt.Println(msg)
-		},
+		"print":   fmt.Print,
+		"println": fmt.Println,
 
 		// values
 		"true":  true,

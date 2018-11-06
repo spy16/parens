@@ -13,12 +13,8 @@ func main() {
 
 	scope := makeGlobalScope()
 	scope.Bind("exit", cancel)
-	scope.Bind("two", 2)
-	scope.Bind("square", func(v float64) float64 {
-		return v * v
-	})
-	interpreter := parens.New(scope)
 
+	interpreter := parens.New(scope)
 	if len(os.Args) == 2 {
 		_, err := interpreter.ExecuteFile(os.Args[1])
 		if err != nil {
