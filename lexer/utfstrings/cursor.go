@@ -43,7 +43,6 @@ func (cur *Cursor) Peek() rune {
 // Backup steps back one rune. Can only be called once per call of next.
 func (cur *Cursor) Backup() {
 	cur.Pos -= cur.width
-	cur.width = 0
 }
 
 // Build will build a string from the cursor. move will be called before

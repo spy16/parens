@@ -2,6 +2,7 @@ package stdlib
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/spy16/parens/parser"
 	"github.com/spy16/parens/reflection"
@@ -21,6 +22,12 @@ func WithBuiltins(scope *reflection.Scope) {
 		// functions
 		"print":   fmt.Print,
 		"println": fmt.Println,
+		"printf":  fmt.Printf,
+		"+":       Add,
+		"-":       Sub,
+		"*":       Mul,
+		"/":       Div,
+		"^":       math.Pow,
 
 		// values
 		"true":  true,

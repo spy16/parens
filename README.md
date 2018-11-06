@@ -86,7 +86,7 @@ scope.Bind("inspect", parser.MacroFunc(inspect))
     - [x] Support for vectors `[]`
     - [ ] Better error reporting
 - [ ] Better `reflection` package
-    - [ ] Support for variadic functions
+    - [x] Support for variadic functions
     - [ ] Support for methods
     - [ ] Type promotion/conversion
 - [ ] Performance Benchmark (optimization ?)

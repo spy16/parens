@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"strings"
+
 	"github.com/spy16/parens/lexer/utfstrings"
 	"github.com/spy16/parens/reflection"
 )
@@ -26,5 +28,6 @@ func unquoteStr(str string) string {
 		}
 		cur.Backup()
 	})
-	return final
+
+	return strings.Replace(final, "\\n", "\n", -1)
 }
