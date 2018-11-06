@@ -11,6 +11,32 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func add(a, b float64) float64 {
+	return a + b
+}
+
+func BenchmarkParens_FunctionCall(suite *testing.B) {
+	suite.Run("DirectCall", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			add(1, 2)
+		}
+	})
+
+	sexp, err := parser.Parse("<test>", "(add 1 2)")
+	if err != nil {
+		suite.Fatalf("failed to parse expression: %s", err)
+	}
+
+	suite.Run("CallThroughParens", func(b *testing.B) {
+		scope := reflection.NewScope(nil)
+		scope.Bind("add", add)
+
+		for i := 0; i < b.N; i++ {
+			sexp.Eval(scope)
+		}
+	})
+}
+
 func TestExecute_Success(t *testing.T) {
 	scope := reflection.NewScope(nil)
 	par := parens.New(scope)
