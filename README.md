@@ -1,5 +1,3 @@
-> WIP
-
 ![Parens](./parens.png)
 
 # Parens
@@ -31,6 +29,9 @@ meant to showcase features of parens and can be installed as below:
 ```bash
 go get -u -v github.com/spy16/parens/cmd/parens
 ```
+
+Then you can run `REPL` by running `parens` command. Or you can run a lisp
+file using `parens <filename>` command.
 
 
 ## Usage
