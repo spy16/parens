@@ -11,7 +11,7 @@ const version = "1.0.0"
 const help = `
 Welcome to Parens!
 
-Type (exit) or Ctrl+D or Ctrl+C to exit the REPL.
+Type (exit) or Ctrl+C to exit the REPL.
 
 See "cmd/parens/main.go" in the github repository for
 more information.
