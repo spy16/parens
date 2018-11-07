@@ -24,7 +24,7 @@ Then you can
 
 Take a look at `cmd/parens/main.go` for a good example.
 
-Check out `sample.lisp` for supported constructs.
+Check out `examples/` for supported constructs.
 
 ## Goals:
 
