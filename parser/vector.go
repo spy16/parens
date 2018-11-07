@@ -1,16 +1,12 @@
 package parser
 
-import (
-	"github.com/spy16/parens/reflection"
-)
-
 // VectorExpr represents a vector form.
 type VectorExpr struct {
 	vector []Expr
 }
 
 // Eval creates a golang slice.
-func (ve *VectorExpr) Eval(scope *reflection.Scope) (interface{}, error) {
+func (ve *VectorExpr) Eval(scope Scope) (interface{}, error) {
 	lst := []interface{}{}
 
 	for _, expr := range ve.vector {

@@ -6,7 +6,6 @@ import (
 
 	"github.com/spy16/parens"
 	"github.com/spy16/parens/parser"
-	"github.com/spy16/parens/reflection"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -28,7 +27,7 @@ func BenchmarkParens_FunctionCall(suite *testing.B) {
 	}
 
 	suite.Run("CallThroughParens", func(b *testing.B) {
-		scope := reflection.NewScope(nil)
+		scope := parens.NewScope(nil)
 		scope.Bind("add", add)
 
 		for i := 0; i < b.N; i++ {
@@ -38,7 +37,7 @@ func BenchmarkParens_FunctionCall(suite *testing.B) {
 }
 
 func TestExecute_Success(t *testing.T) {
-	scope := reflection.NewScope(nil)
+	scope := parens.NewScope(nil)
 	par := parens.New(scope)
 	par.Parse = mockParseFn(mockExpr(10, nil), nil)
 
@@ -49,7 +48,7 @@ func TestExecute_Success(t *testing.T) {
 }
 
 func TestExecute_EvalFailure(t *testing.T) {
-	scope := reflection.NewScope(nil)
+	scope := parens.NewScope(nil)
 	par := parens.New(scope)
 	par.Parse = mockParseFn(mockExpr(nil, errors.New("failed")), nil)
 
@@ -60,7 +59,7 @@ func TestExecute_EvalFailure(t *testing.T) {
 }
 
 func TestExecute_ParseFailure(t *testing.T) {
-	scope := reflection.NewScope(nil)
+	scope := parens.NewScope(nil)
 	par := parens.New(scope)
 	par.Parse = mockParseFn(nil, errors.New("failed"))
 
@@ -71,7 +70,7 @@ func TestExecute_ParseFailure(t *testing.T) {
 }
 
 func mockExpr(v interface{}, err error) parser.Expr {
-	return exprMock(func(scope *reflection.Scope) (interface{}, error) {
+	return exprMock(func(scope parser.Scope) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
@@ -88,8 +87,8 @@ func mockParseFn(expr parser.Expr, err error) parens.ParseFn {
 	}
 }
 
-type exprMock func(scope *reflection.Scope) (interface{}, error)
+type exprMock func(scope parser.Scope) (interface{}, error)
 
-func (sm exprMock) Eval(scope *reflection.Scope) (interface{}, error) {
+func (sm exprMock) Eval(scope parser.Scope) (interface{}, error) {
 	return sm(scope)
 }

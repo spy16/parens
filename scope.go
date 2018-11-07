@@ -1,26 +1,31 @@
-package reflection
+package parens
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/spy16/parens/parser"
+	"github.com/spy16/parens/reflection"
+)
 
 // NewScope initializes a new scope with given parent scope. parent
 // can be nil.
-func NewScope(parent *Scope) *Scope {
+func NewScope(parent parser.Scope) *Scope {
 	return &Scope{
 		parent: parent,
-		vals:   map[string]Value{},
+		vals:   map[string]reflection.Value{},
 	}
 }
 
 // Scope manages lifetime of values. Scope can inherit values
 // from a parent as well.
 type Scope struct {
-	parent *Scope
-	vals   map[string]Value
+	parent parser.Scope
+	vals   map[string]reflection.Value
 }
 
 // Root traverses the entire heirarchy of scopes and returns the topmost
 // one (i.e., the one with no parent).
-func (sc *Scope) Root() *Scope {
+func (sc *Scope) Root() parser.Scope {
 	if sc.parent == nil {
 		return sc
 	}
@@ -30,9 +35,11 @@ func (sc *Scope) Root() *Scope {
 
 // Bind will bind the value to the given name. If a value already
 // exists for the given name, it will be overwritten.
-func (sc *Scope) Bind(name string, v interface{}) {
-	val := NewValue(v)
+func (sc *Scope) Bind(name string, v interface{}) error {
+	val := reflection.NewValue(v)
 	sc.vals[name] = val
+
+	return nil
 }
 
 // Value returns a pointer to the value bound to the given name. If
@@ -40,7 +47,7 @@ func (sc *Scope) Bind(name string, v interface{}) {
 // parent. If the name is not found anywhere in the hierarchy, error
 // will be returned. Modifying the returned pointer will not modify
 // the original value.
-func (sc *Scope) Value(name string) (*Value, error) {
+func (sc *Scope) Value(name string) (*reflection.Value, error) {
 	val, found := sc.vals[name]
 	if found {
 		return &val, nil

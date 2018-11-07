@@ -5,11 +5,10 @@ import (
 	"strings"
 
 	"github.com/spy16/parens/parser"
-	"github.com/spy16/parens/reflection"
 )
 
 // New initializes new parens LISP interpreter with given env.
-func New(scope *reflection.Scope) *Interpreter {
+func New(scope parser.Scope) *Interpreter {
 	return &Interpreter{
 		Scope:         scope,
 		Parse:         parser.Parse,
@@ -23,7 +22,7 @@ type ParseFn func(name, src string) (parser.Expr, error)
 // Interpreter represents the LISP interpreter instance. You can provide
 // your own implementations of ParseFn to extend the interpreter.
 type Interpreter struct {
-	Scope         *reflection.Scope
+	Scope         parser.Scope
 	Parse         ParseFn
 	DefaultSource string
 }

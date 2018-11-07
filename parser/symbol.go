@@ -1,9 +1,5 @@
 package parser
 
-import (
-	"github.com/spy16/parens/reflection"
-)
-
 // SymbolExpr represents a symbol.
 type SymbolExpr struct {
 	Symbol string
@@ -15,6 +11,6 @@ func (se SymbolExpr) ExpType() string {
 }
 
 // Eval returns the symbol name itself.
-func (se SymbolExpr) Eval(scope *reflection.Scope) (interface{}, error) {
+func (se SymbolExpr) Eval(scope Scope) (interface{}, error) {
 	return scope.Get(se.Symbol)
 }

@@ -38,7 +38,15 @@ type AST struct {
 
 // Expr represents a symbolic expression.
 type Expr interface {
-	Eval(env *reflection.Scope) (interface{}, error)
+	Eval(env Scope) (interface{}, error)
+}
+
+// Scope is responsible for managing bindings.
+type Scope interface {
+	Value(name string) (*reflection.Value, error)
+	Get(name string) (interface{}, error)
+	Bind(name string, v interface{}) error
+	Root() Scope
 }
 
 func buildExpr(tokens *tokenQueue) (Expr, error) {

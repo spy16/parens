@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/spy16/parens/lexer/utfstrings"
-	"github.com/spy16/parens/reflection"
 )
 
 // StringExpr represents single and double quoted strings.
@@ -13,7 +12,7 @@ type StringExpr struct {
 }
 
 // Eval returns unquoted version of the STRING token.
-func (se StringExpr) Eval(_ *reflection.Scope) (interface{}, error) {
+func (se StringExpr) Eval(_ Scope) (interface{}, error) {
 	return unquoteStr(se.value), nil
 }
 

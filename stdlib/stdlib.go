@@ -5,12 +5,11 @@ import (
 	"math"
 
 	"github.com/spy16/parens/parser"
-	"github.com/spy16/parens/reflection"
 )
 
 // RegisterBuiltins registers different built-in functions into the
 // given scope.
-func RegisterBuiltins(scope *reflection.Scope) {
+func RegisterBuiltins(scope parser.Scope) error {
 	builtins := map[string]interface{}{
 		// macros
 		"begin":   parser.MacroFunc(Begin),
@@ -41,6 +40,10 @@ func RegisterBuiltins(scope *reflection.Scope) {
 	}
 
 	for name, val := range builtins {
-		scope.Bind(name, val)
+		if err := scope.Bind(name, val); err != nil {
+			return err
+		}
 	}
+
+	return nil
 }

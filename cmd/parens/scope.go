@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/spy16/parens"
 	"github.com/spy16/parens/lexer"
-	"github.com/spy16/parens/reflection"
 	"github.com/spy16/parens/stdlib"
 )
 
@@ -19,8 +19,8 @@ more information.
 https://github.com/spy16/parens
 `
 
-func makeGlobalScope() *reflection.Scope {
-	scope := reflection.NewScope(nil)
+func makeGlobalScope() *parens.Scope {
+	scope := parens.NewScope(nil)
 	scope.Bind("parens-version", version)
 
 	scope.Bind("?", func() string {

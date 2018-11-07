@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/spy16/parens"
+
 	"github.com/k0kubun/pp"
 	"github.com/spy16/parens/parser"
-	"github.com/spy16/parens/reflection"
 )
 
 // Lambda macro is for defining lambdas. (lambda (params) body)
-func Lambda(scope *reflection.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
+func Lambda(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
 	if len(exprs) < 2 {
 		return nil, errors.New("at-least two arguments required")
 	}
@@ -36,7 +37,7 @@ func Lambda(scope *reflection.Scope, _ string, exprs []parser.Expr) (interface{}
 			panic(fmt.Errorf("requires %d arguments, got %d", len(params), len(args)))
 		}
 
-		localScope := reflection.NewScope(scope)
+		localScope := parens.NewScope(scope)
 		for i := range params {
 			localScope.Bind(params[i], args[i])
 		}
@@ -53,7 +54,7 @@ func Lambda(scope *reflection.Scope, _ string, exprs []parser.Expr) (interface{}
 }
 
 // Begin executes all s-exps one by one and returns the result of last evaluation.
-func Begin(scope *reflection.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
+func Begin(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
 	var val interface{}
 	var err error
 	for _, expr := range exprs {
@@ -69,8 +70,8 @@ func Begin(scope *reflection.Scope, _ string, exprs []parser.Expr) (interface{},
 // Let creates a new sub-scope from the global scope and executes all the
 // exprs inside the new scope. Once the Let block ends, all the names bound
 // will be removed. In other words, Let is a begin with local scope.
-func Let(scope *reflection.Scope, name string, exprs []parser.Expr) (interface{}, error) {
-	localScope := reflection.NewScope(scope)
+func Let(scope parser.Scope, name string, exprs []parser.Expr) (interface{}, error) {
+	localScope := parens.NewScope(scope)
 
 	return Begin(localScope, name, exprs)
 }
@@ -78,7 +79,7 @@ func Let(scope *reflection.Scope, name string, exprs []parser.Expr) (interface{}
 // Conditional is commonly know LISP (cond (test1 act1)...) construct.
 // Tests can be any exressions that evaluate to non-nil and non-false
 // value.
-func Conditional(scope *reflection.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
+func Conditional(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
 	lists := []parser.ListExpr{}
 	for _, exp := range exprs {
 		listExp, ok := exp.(parser.ListExpr)
@@ -114,7 +115,7 @@ func Conditional(scope *reflection.Scope, _ string, exprs []parser.Expr) (interf
 
 // Setq is a macro that process forms (setq <symbol> <s-exp>). Setq macro
 // binds the value after evaluating s-exp to the symbol.
-func Setq(scope *reflection.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
+func Setq(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
 	if len(exprs) != 2 {
 		return nil, fmt.Errorf("expecting symbol and a value")
 	}
@@ -134,7 +135,7 @@ func Setq(scope *reflection.Scope, _ string, exprs []parser.Expr) (interface{}, 
 }
 
 // Inspect dumps the exprs in a formatted manner.
-func Inspect(scope *reflection.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
+func Inspect(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
 	pp.Println(exprs)
 	return nil, nil
 }
