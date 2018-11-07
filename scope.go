@@ -79,7 +79,7 @@ func (sc *Scope) Doc(name string) string {
 		return sc.parent.Doc(name)
 	}
 
-	return ""
+	return fmt.Sprintf("No documentation available for '%s'", name)
 }
 
 // Get returns the actual Go value bound to the given name.
@@ -93,7 +93,11 @@ func (sc *Scope) Get(name string) (interface{}, error) {
 }
 
 func (sc *Scope) String() string {
-	return fmt.Sprintf("Env[size=%d]", len(sc.vals))
+	str := []string{}
+	for name := range sc.vals {
+		str = append(str, fmt.Sprintf("%s", name))
+	}
+	return strings.Join(str, "\n")
 }
 
 func (sc *Scope) entry(name string) *scopeEntry {

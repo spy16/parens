@@ -9,11 +9,27 @@ import (
 
 // New initializes new parens LISP interpreter with given env.
 func New(scope parser.Scope) *Interpreter {
-	return &Interpreter{
+	exec := &Interpreter{
 		Scope:         scope,
 		Parse:         parser.Parse,
 		DefaultSource: "<string>",
 	}
+
+	loadFile := func(file string) interface{} {
+		val, err := exec.ExecuteFile(file)
+		if err != nil {
+			panic(err)
+		}
+
+		return val
+	}
+
+	scope.Bind("load", loadFile,
+		"Reads and executes the file in the current scope",
+		"Example: (load \"sample.lisp\")",
+	)
+
+	return exec
 }
 
 // ParseFn is responsible for tokenizing and building Expr out of tokens.

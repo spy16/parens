@@ -11,7 +11,13 @@ func RegisterBuiltins(scope parser.Scope) error {
 		RegisterMacros,
 		RegisterMath,
 		RegisterIO,
+		RegisterSystem,
 	)
+}
+
+// RegisterSystem binds system functions into the scope.
+func RegisterSystem(scope parser.Scope) error {
+	return registerList(scope, system)
 }
 
 // RegisterIO binds input/output functions into the scope.
