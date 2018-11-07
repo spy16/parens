@@ -1,4 +1,13 @@
 (begin
+  ; need help ?
+  (doc println)
+  (dump-scope)
+
+  ; look under the hood
+  (inspect hello)
+  (println (type +))
+  (println (tokenize "(println \"hello\")"))
+
   ; calling variadic Go functions
   (println "Hello" "from" "Parens!")
 
@@ -13,7 +22,6 @@
   ; value of π should now be reset to original
   (printf "but real value of pi is %f\n" π)
 
-
   ; let's use some cool looking characters since
   ; parens supports UTF-8
   (setq ∂ 0)
@@ -22,7 +30,6 @@
 
   (println "1 + 2 =" (∑ 1 2))
   (println "false and nil are not same =" (≠ false nil))
-
 
   ; defining a lambda
   (setq square (lambda (a) (* a a)))

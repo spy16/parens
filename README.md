@@ -35,8 +35,7 @@ exec := parens.New(scope)
 exec.Execute("10")
 ```
 
-Above snippet gives you an interpreter that understands only literals. No symbol
-is available here at all. You get to decide what should be available.
+Above snippet gives you an interpreter that understands only literals and `(load <file>)`. 
 
 ### 2. Flexible
 
