@@ -2,6 +2,7 @@ package parens
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spy16/parens/parser"
 	"github.com/spy16/parens/reflection"
@@ -12,7 +13,7 @@ import (
 func NewScope(parent parser.Scope) *Scope {
 	return &Scope{
 		parent: parent,
-		vals:   map[string]reflection.Value{},
+		vals:   map[string]scopeEntry{},
 	}
 }
 
@@ -20,7 +21,12 @@ func NewScope(parent parser.Scope) *Scope {
 // from a parent as well.
 type Scope struct {
 	parent parser.Scope
-	vals   map[string]reflection.Value
+	vals   map[string]scopeEntry
+}
+
+type scopeEntry struct {
+	val reflection.Value
+	doc string
 }
 
 // Root traverses the entire heirarchy of scopes and returns the topmost
@@ -35,9 +41,12 @@ func (sc *Scope) Root() parser.Scope {
 
 // Bind will bind the value to the given name. If a value already
 // exists for the given name, it will be overwritten.
-func (sc *Scope) Bind(name string, v interface{}) error {
+func (sc *Scope) Bind(name string, v interface{}, doc ...string) error {
 	val := reflection.NewValue(v)
-	sc.vals[name] = val
+	sc.vals[name] = scopeEntry{
+		val: val,
+		doc: strings.TrimSpace(strings.Join(doc, "\n")),
+	}
 
 	return nil
 }
@@ -48,9 +57,8 @@ func (sc *Scope) Bind(name string, v interface{}) error {
 // will be returned. Modifying the returned pointer will not modify
 // the original value.
 func (sc *Scope) Value(name string) (*reflection.Value, error) {
-	val, found := sc.vals[name]
-	if found {
-		return &val, nil
+	if entry := sc.entry(name); entry != nil {
+		return &entry.val, nil
 	}
 
 	if sc.parent != nil {
@@ -58,6 +66,20 @@ func (sc *Scope) Value(name string) (*reflection.Value, error) {
 	}
 
 	return nil, fmt.Errorf("name '%s' not found", name)
+}
+
+// Doc returns doc string for the name. If name is not found, returns
+// empty string.
+func (sc *Scope) Doc(name string) string {
+	if entry := sc.entry(name); entry != nil {
+		return entry.doc
+	}
+
+	if sc.parent != nil {
+		return sc.parent.Doc(name)
+	}
+
+	return ""
 }
 
 // Get returns the actual Go value bound to the given name.
@@ -72,4 +94,13 @@ func (sc *Scope) Get(name string) (interface{}, error) {
 
 func (sc *Scope) String() string {
 	return fmt.Sprintf("Env[size=%d]", len(sc.vals))
+}
+
+func (sc *Scope) entry(name string) *scopeEntry {
+	entry, found := sc.vals[name]
+	if found {
+		return &entry
+	}
+
+	return nil
 }

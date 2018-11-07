@@ -5,11 +5,52 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/spy16/parens"
-
 	"github.com/k0kubun/pp"
+	"github.com/spy16/parens"
 	"github.com/spy16/parens/parser"
 )
+
+var macros = []mapEntry{
+	entry("begin", parser.MacroFunc(Begin),
+		"Usage: (begin expr1 expr2 ...)",
+	),
+	entry("setq", parser.MacroFunc(Setq),
+		"Usage: (setq <symbol> expr)",
+	),
+	entry("cond", parser.MacroFunc(Conditional),
+		"Usage: (cond (test1 action1) (test2 action2)...)",
+	),
+	entry("let", parser.MacroFunc(Let),
+		"Usage: (let expr1 expr2 ...)",
+	),
+	entry("inspect", parser.MacroFunc(Inspect),
+		"Usage: (inspect expr)",
+	),
+	entry("lambda", parser.MacroFunc(Lambda),
+		"Defines a lambda.",
+		"Usage: (lambda (params) body)",
+		"where params: a list of symbols",
+		"      body  : one or more s-expressions",
+	),
+	entry("doc", parser.MacroFunc(Doc),
+		"Dispalys documentation for given symbol if available.",
+		"Usage: (doc <symbol>)",
+	),
+}
+
+// Doc shows doc string associated with a symbol. If not found, returns a message.
+func Doc(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
+	if len(exprs) != 1 {
+		return nil, fmt.Errorf("exactly 1 argument required, got %d", len(exprs))
+	}
+
+	sym, ok := exprs[0].(parser.SymbolExpr)
+	if !ok {
+		return nil, fmt.Errorf("argument must be a Symbol, not '%s'", reflect.TypeOf(exprs[0]))
+	}
+
+	return scope.Doc(sym.Symbol), nil
+}
 
 // Lambda macro is for defining lambdas. (lambda (params) body)
 func Lambda(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error) {

@@ -63,8 +63,8 @@ type Scope interface {
 ```
 
 So, if you wanted to do some dynamic resolution during `Get(name)` (e.g. If you wanted to return
-*method* `Print` of object `stdout` when `Get("stdout.Print")` is called), you can easily implement this
-interface and pass it to `parens.New`.
+*method* `Print` of object `stdout` when `Get("stdout.Print")` is called), you can easily implement
+this interface and pass it to `parens.New`.
 
 
 ### 3. Interoperable

@@ -45,7 +45,8 @@ type Expr interface {
 type Scope interface {
 	Value(name string) (*reflection.Value, error)
 	Get(name string) (interface{}, error)
-	Bind(name string, v interface{}) error
+	Doc(name string) string
+	Bind(name string, v interface{}, doc ...string) error
 	Root() Scope
 }
 

@@ -5,6 +5,46 @@ import (
 	"reflect"
 )
 
+var math = []mapEntry{
+	// logical constants
+	entry("true", true,
+		"Represents logical true",
+	),
+	entry("false", false,
+		"Represents logical false",
+	),
+	entry("nil", false,
+		"Represents logical false. Same as false",
+	),
+
+	// functions and operators
+	entry("+", Add,
+		"Returns sum of all number arguments",
+		"Usage: (+ num1 num2 ...)",
+	),
+	entry("-", Sub,
+		"Returns result of subtracting all the right-most args from first arg.",
+	),
+	entry("*", Mul,
+		"Returns result of multiplying all number arguments",
+	),
+	entry("/", Div,
+		"Returns result of continuously dividing first arg by remaining args",
+	),
+	entry(">", Gt,
+		"Returns true if 1st arg is greater than the 2nd",
+	),
+	entry("<", Lt,
+		"Returns true if 1st arg is less than second arg",
+	),
+	entry("==", Eq,
+		"Returns true if all arguments are equal to each other",
+	),
+	entry("not", Not,
+		"Returns true if argument is falsy, false otherwise",
+	),
+}
+
 // Add returns sum of all the arguments.
 func Add(vals ...float64) float64 {
 	sum := 0.0
@@ -66,8 +106,20 @@ func Lt(lval, rval float64) bool {
 }
 
 // Eq checks if lval is same as rval
-func Eq(lval, rval interface{}) bool {
-	return reflect.DeepEqual(lval, rval)
+func Eq(vals ...interface{}) bool {
+	if len(vals) <= 1 {
+		return true
+	}
+
+	lval := vals[0]
+
+	for i := 1; i < len(vals); i++ {
+		if !reflect.DeepEqual(lval, vals[i]) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // Not returns true if val is nil or false value and false
