@@ -79,7 +79,7 @@ func (sc *Scope) Doc(name string) string {
 		return sc.parent.Doc(name)
 	}
 
-	return fmt.Sprintf("No documentation available for '%s'", name)
+	return ""
 }
 
 // Get returns the actual Go value bound to the given name.

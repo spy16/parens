@@ -3,6 +3,7 @@ package stdlib
 import (
 	"fmt"
 	"os"
+	"reflect"
 
 	"github.com/spy16/parens/parser"
 )
@@ -18,6 +19,8 @@ var system = []mapEntry{
 	entry("dump-scope", parser.MacroFunc(dumpScope),
 		"Formats and displays the entire scope",
 	),
+
+	entry("type", reflect.TypeOf),
 }
 
 func dumpScope(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error) {

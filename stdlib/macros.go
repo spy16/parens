@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/k0kubun/pp"
 	"github.com/spy16/parens"
@@ -49,7 +50,18 @@ func Doc(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error)
 		return nil, fmt.Errorf("argument must be a Symbol, not '%s'", reflect.TypeOf(exprs[0]))
 	}
 
-	return scope.Doc(sym.Symbol), nil
+	val, err := sym.Eval(scope)
+	if err != nil {
+		return nil, err
+	}
+
+	docStr := scope.Doc(sym.Symbol)
+	if len(strings.TrimSpace(docStr)) == 0 {
+		docStr = fmt.Sprintf("No documentation available for '%s'", sym.Symbol)
+	}
+
+	docStr = fmt.Sprintf("%s\n\nGo Type: %s", docStr, reflect.TypeOf(val))
+	return docStr, nil
 }
 
 // Lambda macro is for defining lambdas. (lambda (params) body)
