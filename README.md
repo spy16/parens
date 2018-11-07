@@ -50,6 +50,23 @@ stdlib.RegisterBuiltins(scope)
 Adding this one line into the previous snippet allows you to include some minimal set
 of standard functions and macros like `let`, `cond`, `+`, `-`, `*`, `/` etc.
 
+The type of `scope` argument in `parens.New(scope)` is the following interface:
+
+```go
+// Scope is responsible for managing bindings.
+type Scope interface {
+	Value(name string) (*reflection.Value, error)
+	Get(name string) (interface{}, error)
+	Bind(name string, v interface{}) error
+	Root() Scope
+}
+```
+
+So, if you wanted to do some dynamic resolution during `Get(name)` (e.g. If you wanted to return
+*method* `Print(msg string)` when `Get("stdout.Print")` is called), you can easily implement this
+interface and pass it to `parens.New`.
+
+
 ### 3. Interoperable
 
 Should be able to expose Go values inside LISP and vice versa without custom signatures.
