@@ -12,36 +12,36 @@ import (
 var ErrEOF = errors.New("end of file")
 
 // Parse tokenizes and parses the src to build an AST.
-func Parse(name string, src string) (SExp, error) {
+func Parse(name string, src string) (Expr, error) {
 	tokens, err := lexer.New(src).Tokens()
 	if err != nil {
 		return nil, err
 	}
 
-	sexp, err := buildSExp(&tokenQueue{tokens: tokens})
+	expr, err := buildExpr(&tokenQueue{tokens: tokens})
 	if err != nil {
 		return nil, err
 	}
 
 	return &AST{
 		File: name,
-		SExp: sexp,
+		Expr: expr,
 	}, nil
 }
 
 // AST contains the root s-expression and file information.
 type AST struct {
-	SExp
+	Expr
 
 	File string
 }
 
-// SExp represents a symbolic expression.
-type SExp interface {
+// Expr represents a symbolic expression.
+type Expr interface {
 	Eval(env *reflection.Scope) (interface{}, error)
 }
 
-func buildSExp(tokens *tokenQueue) (SExp, error) {
+func buildExpr(tokens *tokenQueue) (Expr, error) {
 	if len(tokens.tokens) == 0 {
 		return nil, ErrEOF
 	}
@@ -50,7 +50,7 @@ func buildSExp(tokens *tokenQueue) (SExp, error) {
 
 	switch token.Type {
 	case lexer.LPAREN:
-		le := ListExp{}
+		le := ListExpr{}
 
 		for {
 			next := tokens.Token(0)
@@ -60,7 +60,7 @@ func buildSExp(tokens *tokenQueue) (SExp, error) {
 			if next.Type == lexer.RPAREN {
 				break
 			}
-			exp, err := buildSExp(tokens)
+			exp, err := buildExpr(tokens)
 			if err != nil {
 				return nil, err
 			}
@@ -78,19 +78,19 @@ func buildSExp(tokens *tokenQueue) (SExp, error) {
 		return nil, ErrEOF
 
 	case lexer.NUMBER:
-		ne := NumberExp{
+		ne := NumberExpr{
 			numStr: token.Value,
 		}
 		return ne, nil
 
 	case lexer.STRING:
-		se := StringExp{
+		se := StringExpr{
 			value: token.Value,
 		}
 		return se, nil
 
 	case lexer.SYMBOL:
-		se := SymbolExp{
+		se := SymbolExpr{
 			Symbol: token.Value,
 		}
 		return se, nil
@@ -99,7 +99,7 @@ func buildSExp(tokens *tokenQueue) (SExp, error) {
 		return nil, nil
 
 	case lexer.LVECT:
-		ve := &VectorExp{}
+		ve := &VectorExpr{}
 
 		for {
 			next := tokens.Token(0)
@@ -109,7 +109,7 @@ func buildSExp(tokens *tokenQueue) (SExp, error) {
 			if next.Type == lexer.RVECT {
 				break
 			}
-			exp, err := buildSExp(tokens)
+			exp, err := buildExpr(tokens)
 			if err != nil {
 				return nil, err
 			}

@@ -17,8 +17,8 @@ func New(scope *reflection.Scope) *Interpreter {
 	}
 }
 
-// ParseFn is responsible for tokenizing and building SExp out of tokens.
-type ParseFn func(name, src string) (parser.SExp, error)
+// ParseFn is responsible for tokenizing and building Expr out of tokens.
+type ParseFn func(name, src string) (parser.Expr, error)
 
 // Interpreter represents the LISP interpreter instance. You can provide
 // your own implementations of ParseFn to extend the interpreter.
@@ -46,7 +46,7 @@ func (parens *Interpreter) ExecuteFile(file string) (interface{}, error) {
 
 func (parens *Interpreter) executeSrc(name, src string) (interface{}, error) {
 	src = strings.TrimSpace(src)
-	sexp, err := parens.Parse(name, src)
+	expr, err := parens.Parse(name, src)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (parens *Interpreter) executeSrc(name, src string) (interface{}, error) {
 			}
 		}()
 
-		res, err = sexp.Eval(parens.Scope)
+		res, err = expr.Eval(parens.Scope)
 		evalErr = err
 	}
 

@@ -11,19 +11,19 @@ import (
 )
 
 // Lambda macro is for defining lambdas. (lambda (params) body)
-func Lambda(scope *reflection.Scope, _ string, sexps []parser.SExp) (interface{}, error) {
-	if len(sexps) < 2 {
+func Lambda(scope *reflection.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
+	if len(exprs) < 2 {
 		return nil, errors.New("at-least two arguments required")
 	}
 
-	paramList, ok := sexps[0].(parser.ListExp)
+	paramList, ok := exprs[0].(parser.ListExpr)
 	if !ok {
-		return nil, fmt.Errorf("first argument must be list of symbols, not '%s'", reflect.TypeOf(sexps[0]))
+		return nil, fmt.Errorf("first argument must be list of symbols, not '%s'", reflect.TypeOf(exprs[0]))
 	}
 
 	params := []string{}
 	for _, entry := range paramList.List {
-		sym, ok := entry.(parser.SymbolExp)
+		sym, ok := entry.(parser.SymbolExpr)
 		if !ok {
 			return nil, fmt.Errorf("param list must contain symbols, not '%s'", reflect.TypeOf(entry))
 		}
@@ -41,7 +41,7 @@ func Lambda(scope *reflection.Scope, _ string, sexps []parser.SExp) (interface{}
 			localScope.Bind(params[i], args[i])
 		}
 
-		val, err := Begin(localScope, "", sexps[1:])
+		val, err := Begin(localScope, "", exprs[1:])
 		if err != nil {
 			panic(err)
 		}
@@ -53,11 +53,11 @@ func Lambda(scope *reflection.Scope, _ string, sexps []parser.SExp) (interface{}
 }
 
 // Begin executes all s-exps one by one and returns the result of last evaluation.
-func Begin(scope *reflection.Scope, _ string, sexps []parser.SExp) (interface{}, error) {
+func Begin(scope *reflection.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
 	var val interface{}
 	var err error
-	for _, sexp := range sexps {
-		val, err = sexp.Eval(scope)
+	for _, expr := range exprs {
+		val, err = expr.Eval(scope)
 		if err != nil {
 			return nil, err
 		}
@@ -67,21 +67,21 @@ func Begin(scope *reflection.Scope, _ string, sexps []parser.SExp) (interface{},
 }
 
 // Let creates a new sub-scope from the global scope and executes all the
-// sexps inside the new scope. Once the Let block ends, all the names bound
+// exprs inside the new scope. Once the Let block ends, all the names bound
 // will be removed. In other words, Let is a begin with local scope.
-func Let(scope *reflection.Scope, name string, sexps []parser.SExp) (interface{}, error) {
+func Let(scope *reflection.Scope, name string, exprs []parser.Expr) (interface{}, error) {
 	localScope := reflection.NewScope(scope)
 
-	return Begin(localScope, name, sexps)
+	return Begin(localScope, name, exprs)
 }
 
 // Conditional is commonly know LISP (cond (test1 act1)...) construct.
 // Tests can be any exressions that evaluate to non-nil and non-false
 // value.
-func Conditional(scope *reflection.Scope, _ string, sexps []parser.SExp) (interface{}, error) {
-	lists := []parser.ListExp{}
-	for _, exp := range sexps {
-		listExp, ok := exp.(parser.ListExp)
+func Conditional(scope *reflection.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
+	lists := []parser.ListExpr{}
+	for _, exp := range exprs {
+		listExp, ok := exp.(parser.ListExpr)
 
 		if !ok {
 			return nil, errors.New("all arguments must be lists")
@@ -114,16 +114,16 @@ func Conditional(scope *reflection.Scope, _ string, sexps []parser.SExp) (interf
 
 // Setq is a macro that process forms (setq <symbol> <s-exp>). Setq macro
 // binds the value after evaluating s-exp to the symbol.
-func Setq(scope *reflection.Scope, _ string, sexps []parser.SExp) (interface{}, error) {
-	if len(sexps) != 2 {
+func Setq(scope *reflection.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
+	if len(exprs) != 2 {
 		return nil, fmt.Errorf("expecting symbol and a value")
 	}
-	symbol, ok := sexps[0].(parser.SymbolExp)
+	symbol, ok := exprs[0].(parser.SymbolExpr)
 	if !ok {
-		return nil, fmt.Errorf("argument 1 must be a symbol, not '%s'", reflect.TypeOf(sexps[0]).String())
+		return nil, fmt.Errorf("argument 1 must be a symbol, not '%s'", reflect.TypeOf(exprs[0]).String())
 	}
 
-	val, err := sexps[1].Eval(scope)
+	val, err := exprs[1].Eval(scope)
 	if err != nil {
 		return nil, err
 	}
@@ -133,8 +133,8 @@ func Setq(scope *reflection.Scope, _ string, sexps []parser.SExp) (interface{}, 
 	return val, nil
 }
 
-// Inspect dumps the sexps in a formatted manner.
-func Inspect(scope *reflection.Scope, _ string, sexps []parser.SExp) (interface{}, error) {
-	pp.Println(sexps)
+// Inspect dumps the exprs in a formatted manner.
+func Inspect(scope *reflection.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
+	pp.Println(exprs)
 	return nil, nil
 }

@@ -7,13 +7,13 @@ import (
 	"github.com/spy16/parens/reflection"
 )
 
-// StringExp represents single and double quoted strings.
-type StringExp struct {
+// StringExpr represents single and double quoted strings.
+type StringExpr struct {
 	value string
 }
 
 // Eval returns unquoted version of the STRING token.
-func (se StringExp) Eval(_ *reflection.Scope) (interface{}, error) {
+func (se StringExpr) Eval(_ *reflection.Scope) (interface{}, error) {
 	return unquoteStr(se.value), nil
 }
 

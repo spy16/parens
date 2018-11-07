@@ -22,7 +22,7 @@ func BenchmarkParens_FunctionCall(suite *testing.B) {
 		}
 	})
 
-	sexp, err := parser.Parse("<test>", "(add 1 2)")
+	expr, err := parser.Parse("<test>", "(add 1 2)")
 	if err != nil {
 		suite.Fatalf("failed to parse expression: %s", err)
 	}
@@ -32,7 +32,7 @@ func BenchmarkParens_FunctionCall(suite *testing.B) {
 		scope.Bind("add", add)
 
 		for i := 0; i < b.N; i++ {
-			sexp.Eval(scope)
+			expr.Eval(scope)
 		}
 	})
 }
@@ -40,7 +40,7 @@ func BenchmarkParens_FunctionCall(suite *testing.B) {
 func TestExecute_Success(t *testing.T) {
 	scope := reflection.NewScope(nil)
 	par := parens.New(scope)
-	par.Parse = mockParseFn(mockSExp(10, nil), nil)
+	par.Parse = mockParseFn(mockExpr(10, nil), nil)
 
 	res, err := par.Execute("10")
 	assert.NoError(t, err)
@@ -51,7 +51,7 @@ func TestExecute_Success(t *testing.T) {
 func TestExecute_EvalFailure(t *testing.T) {
 	scope := reflection.NewScope(nil)
 	par := parens.New(scope)
-	par.Parse = mockParseFn(mockSExp(nil, errors.New("failed")), nil)
+	par.Parse = mockParseFn(mockExpr(nil, errors.New("failed")), nil)
 
 	res, err := par.Execute("(hello)")
 	require.Error(t, err)
@@ -70,8 +70,8 @@ func TestExecute_ParseFailure(t *testing.T) {
 	assert.Nil(t, res)
 }
 
-func mockSExp(v interface{}, err error) parser.SExp {
-	return sexpMock(func(scope *reflection.Scope) (interface{}, error) {
+func mockExpr(v interface{}, err error) parser.Expr {
+	return exprMock(func(scope *reflection.Scope) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
@@ -79,17 +79,17 @@ func mockSExp(v interface{}, err error) parser.SExp {
 	})
 }
 
-func mockParseFn(sexp parser.SExp, err error) parens.ParseFn {
-	return func(name, src string) (parser.SExp, error) {
+func mockParseFn(expr parser.Expr, err error) parens.ParseFn {
+	return func(name, src string) (parser.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-		return sexp, nil
+		return expr, nil
 	}
 }
 
-type sexpMock func(scope *reflection.Scope) (interface{}, error)
+type exprMock func(scope *reflection.Scope) (interface{}, error)
 
-func (sm sexpMock) Eval(scope *reflection.Scope) (interface{}, error) {
+func (sm exprMock) Eval(scope *reflection.Scope) (interface{}, error) {
 	return sm(scope)
 }

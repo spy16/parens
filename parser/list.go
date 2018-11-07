@@ -4,14 +4,14 @@ import (
 	"github.com/spy16/parens/reflection"
 )
 
-// ListExp represents a list (i.e., a function call) s-exp.
-type ListExp struct {
-	List []SExp
+// ListExpr represents a list (i.e., a function call) expression.
+type ListExpr struct {
+	List []Expr
 }
 
 // Eval evaluates each s-exp in the list and then evaluates the list itself
 // as an s-exp.
-func (le ListExp) Eval(scope *reflection.Scope) (interface{}, error) {
+func (le ListExpr) Eval(scope *reflection.Scope) (interface{}, error) {
 	if len(le.List) == 0 {
 		return le.List, nil
 	}
@@ -23,7 +23,7 @@ func (le ListExp) Eval(scope *reflection.Scope) (interface{}, error) {
 
 	if macroFn, ok := val.(MacroFunc); ok {
 		var name string
-		if sym, ok := le.List[0].(SymbolExp); ok {
+		if sym, ok := le.List[0].(SymbolExpr); ok {
 			name = sym.Symbol
 		}
 		return macroFn(scope, name, le.List[1:])
@@ -45,4 +45,4 @@ func (le ListExp) Eval(scope *reflection.Scope) (interface{}, error) {
 // current scope. In addition, if the macro was accessed through a name
 // the name will be passed as well. If the macro was not accessed by name
 // (e.g. was result of another list etc.), name will be empty string.
-type MacroFunc func(scope *reflection.Scope, name string, sexps []SExp) (interface{}, error)
+type MacroFunc func(scope *reflection.Scope, name string, exprs []Expr) (interface{}, error)

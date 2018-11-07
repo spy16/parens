@@ -4,17 +4,17 @@ import (
 	"github.com/spy16/parens/reflection"
 )
 
-// VectorExp represents a vector form.
-type VectorExp struct {
-	vector []SExp
+// VectorExpr represents a vector form.
+type VectorExpr struct {
+	vector []Expr
 }
 
 // Eval creates a golang slice.
-func (ve *VectorExp) Eval(scope *reflection.Scope) (interface{}, error) {
+func (ve *VectorExpr) Eval(scope *reflection.Scope) (interface{}, error) {
 	lst := []interface{}{}
 
-	for _, sexp := range ve.vector {
-		val, err := sexp.Eval(scope)
+	for _, expr := range ve.vector {
+		val, err := expr.Eval(scope)
 		if err != nil {
 			return nil, err
 		}

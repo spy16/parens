@@ -77,7 +77,7 @@ Special constructs like `begin`, `cond`, `if` etc. can be added using Macros.
 
 ```go
 // This is standard implementation of '(do expr*)' special-form from Clojure!
-func doMacro(scope *reflection.Scope, callName string, exps []parser.SExp) (interface{}, error) {
+func doMacro(scope *reflection.Scope, callName string, exps []parser.Expr) (interface{}, error) {
     var val interface{}
     var err error
     for _, exp := range exps {
