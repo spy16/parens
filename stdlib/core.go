@@ -51,7 +51,7 @@ var core = []mapEntry{
 		"Usage: (defn <name> (params) body)",
 	),
 	entry("doc", parser.MacroFunc(Doc),
-		"Dispalys documentation for given symbol if available.",
+		"Displays documentation for given symbol if available.",
 		"Usage: (doc <symbol>)",
 	),
 	entry("dump-scope", parser.MacroFunc(dumpScope),

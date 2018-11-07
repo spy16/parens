@@ -29,7 +29,7 @@ type scopeEntry struct {
 	doc string
 }
 
-// Root traverses the entire heirarchy of scopes and returns the topmost
+// Root traverses the entire hierarchy of scopes and returns the topmost
 // one (i.e., the one with no parent).
 func (sc *Scope) Root() parser.Scope {
 	if sc.parent == nil {
