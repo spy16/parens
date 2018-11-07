@@ -2,19 +2,34 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spy16/parens"
 )
 
 func main() {
-	ctx, cancel := context.WithCancel(context.Background())
+	var src string
+	flag.StringVar(&src, "c", "", "Source passed in as argument")
+	flag.Parse()
 
+	ctx, cancel := context.WithCancel(context.Background())
 	scope := makeGlobalScope()
 	scope.Bind("exit", cancel)
 
 	exec := parens.New(scope)
+	if len(strings.TrimSpace(src)) > 0 {
+		_, err := exec.Execute(src)
+		if err != nil {
+			fmt.Printf("error: %s\n", err)
+			os.Exit(1)
+		}
+
+		return
+	}
+
 	if len(os.Args) == 2 {
 		_, err := exec.ExecuteFile(os.Args[1])
 		if err != nil {

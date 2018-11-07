@@ -13,8 +13,11 @@ meant to showcase features of parens and can be installed as below:
 go get -u -v github.com/spy16/parens/cmd/parens
 ```
 
-Then you can run `REPL` by running `parens` command. Or you can run a lisp
-file using `parens <filename>` command.
+Then you can
+
+1. Run `REPL` by running `parens` command.
+2. Run a lisp file using `parens <filename>` command.
+3. Execute a LISP string using `parens -c (println (+ 1 2))`
 
 
 ## Usage
@@ -35,7 +38,7 @@ exec := parens.New(scope)
 exec.Execute("10")
 ```
 
-Above snippet gives you an interpreter that understands only literals and `(load <file>)`. 
+Above snippet gives you an interpreter that understands only literals and `(load <file>)`.
 
 ### 2. Flexible
 
