@@ -15,8 +15,8 @@ var macros = []mapEntry{
 	entry("begin", parser.MacroFunc(Begin),
 		"Usage: (begin expr1 expr2 ...)",
 	),
-	entry("setq", parser.MacroFunc(Setq),
-		"Usage: (setq <symbol> expr)",
+	entry("label", parser.MacroFunc(Label),
+		"Usage: (label <symbol> expr)",
 	),
 	entry("cond", parser.MacroFunc(Conditional),
 		"Usage: (cond (test1 action1) (test2 action2)...)",
@@ -166,9 +166,9 @@ func Conditional(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}
 	return nil, nil
 }
 
-// Setq is a macro that process forms (setq <symbol> <s-exp>). Setq macro
-// binds the value after evaluating s-exp to the symbol.
-func Setq(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
+// Label binds the result of evaluating second argument to the symbol passed in as
+// first argument in the current scope.
+func Label(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
 	if len(exprs) != 2 {
 		return nil, fmt.Errorf("expecting symbol and a value")
 	}

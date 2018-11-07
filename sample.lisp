@@ -12,11 +12,11 @@
   (println "Hello" "from" "Parens!")
 
   ; binding values
-  (setq π 3.1412)
+  (label π 3.1412)
 
   ; let starts a new scope
   (let
-    (setq π 3)
+    (label π 3)
     (printf "integer part of pi is %f\n" π))
 
   ; value of π should now be reset to original
@@ -24,15 +24,15 @@
 
   ; let's use some cool looking characters since
   ; parens supports UTF-8
-  (setq ∂ 0)
-  (setq ∑ +)
-  (setq ≠ (lambda (a b) (not (== a b))))
+  (label ∂ 0)
+  (label ∑ +)
+  (label ≠ (lambda (a b) (not (== a b))))
 
   (println "1 + 2 =" (∑ 1 2))
   (println "false and nil are not same =" (≠ false nil))
 
   ; defining a lambda
-  (setq square (lambda (a) (* a a)))
+  (label square (lambda (a) (* a a)))
 
   ; calling a lambda, obviously
   (printf "square of 2 is = %f\n" (square 2))

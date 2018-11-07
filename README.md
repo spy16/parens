@@ -116,7 +116,7 @@ scope.Bind("do", parser.MacroFunc(doMacro))
 src := `
 (do
     (println "Hello from parens")
-    (setq π 3.1412))
+    (label π 3.1412))
 `
 // value of 'val' after below statement should be 3.1412
 val, _ := exec.Execute(src)
