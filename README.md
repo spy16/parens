@@ -46,11 +46,12 @@ Should be possible to control what is available. Standard functions should be re
 not built-in.
 
 ```go
-stdlib.RegisterBuiltins(scope)
+stdlib.RegisterAll(scope)
 ```
 
 Adding this one line into the previous snippet allows you to include some minimal set
-of standard functions and macros like `let`, `cond`, `+`, `-`, `*`, `/` etc.
+of standard functions like `+`, `-`, `*`, `/` etc. and macros like `let`, `cond`, `do`
+etc.
 
 The type of `scope` argument in `parens.New(scope)` is the following interface:
 
@@ -92,7 +93,7 @@ exec.Execute(`(printf "value of π is = %f" π)`)
 
 ### 4. Extensible Semantics
 
-Special constructs like `begin`, `cond`, `if` etc. can be added using Macros.
+Special constructs like `do`, `cond`, `if` etc. can be added using Macros.
 
 ```go
 // This is standard implementation of '(do expr*)' special-form from Clojure!

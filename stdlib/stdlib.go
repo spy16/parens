@@ -4,11 +4,11 @@ import (
 	"github.com/spy16/parens/parser"
 )
 
-// RegisterBuiltins registers different built-in functions into the
+// RegisterAll registers different built-in functions into the
 // given scope.
-func RegisterBuiltins(scope parser.Scope) error {
+func RegisterAll(scope parser.Scope) error {
 	return doUntilErr(scope,
-		RegisterMacros,
+		RegisterCore,
 		RegisterMath,
 		RegisterIO,
 		RegisterSystem,
@@ -25,9 +25,10 @@ func RegisterIO(scope parser.Scope) error {
 	return registerList(scope, io)
 }
 
-// RegisterMacros binds all the macros into the scope.
-func RegisterMacros(scope parser.Scope) error {
-	return registerList(scope, macros)
+// RegisterCore binds all the core macros and functions into
+// the scope.
+func RegisterCore(scope parser.Scope) error {
+	return registerList(scope, core)
 }
 
 // RegisterMath binds basic math operators into the scope.

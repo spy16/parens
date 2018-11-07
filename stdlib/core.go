@@ -6,14 +6,27 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/k0kubun/pp"
 	"github.com/spy16/parens"
+
+	"github.com/k0kubun/pp"
 	"github.com/spy16/parens/parser"
 )
 
-var macros = []mapEntry{
-	entry("begin", parser.MacroFunc(Begin),
-		"Usage: (begin expr1 expr2 ...)",
+var core = []mapEntry{
+	// logical constants
+	entry("true", true,
+		"Represents logical true",
+	),
+	entry("false", false,
+		"Represents logical false",
+	),
+	entry("nil", false,
+		"Represents logical false. Same as false",
+	),
+
+	// core macros
+	entry("do", parser.MacroFunc(Do),
+		"Usage: (do expr1 expr2 ...)",
 	),
 	entry("label", parser.MacroFunc(Label),
 		"Usage: (label <symbol> expr)",
@@ -33,10 +46,74 @@ var macros = []mapEntry{
 		"where params: a list of symbols",
 		"      body  : one or more s-expressions",
 	),
+	entry("defn", parser.MacroFunc(Defn),
+		"Defines a named function",
+		"Usage: (defn <name> (params) body)",
+	),
 	entry("doc", parser.MacroFunc(Doc),
 		"Dispalys documentation for given symbol if available.",
 		"Usage: (doc <symbol>)",
 	),
+	entry("dump-scope", parser.MacroFunc(dumpScope),
+		"Formats and displays the entire scope",
+	),
+	entry("->", parser.MacroFunc(ThreadFirst)),
+	entry("->>", parser.MacroFunc(ThreadLast)),
+
+	// core functions
+	entry("type", reflect.TypeOf),
+}
+
+// ThreadFirst macro appends first evaluation result as first argument of next function
+// call.
+func ThreadFirst(scope parser.Scope, name string, exprs []parser.Expr) (interface{}, error) {
+	return thread(true, scope, name, exprs)
+}
+
+// ThreadLast macro appends first evaluation result as last argument of next function
+// call.
+func ThreadLast(scope parser.Scope, name string, exprs []parser.Expr) (interface{}, error) {
+	return thread(false, scope, name, exprs)
+}
+
+func thread(first bool, scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
+	if len(exprs) != 2 {
+		return nil, fmt.Errorf("exactly 2 argument required, got %d", len(exprs))
+	}
+
+	lst, ok := exprs[1].(parser.ListExpr)
+	if !ok {
+		return nil, fmt.Errorf("argument 2 must be a function call, not '%s'", reflect.TypeOf(exprs[1]))
+	}
+
+	val, err := exprs[0].Eval(scope)
+	if err != nil {
+		return nil, err
+	}
+	res := anyExpr{
+		val: val,
+	}
+
+	modList := parser.ListExpr{
+		List: []parser.Expr{lst.List[0]},
+	}
+	if first {
+		modList.List = append(modList.List, res)
+		modList.List = append(modList.List, lst.List[1:]...)
+	} else {
+		modList.List = append(modList.List, lst.List[1:]...)
+		modList.List = append(modList.List, res)
+	}
+
+	return modList.Eval(scope)
+}
+
+type anyExpr struct {
+	val interface{}
+}
+
+func (ae anyExpr) Eval(scope parser.Scope) (interface{}, error) {
+	return ae.val, nil
 }
 
 // Doc shows doc string associated with a symbol. If not found, returns a message.
@@ -62,6 +139,27 @@ func Doc(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error)
 
 	docStr = fmt.Sprintf("%s\n\nGo Type: %s", docStr, reflect.TypeOf(val))
 	return docStr, nil
+}
+
+// Defn macro is for defining named functions. It defines a lambda and binds it with
+// the given name into the scope.
+func Defn(scope parser.Scope, name string, exprs []parser.Expr) (interface{}, error) {
+	if len(exprs) < 3 {
+		return nil, fmt.Errorf("3 or more arguments required, got %d", len(exprs))
+	}
+
+	sym, ok := exprs[0].(parser.SymbolExpr)
+	if !ok {
+		return nil, fmt.Errorf("first argument must be symbol, not '%s'", reflect.TypeOf(exprs[0]))
+	}
+
+	lambda, err := Lambda(scope, name, exprs[1:])
+	if err != nil {
+		return nil, err
+	}
+
+	scope.Bind(sym.Symbol, lambda)
+	return sym.Symbol, nil
 }
 
 // Lambda macro is for defining lambdas. (lambda (params) body)
@@ -95,7 +193,7 @@ func Lambda(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, err
 			localScope.Bind(params[i], args[i])
 		}
 
-		val, err := Begin(localScope, "", exprs[1:])
+		val, err := Do(localScope, "", exprs[1:])
 		if err != nil {
 			panic(err)
 		}
@@ -106,8 +204,8 @@ func Lambda(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, err
 	return lambdaFunc, nil
 }
 
-// Begin executes all s-exps one by one and returns the result of last evaluation.
-func Begin(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
+// Do executes all s-exps one by one and returns the result of last evaluation.
+func Do(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
 	var val interface{}
 	var err error
 	for _, expr := range exprs {
@@ -122,11 +220,11 @@ func Begin(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, erro
 
 // Let creates a new sub-scope from the global scope and executes all the
 // exprs inside the new scope. Once the Let block ends, all the names bound
-// will be removed. In other words, Let is a begin with local scope.
+// will be removed. In other words, Let is a Do with local scope.
 func Let(scope parser.Scope, name string, exprs []parser.Expr) (interface{}, error) {
 	localScope := parens.NewScope(scope)
 
-	return Begin(localScope, name, exprs)
+	return Do(localScope, name, exprs)
 }
 
 // Conditional is commonly know LISP (cond (test1 act1)...) construct.
@@ -191,4 +289,8 @@ func Label(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, erro
 func Inspect(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
 	pp.Println(exprs)
 	return nil, nil
+}
+
+func dumpScope(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
+	return fmt.Sprint(scope), nil
 }

@@ -1,4 +1,4 @@
-(begin
+(do
   ; need help ?
   (doc println)
   (dump-scope)
@@ -40,6 +40,15 @@
   (printf "square of 2 is = %f\n" (square 2))
 
   ; we need to do some math obviously
-  (printf "complex math answer %f\n" (* 1 (- 2 (+ 1 (/ 3 3))))))
+  (printf "complex math answer %f\n" (* 1 (- 2 (+ 1 (/ 3 3)))))
+
+  ; time for real stuff.. fibonacci!
+  (defn fib (n)
+        (cond
+          ((< n 2) n)
+          (true (+ (fib (- n 1)) (fib (- n 2))))))
+
+  ; what is the 10th number in the fibonacci sequence
+  (printf "10th number in the fibonacci sequence = %f\n" (fib 10)))
 
 

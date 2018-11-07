@@ -1,11 +1,7 @@
 package stdlib
 
 import (
-	"fmt"
 	"os"
-	"reflect"
-
-	"github.com/spy16/parens/parser"
 )
 
 var system = []mapEntry{
@@ -16,15 +12,6 @@ var system = []mapEntry{
 		"Sets value of environment variable",
 		"Example: (set-env \"HELLO\" \"world\")",
 	),
-	entry("dump-scope", parser.MacroFunc(dumpScope),
-		"Formats and displays the entire scope",
-	),
-
-	entry("type", reflect.TypeOf),
-}
-
-func dumpScope(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
-	return fmt.Sprintln(scope), nil
 }
 
 func setenv(name, val string) string {

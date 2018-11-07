@@ -6,17 +6,6 @@ import (
 )
 
 var math = []mapEntry{
-	// logical constants
-	entry("true", true,
-		"Represents logical true",
-	),
-	entry("false", false,
-		"Represents logical false",
-	),
-	entry("nil", false,
-		"Represents logical false. Same as false",
-	),
-
 	// functions and operators
 	entry("+", Add,
 		"Returns sum of all number arguments",
