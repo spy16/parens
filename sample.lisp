@@ -31,6 +31,8 @@
   (println "1 + 2 =" (∑ 1 2))
   (println "false and nil are not same =" (≠ false nil))
 
+  (label sign (lambda (in) (cond ((> in 0) "positive") ((< in 0) "negative") (true "zero"))))
+
   ; defining a lambda
   (label square (lambda (a) (* a a)))
 

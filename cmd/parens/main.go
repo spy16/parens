@@ -12,7 +12,7 @@ import (
 
 func main() {
 	var src string
-	flag.StringVar(&src, "c", "", "Source passed in as argument")
+	flag.StringVar(&src, "e", "", "Execute source passed in as argument")
 	flag.Parse()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -21,12 +21,13 @@ func main() {
 
 	exec := parens.New(scope)
 	if len(strings.TrimSpace(src)) > 0 {
-		_, err := exec.Execute(src)
+		val, err := exec.Execute(src)
 		if err != nil {
 			fmt.Printf("error: %s\n", err)
 			os.Exit(1)
 		}
 
+		fmt.Println(val)
 		return
 	}
 

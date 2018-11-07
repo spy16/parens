@@ -17,7 +17,7 @@ Then you can
 
 1. Run `REPL` by running `parens` command.
 2. Run a lisp file using `parens <filename>` command.
-3. Execute a LISP string using `parens -c (println (+ 1 2))`
+3. Execute a LISP string using `parens -e "(+ 1 2)"`
 
 
 ## Usage
