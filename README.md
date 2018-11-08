@@ -4,14 +4,11 @@
 
 [![GoDoc](https://godoc.org/github.com/spy16/parens?status.svg)](https://godoc.org/github.com/spy16/radium) [![Go Report Card](https://goreportcard.com/badge/github.com/spy16/parens)](https://goreportcard.com/report/github.com/spy16/parens)
 
-
 Parens is a LISP-like scripting layer for `Go` (or `Golang`).
-Parens supports `string`, `float64`, `symbol`, `list`, `quote`, `vector` types.
 
 ## Installation
 
-Parens is not meant for stand-alone usage. But there is a REPL which is
-meant to showcase features of parens and can be installed as below:
+Parens can be installed using the following command:
 
 ```bash
 go get -u -v github.com/spy16/parens/cmd/parens
@@ -63,7 +60,6 @@ The type of `scope` argument in `parens.New(scope)` is the following interface:
 ```go
 // Scope is responsible for managing bindings.
 type Scope interface {
-	Value(name string) (*reflection.Value, error)
 	Get(name string) (interface{}, error)
 	Bind(name string, v interface{}) error
 	Root() Scope

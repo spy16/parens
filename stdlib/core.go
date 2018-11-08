@@ -80,35 +80,41 @@ func ThreadLast(scope parser.Scope, name string, exprs []parser.Expr) (interface
 }
 
 func thread(first bool, scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
-	if len(exprs) != 2 {
-		return nil, fmt.Errorf("exactly 2 argument required, got %d", len(exprs))
+	if len(exprs) == 0 {
+		return nil, fmt.Errorf("at-least 1 argument required")
 	}
 
-	lst, ok := exprs[1].(parser.ListExpr)
-	if !ok {
-		return nil, fmt.Errorf("argument 2 must be a function call, not '%s'", reflect.TypeOf(exprs[1]))
+	var result interface{}
+	for i := 1; i < len(exprs); i++ {
+		lst, ok := exprs[i].(parser.ListExpr)
+		if !ok {
+			return nil, fmt.Errorf("argument %d must be a function call, not '%s'", i, reflect.TypeOf(exprs[i]))
+		}
+
+		val, err := exprs[i-1].Eval(scope)
+		if err != nil {
+			return nil, err
+		}
+		res := anyExpr{val: val}
+
+		nextCall := parser.ListExpr{List: []parser.Expr{lst.List[0]}}
+
+		if first {
+			nextCall.List = append(nextCall.List, res)
+			nextCall.List = append(nextCall.List, lst.List[1:]...)
+		} else {
+			nextCall.List = append(nextCall.List, lst.List[1:]...)
+			nextCall.List = append(nextCall.List, res)
+		}
+
+		result, err = nextCall.Eval(scope)
+		if err != nil {
+			return nil, err
+		}
+		exprs[i] = anyExpr{val: result}
 	}
 
-	val, err := exprs[0].Eval(scope)
-	if err != nil {
-		return nil, err
-	}
-	res := anyExpr{
-		val: val,
-	}
-
-	modList := parser.ListExpr{
-		List: []parser.Expr{lst.List[0]},
-	}
-	if first {
-		modList.List = append(modList.List, res)
-		modList.List = append(modList.List, lst.List[1:]...)
-	} else {
-		modList.List = append(modList.List, lst.List[1:]...)
-		modList.List = append(modList.List, res)
-	}
-
-	return modList.Eval(scope)
+	return result, nil
 }
 
 type anyExpr struct {

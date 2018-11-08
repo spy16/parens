@@ -1,6 +1,6 @@
 (defn square (n) (* n n))
 
-; threading macro and threading last macro can be
+; threading-first and threading-last macros can be
 ; used to reduce nesting.
 
 ; thread-first macro
