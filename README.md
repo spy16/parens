@@ -6,7 +6,9 @@ Parens is a LISP-like scripting layer for `Go` (or `Golang`).
 
 ## Installation
 
-Parens can be installed using the following command:
+To embed parens in your application import `github.com/spy16/parens`.
+
+For stand-alone usage, install the parens binary using:
 
 ```bash
 go get -u -v github.com/spy16/parens/cmd/parens
