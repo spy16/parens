@@ -1,6 +1,11 @@
 package parser
 
-import "github.com/spy16/parens/lexer"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/spy16/parens/lexer"
+)
 
 // VectorExpr represents a vector form.
 type VectorExpr struct {
@@ -20,6 +25,15 @@ func (ve VectorExpr) Eval(scope Scope) (interface{}, error) {
 	}
 
 	return lst, nil
+}
+
+func (ve VectorExpr) String() string {
+	strs := []string{}
+	for _, expr := range ve.vector {
+		strs = append(strs, fmt.Sprint(expr))
+	}
+
+	return fmt.Sprintf("[%s]", strings.Join(strs, " "))
 }
 
 func buildVectorExpr(tokens *tokenQueue) (Expr, error) {

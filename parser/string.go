@@ -24,6 +24,10 @@ func (se StringExpr) Eval(_ Scope) (interface{}, error) {
 	return unquoteStr(se.value), nil
 }
 
+func (se StringExpr) String() string {
+	return se.value
+}
+
 func unquoteStr(str string) string {
 	sc := &utfstrings.Cursor{
 		String: str[1 : len(str)-1],

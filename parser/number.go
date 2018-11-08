@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/spy16/parens/lexer"
@@ -30,4 +31,8 @@ func (ne NumberExpr) Eval(scope Scope) (interface{}, error) {
 	}
 
 	return ne.number, nil
+}
+
+func (ne NumberExpr) String() string {
+	return fmt.Sprint(ne.numStr)
 }

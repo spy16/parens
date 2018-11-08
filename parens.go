@@ -24,12 +24,18 @@ func New(scope parser.Scope) *Interpreter {
 		return val
 	}
 
-	evalStr := func(str string) interface{} {
-		val, err := exec.Execute(str)
+	evalStr := func(val interface{}) interface{} {
+		expr, ok := val.(parser.Expr)
+		if !ok {
+			return val
+		}
+
+		res, err := expr.Eval(exec.Scope)
 		if err != nil {
 			panic(err)
 		}
-		return val
+
+		return res
 	}
 
 	scope.Bind("load", loadFile,
@@ -39,6 +45,7 @@ func New(scope parser.Scope) *Interpreter {
 
 	scope.Bind("eval", evalStr,
 		"Executes given LISP string in the current scope",
+		"Usage: (eval <form>)",
 	)
 	return exec
 }

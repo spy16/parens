@@ -57,6 +57,13 @@ func buildExpr(tokens *tokenQueue) (Expr, error) {
 	case lexer.LVECT:
 		return buildVectorExpr(tokens)
 
+	case lexer.QUOTE:
+		expr, err := buildExpr(tokens)
+		if err != nil {
+			return nil, err
+		}
+		return QuoteExpr{expr: expr}, nil
+
 	case lexer.WHITESPACE, lexer.NEWLINE, lexer.COMMENT:
 		return nil, nil
 

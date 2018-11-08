@@ -1,5 +1,10 @@
 package parser
 
+import (
+	"fmt"
+	"strings"
+)
+
 // ModuleExpr represents a list of Exprs.
 type ModuleExpr struct {
 	Name  string
@@ -19,6 +24,14 @@ func (me ModuleExpr) Eval(scope Scope) (interface{}, error) {
 	}
 
 	return val, nil
+}
+
+func (me ModuleExpr) String() string {
+	strs := []string{}
+	for _, expr := range me.Exprs {
+		strs = append(strs, fmt.Sprint(expr))
+	}
+	return strings.Join(strs, "\n")
 }
 
 func buildModuleExpr(name string, queue *tokenQueue) (Expr, error) {

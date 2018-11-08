@@ -24,3 +24,7 @@ func (se SymbolExpr) ExpType() string {
 func (se SymbolExpr) Eval(scope Scope) (interface{}, error) {
 	return scope.Get(se.Symbol)
 }
+
+func (se SymbolExpr) String() string {
+	return se.Symbol
+}

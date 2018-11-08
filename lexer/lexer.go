@@ -93,6 +93,9 @@ func (lex *Lexer) nextTokenType() (TokenType, error) {
 		scanComment(&lex.cur)
 		return COMMENT, nil
 
+	case ru == '\'':
+		return QUOTE, nil
+
 	default:
 		lex.cur.Backup()
 		oldSel := lex.cur.Selection

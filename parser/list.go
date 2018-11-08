@@ -1,6 +1,9 @@
 package parser
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/spy16/parens/lexer"
 	"github.com/spy16/parens/reflection"
 )
@@ -46,6 +49,15 @@ func (le ListExpr) Eval(scope Scope) (interface{}, error) {
 	}
 
 	return reflection.Call(val, args...)
+}
+
+func (le ListExpr) String() string {
+	reprs := []string{}
+	for _, item := range le.List {
+		reprs = append(reprs, fmt.Sprint(item))
+	}
+
+	return fmt.Sprintf("(%s)", strings.Join(reprs, " "))
 }
 
 func buildListExpr(tokens *tokenQueue) (Expr, error) {

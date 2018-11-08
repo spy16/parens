@@ -49,4 +49,7 @@ const (
 
 	// SYMBOL represents any identifier
 	SYMBOL TokenType = "SYMBOL"
+
+	// QUOTE represents the single quote
+	QUOTE TokenType = "QUOTE"
 )
