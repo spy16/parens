@@ -42,7 +42,8 @@ exec := parens.New(scope)
 exec.Execute("10")
 ```
 
-Above snippet gives you an interpreter that understands only literals and `(load <file>)`.
+Above snippet gives you an interpreter that understands literals, `(eval expr)`
+and `(load <file>)`.
 
 ### 2. Flexible
 
