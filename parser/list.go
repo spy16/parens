@@ -41,7 +41,7 @@ func (le ListExpr) Eval(scope Scope) (interface{}, error) {
 	return reflection.Call(val, args...)
 }
 
-// MacroFunc will recieve un-evaluated list of s-expressions and the
+// MacroFunc will receive un-evaluated list of s-expressions and the
 // current scope. In addition, if the macro was accessed through a name
 // the name will be passed as well. If the macro was not accessed by name
 // (e.g. was result of another list etc.), name will be empty string.

@@ -19,3 +19,4 @@ examples/expt/
 
 .DS_Store
 cmd/expt/
+expt.lisp
