@@ -31,6 +31,9 @@ var core = []mapEntry{
 	entry("label", parser.MacroFunc(Label),
 		"Usage: (label <symbol> expr)",
 	),
+	entry("global", parser.MacroFunc(Global),
+		"Usage: (global <symbol> expr)",
+	),
 	entry("cond", parser.MacroFunc(Conditional),
 		"Usage: (cond (test1 action1) (test2 action2)...)",
 	),
@@ -266,7 +269,27 @@ func Conditional(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}
 
 // Label binds the result of evaluating second argument to the symbol passed in as
 // first argument in the current scope.
-func Label(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
+func Label(scope parser.Scope, name string, exprs []parser.Expr) (interface{}, error) {
+	return labelInScope(scope, name, exprs)
+}
+
+// Global binds the result of evaluating second argument to the symbol passed in as
+// first argument in the global scope.
+func Global(scope parser.Scope, name string, exprs []parser.Expr) (interface{}, error) {
+	return labelInScope(scope.Root(), name, exprs)
+}
+
+// Inspect dumps the exprs in a formatted manner.
+func Inspect(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
+	pp.Println(exprs)
+	return nil, nil
+}
+
+func dumpScope(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
+	return fmt.Sprint(scope), nil
+}
+
+func labelInScope(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
 	if len(exprs) != 2 {
 		return nil, fmt.Errorf("expecting symbol and a value")
 	}
@@ -283,14 +306,4 @@ func Label(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, erro
 	scope.Bind(symbol.Symbol, val)
 
 	return val, nil
-}
-
-// Inspect dumps the exprs in a formatted manner.
-func Inspect(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
-	pp.Println(exprs)
-	return nil, nil
-}
-
-func dumpScope(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error) {
-	return fmt.Sprint(scope), nil
 }

@@ -3,8 +3,16 @@ package parser
 import (
 	"strings"
 
+	"github.com/spy16/parens/lexer"
+
 	"github.com/spy16/parens/lexer/utfstrings"
 )
+
+func newStringExpr(token *lexer.Token) StringExpr {
+	return StringExpr{
+		value: token.Value,
+	}
+}
 
 // StringExpr represents single and double quoted strings.
 type StringExpr struct {

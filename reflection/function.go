@@ -62,7 +62,7 @@ func makeArgs(rType reflect.Type, args ...interface{}) ([]reflect.Value, error) 
 	}
 
 	if rType.NumIn() != len(args) {
-		return nil, ErrInvalidNumberOfArgs
+		return nil, fmt.Errorf("call requires exactly %d arguments, got %d", rType.NumIn(), len(args))
 	}
 
 	for i := 0; i < rType.NumIn(); i++ {

@@ -51,23 +51,6 @@ func (sc *Scope) Bind(name string, v interface{}, doc ...string) error {
 	return nil
 }
 
-// Value returns a pointer to the value bound to the given name. If
-// name is not available in this scope, request is delgated to the
-// parent. If the name is not found anywhere in the hierarchy, error
-// will be returned. Modifying the returned pointer will not modify
-// the original value.
-func (sc *Scope) Value(name string) (*reflection.Value, error) {
-	if entry := sc.entry(name); entry != nil {
-		return &entry.val, nil
-	}
-
-	if sc.parent != nil {
-		return sc.parent.Value(name)
-	}
-
-	return nil, fmt.Errorf("name '%s' not found", name)
-}
-
 // Doc returns doc string for the name. If name is not found, returns
 // empty string.
 func (sc *Scope) Doc(name string) string {
@@ -84,12 +67,15 @@ func (sc *Scope) Doc(name string) string {
 
 // Get returns the actual Go value bound to the given name.
 func (sc *Scope) Get(name string) (interface{}, error) {
-	val, err := sc.Value(name)
-	if err != nil {
-		return nil, err
+	entry := sc.entry(name)
+	if entry == nil {
+		if sc.parent != nil {
+			return sc.parent.Get(name)
+		}
+		return nil, fmt.Errorf("name '%s' not found", name)
 	}
 
-	return val.RVal.Interface(), nil
+	return entry.val.RVal.Interface(), nil
 }
 
 func (sc *Scope) String() string {

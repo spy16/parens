@@ -17,21 +17,21 @@ func TestScope_Bind(suite *testing.T) {
 		scope := parens.NewScope(nil)
 		scope.Bind("version", "1.0.0")
 
-		val, err := scope.Value("version")
+		val, err := scope.Get("version")
 		assert.NoError(t, err)
 		require.NotNil(t, val)
-		require.Equal(t, reflect.String, val.RVal.Kind())
-		assert.Equal(t, "1.0.0", val.RVal.String())
+		require.Equal(t, reflect.String, reflect.TypeOf(val).Kind())
+		assert.Equal(t, "1.0.0", val)
 	})
 
 	suite.Run("FunctionBind", func(t *testing.T) {
 		scope := parens.NewScope(nil)
 		scope.Bind("print", func(msg string) { fmt.Println(msg) })
 
-		val, err := scope.Value("print")
+		val, err := scope.Get("print")
 		assert.NoError(t, err)
 		require.NotNil(t, val)
-		require.Equal(t, reflect.Func, val.RVal.Kind())
+		require.Equal(t, reflect.Func, reflect.TypeOf(val).Kind())
 	})
 
 	suite.Run("OverwritingBund", func(t *testing.T) {
@@ -39,11 +39,11 @@ func TestScope_Bind(suite *testing.T) {
 		scope.Bind("print", func(msg string) { fmt.Println(msg) })
 		scope.Bind("print", "now-a-string")
 
-		val, err := scope.Value("print")
+		val, err := scope.Get("print")
 		assert.NoError(t, err)
 		require.NotNil(t, val)
-		require.Equal(t, reflect.String, val.RVal.Kind())
-		assert.Equal(t, "now-a-string", val.RVal.String())
+		require.Equal(t, reflect.String, reflect.TypeOf(val).Kind())
+		assert.Equal(t, "now-a-string", val)
 	})
 }
 
@@ -53,7 +53,7 @@ func TestScope_Get(suite *testing.T) {
 	suite.Run("UnboundName", func(t *testing.T) {
 		scope := parens.NewScope(nil)
 
-		val, err := scope.Value("some-unknown-name")
+		val, err := scope.Get("some-unknown-name")
 		require.Error(t, err)
 		assert.Nil(t, val)
 	})
@@ -63,11 +63,11 @@ func TestScope_Get(suite *testing.T) {
 		parent.Bind("message", "hello world")
 
 		scope := parens.NewScope(parent)
-		val, err := scope.Value("message")
+		val, err := scope.Get("message")
 		assert.NoError(t, err)
 		require.NotNil(t, val)
-		require.Equal(t, reflect.String, val.RVal.Kind())
-		assert.Equal(t, "hello world", val.RVal.String())
+		require.Equal(t, reflect.String, reflect.TypeOf(val).Kind())
+		assert.Equal(t, "hello world", val)
 	})
 
 	suite.Run("Pointer", func(t *testing.T) {
@@ -76,10 +76,10 @@ func TestScope_Get(suite *testing.T) {
 		scope := parens.NewScope(nil)
 		scope.Bind("value", &actualValue)
 
-		val, err := scope.Value("value")
+		val, err := scope.Get("value")
 		assert.NoError(t, err)
 		require.NotNil(t, val)
-		require.Equal(t, reflect.Ptr, val.RVal.Kind())
-		assert.Equal(t, &actualValue, val.RVal.Interface())
+		require.Equal(t, reflect.Ptr, reflect.TypeOf(val).Kind())
+		assert.Equal(t, &actualValue, val)
 	})
 }

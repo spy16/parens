@@ -24,11 +24,22 @@ func New(scope parser.Scope) *Interpreter {
 		return val
 	}
 
+	evalStr := func(str string) interface{} {
+		val, err := exec.Execute(str)
+		if err != nil {
+			panic(err)
+		}
+		return val
+	}
+
 	scope.Bind("load", loadFile,
 		"Reads and executes the file in the current scope",
 		"Example: (load \"sample.lisp\")",
 	)
 
+	scope.Bind("eval", evalStr,
+		"Executes given LISP string in the current scope",
+	)
 	return exec
 }
 

@@ -1,5 +1,15 @@
 package parser
 
+import (
+	"github.com/spy16/parens/lexer"
+)
+
+func newSymbolExpr(token *lexer.Token) SymbolExpr {
+	return SymbolExpr{
+		Symbol: token.Value,
+	}
+}
+
 // SymbolExpr represents a symbol.
 type SymbolExpr struct {
 	Symbol string

@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/spy16/parens/lexer"
-	"github.com/spy16/parens/reflection"
 )
 
 // ErrEOF is returned when the parser has consumed all tokens.
@@ -18,32 +17,17 @@ func Parse(name string, src string) (Expr, error) {
 		return nil, err
 	}
 
-	expr, err := buildExpr(&tokenQueue{tokens: tokens})
-	if err != nil {
-		return nil, err
-	}
-
-	return &AST{
-		File: name,
-		Expr: expr,
-	}, nil
+	queue := &tokenQueue{tokens: tokens}
+	return buildModuleExpr(name, queue)
 }
 
-// AST contains the root s-expression and file information.
-type AST struct {
-	Expr
-
-	File string
-}
-
-// Expr represents a symbolic expression.
+// Expr represents an evaluatable expression.
 type Expr interface {
 	Eval(env Scope) (interface{}, error)
 }
 
 // Scope is responsible for managing bindings.
 type Scope interface {
-	Value(name string) (*reflection.Value, error)
 	Get(name string) (interface{}, error)
 	Doc(name string) string
 	Bind(name string, v interface{}, doc ...string) error
@@ -59,81 +43,25 @@ func buildExpr(tokens *tokenQueue) (Expr, error) {
 
 	switch token.Type {
 	case lexer.LPAREN:
-		le := ListExpr{}
+		return buildListExpr(tokens)
 
-		for {
-			next := tokens.Token(0)
-			if next == nil {
-				return nil, ErrEOF
-			}
-			if next.Type == lexer.RPAREN {
-				break
-			}
-			exp, err := buildExpr(tokens)
-			if err != nil {
-				return nil, err
-			}
+	case lexer.NUMBER:
+		return newNumberExpr(token), nil
 
-			if exp == nil {
-				continue
-			}
+	case lexer.STRING:
+		return newStringExpr(token), nil
 
-			le.List = append(le.List, exp)
-		}
-		tokens.Pop()
-		return le, nil
+	case lexer.SYMBOL:
+		return newSymbolExpr(token), nil
+
+	case lexer.LVECT:
+		return buildVectorExpr(tokens)
+
+	case lexer.WHITESPACE, lexer.NEWLINE, lexer.COMMENT:
+		return nil, nil
 
 	case lexer.RPAREN, lexer.RVECT:
 		return nil, ErrEOF
-
-	case lexer.NUMBER:
-		ne := NumberExpr{
-			numStr: token.Value,
-		}
-		return ne, nil
-
-	case lexer.STRING:
-		se := StringExpr{
-			value: token.Value,
-		}
-		return se, nil
-
-	case lexer.SYMBOL:
-		se := SymbolExpr{
-			Symbol: token.Value,
-		}
-		return se, nil
-
-	case lexer.WHITESPACE, lexer.NEWLINE:
-		return nil, nil
-
-	case lexer.LVECT:
-		ve := &VectorExpr{}
-
-		for {
-			next := tokens.Token(0)
-			if next == nil {
-				return nil, ErrEOF
-			}
-			if next.Type == lexer.RVECT {
-				break
-			}
-			exp, err := buildExpr(tokens)
-			if err != nil {
-				return nil, err
-			}
-
-			if exp == nil {
-				continue
-			}
-
-			ve.vector = append(ve.vector, exp)
-		}
-		tokens.Pop()
-		return ve, nil
-
-	case lexer.COMMENT:
-		return nil, nil
 
 	default:
 		return nil, fmt.Errorf("unknown token type: %s", (token.Type))

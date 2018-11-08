@@ -1,8 +1,15 @@
 package parser
 
 import (
+	"github.com/spy16/parens/lexer"
 	"github.com/spy16/parens/reflection"
 )
+
+// MacroFunc will receive un-evaluated list of s-expressions and the
+// current scope. In addition, if the macro was accessed through a name
+// the name will be passed as well. If the macro was not accessed by name
+// (e.g. was result of another list etc.), name will be empty string.
+type MacroFunc func(scope Scope, name string, exprs []Expr) (interface{}, error)
 
 // ListExpr represents a list (i.e., a function call) expression.
 type ListExpr struct {
@@ -41,8 +48,29 @@ func (le ListExpr) Eval(scope Scope) (interface{}, error) {
 	return reflection.Call(val, args...)
 }
 
-// MacroFunc will receive un-evaluated list of s-expressions and the
-// current scope. In addition, if the macro was accessed through a name
-// the name will be passed as well. If the macro was not accessed by name
-// (e.g. was result of another list etc.), name will be empty string.
-type MacroFunc func(scope Scope, name string, exprs []Expr) (interface{}, error)
+func buildListExpr(tokens *tokenQueue) (Expr, error) {
+	le := ListExpr{}
+
+	for {
+		next := tokens.Token(0)
+		if next == nil {
+			return nil, ErrEOF
+		}
+
+		if next.Type == lexer.RPAREN {
+			break
+		}
+
+		exp, err := buildExpr(tokens)
+		if err != nil {
+			return nil, err
+		}
+
+		if exp != nil {
+			le.List = append(le.List, exp)
+		}
+
+	}
+	tokens.Pop()
+	return le, nil
+}
