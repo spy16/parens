@@ -14,6 +14,10 @@ import (
 // (e.g. was result of another list etc.), name will be empty string.
 type MacroFunc func(scope Scope, name string, exprs []Expr) (interface{}, error)
 
+// ScopedFunc are like normal functions but get access to the current scope.
+// Eval is an example of a ScopedFunc.
+type ScopedFunc func(scope Scope, vals ...interface{}) (interface{}, error)
+
 // ListExpr represents a list (i.e., a function call) expression.
 type ListExpr struct {
 	List []Expr
@@ -46,6 +50,10 @@ func (le ListExpr) Eval(scope Scope) (interface{}, error) {
 			return nil, err
 		}
 		args = append(args, arg)
+	}
+
+	if scopedFn, ok := val.(ScopedFunc); ok {
+		return scopedFn(scope, args...)
 	}
 
 	return reflection.Call(val, args...)

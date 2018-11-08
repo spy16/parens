@@ -6,6 +6,7 @@
 
 
 Parens is a LISP-like scripting layer for `Go` (or `Golang`).
+Parens supports `string`, `float64`, `symbol`, `list`, `quote`, `vector` types.
 
 ## Installation
 
