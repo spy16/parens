@@ -57,6 +57,14 @@ func buildExpr(tokens *tokenQueue) (Expr, error) {
 	case lexer.LVECT:
 		return buildVectorExpr(tokens)
 
+	case lexer.LDICT:
+		return buildMapExpr(tokens)
+
+	case lexer.KEYWORD:
+		return KeywordExpr{
+			Keyword: token.Value,
+		}, nil
+
 	case lexer.QUOTE:
 		expr, err := buildExpr(tokens)
 		if err != nil {
@@ -64,14 +72,10 @@ func buildExpr(tokens *tokenQueue) (Expr, error) {
 		}
 		return QuoteExpr{expr: expr}, nil
 
-	case lexer.WHITESPACE, lexer.NEWLINE, lexer.COMMENT:
-		return nil, nil
-
-	case lexer.RPAREN, lexer.RVECT:
+	case lexer.RPAREN, lexer.RVECT, lexer.RDICT:
 		return nil, ErrEOF
 
 	default:
 		return nil, fmt.Errorf("unknown token type: %s", (token.Type))
 	}
-
 }

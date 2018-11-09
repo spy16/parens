@@ -2,7 +2,7 @@
 ; the value is "prod".
 
 ; checks if the value of ENV variable is prod.
-(defn is-production ()
+(defn is-production []
    (label current-env (env "ENV"))
    (== current-env "prod"))
 

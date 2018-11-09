@@ -42,7 +42,7 @@
 (printf "complex math answer %f\n" (* 1 (- 2 (+ 1 (/ 3 3)))))
 
 ; time for real stuff.. fibonacci!
-(defn fib (n)
+(defn fib [n]
       (cond
         ((< n 2) n)
         (true (+ (fib (- n 1)) (fib (- n 2))))))

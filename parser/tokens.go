@@ -22,5 +22,10 @@ func (tq *tokenQueue) Pop() *lexer.Token {
 
 	token := tq.tokens[0]
 	tq.tokens = tq.tokens[1:]
+
+	if token.Type == lexer.WHITESPACE || token.Type == lexer.NEWLINE ||
+		token.Type == lexer.COMMENT {
+		return tq.Pop()
+	}
 	return &token
 }

@@ -86,11 +86,9 @@ func buildListExpr(tokens *tokenQueue) (Expr, error) {
 			return nil, err
 		}
 
-		if exp != nil {
-			le.List = append(le.List, exp)
-		}
-
+		le.List = append(le.List, exp)
 	}
+
 	tokens.Pop()
 	return le, nil
 }

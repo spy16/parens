@@ -69,6 +69,12 @@ func (lex *Lexer) nextTokenType() (TokenType, error) {
 	case ru == ')':
 		return RPAREN, nil
 
+	case ru == '{':
+		return LDICT, nil
+
+	case ru == '}':
+		return RDICT, nil
+
 	case ru == '[':
 		return LVECT, nil
 
@@ -80,6 +86,9 @@ func (lex *Lexer) nextTokenType() (TokenType, error) {
 
 	case ru == ' ' || ru == '\t':
 		return WHITESPACE, nil
+
+	case ru == '\'':
+		return QUOTE, nil
 
 	case ru == '"':
 		lex.cur.Backup()
@@ -93,8 +102,9 @@ func (lex *Lexer) nextTokenType() (TokenType, error) {
 		scanComment(&lex.cur)
 		return COMMENT, nil
 
-	case ru == '\'':
-		return QUOTE, nil
+	case ru == ':':
+		scanKeyWord(&lex.cur)
+		return KEYWORD, nil
 
 	default:
 		lex.cur.Backup()

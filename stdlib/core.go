@@ -51,7 +51,7 @@ var core = []mapEntry{
 	),
 	entry("defn", parser.MacroFunc(Defn),
 		"Defines a named function",
-		"Usage: (defn <name> (params) body)",
+		"Usage: (defn <name> [params] body)",
 	),
 	entry("doc", parser.MacroFunc(Doc),
 		"Displays documentation for given symbol if available.",
@@ -177,7 +177,7 @@ func Lambda(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, err
 		return nil, errors.New("at-least two arguments required")
 	}
 
-	paramList, ok := exprs[0].(parser.ListExpr)
+	paramList, ok := exprs[0].(parser.VectorExpr)
 	if !ok {
 		return nil, fmt.Errorf("first argument must be list of symbols, not '%s'", reflect.TypeOf(exprs[0]))
 	}

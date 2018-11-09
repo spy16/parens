@@ -1,6 +1,7 @@
 package lexer_test
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -64,6 +65,27 @@ func TestLexer_Braces(suite *testing.T) {
 			result{lexer.WHITESPACE, " "},
 			result{lexer.NUMBER, "-2.3"},
 			result{lexer.RVECT, "]"},
+		)
+	})
+}
+
+func TestLexer_CurlyBraces(suite *testing.T) {
+	suite.Parallel()
+
+	suite.Run("EmptyMap", func(t *testing.T) {
+		checkValidTokens(t, "{}",
+			result{lexer.LDICT, "{"},
+			result{lexer.RDICT, "}"},
+		)
+	})
+
+	suite.Run("ValidVector", func(t *testing.T) {
+		checkValidTokens(t, "{:a 1}",
+			result{lexer.LDICT, "{"},
+			result{lexer.KEYWORD, ":a"},
+			result{lexer.WHITESPACE, " "},
+			result{lexer.NUMBER, "1"},
+			result{lexer.RDICT, "}"},
 		)
 	})
 }
@@ -249,7 +271,7 @@ func checkValidTokens(t *testing.T, src string, results ...result) {
 	tokens, err := lexer.New(src).Tokens()
 	require.NoError(t, err)
 
-	require.Equal(t, len(results), len(tokens))
+	require.Equal(t, len(results), len(tokens), fmt.Sprintf("got: %s", tokens))
 	for i, res := range results {
 		assert.Equal(t, res.typ, tokens[i].Type)
 		assert.Equal(t, res.val, tokens[i].Value)

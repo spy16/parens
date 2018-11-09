@@ -32,6 +32,15 @@ const (
 	// RVECT represents the right-brace character
 	RVECT TokenType = "RVECT"
 
+	// LDICT represents the left curly brace
+	LDICT TokenType = "LDICT"
+
+	// KEYWORD represents a keyword
+	KEYWORD TokenType = "KEYWORD"
+
+	// RDICT represents the right curly brace
+	RDICT TokenType = "RDICT"
+
 	// STRING represents a double-quoted string
 	STRING TokenType = "STRING"
 

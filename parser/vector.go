@@ -9,14 +9,14 @@ import (
 
 // VectorExpr represents a vector form.
 type VectorExpr struct {
-	vector []Expr
+	List []Expr
 }
 
 // Eval creates a golang slice.
 func (ve VectorExpr) Eval(scope Scope) (interface{}, error) {
 	lst := []interface{}{}
 
-	for _, expr := range ve.vector {
+	for _, expr := range ve.List {
 		val, err := expr.Eval(scope)
 		if err != nil {
 			return nil, err
@@ -29,7 +29,7 @@ func (ve VectorExpr) Eval(scope Scope) (interface{}, error) {
 
 func (ve VectorExpr) String() string {
 	strs := []string{}
-	for _, expr := range ve.vector {
+	for _, expr := range ve.List {
 		strs = append(strs, fmt.Sprint(expr))
 	}
 
@@ -53,7 +53,7 @@ func buildVectorExpr(tokens *tokenQueue) (Expr, error) {
 		}
 
 		if exp != nil {
-			ve.vector = append(ve.vector, exp)
+			ve.List = append(ve.List, exp)
 		}
 	}
 	tokens.Pop()

@@ -11,6 +11,15 @@ import (
 
 var numberRegex = regexp.MustCompile("^(\\+|-)?\\d+(\\.\\d+)?$")
 
+func scanKeyWord(cur *utfstrings.Cursor) {
+	for {
+		if ru := cur.Next(); isSepratingChar(ru) || ru == utfstrings.EOS {
+			cur.Backup()
+			break
+		}
+	}
+}
+
 // scanComment advances the cursor till line-break or eof.
 func scanComment(cur *utfstrings.Cursor) {
 	for {
@@ -117,5 +126,5 @@ func oneOf(ru rune, set ...rune) bool {
 }
 
 func isSepratingChar(ru rune) bool {
-	return oneOf(ru, ' ', '\t', '\n', '\r', '(', ')', '[', ']')
+	return oneOf(ru, ' ', '\t', '\n', '\r', '(', ')', '[', ']', '{', '}')
 }
