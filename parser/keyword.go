@@ -9,3 +9,7 @@ type KeywordExpr struct {
 func (ke KeywordExpr) Eval(scope Scope) (interface{}, error) {
 	return ke.Keyword, nil
 }
+
+func (ke KeywordExpr) String() string {
+	return ke.Keyword
+}
