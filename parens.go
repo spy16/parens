@@ -1,6 +1,7 @@
 package parens
 
 import (
+	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -91,6 +92,8 @@ func (parens *Interpreter) executeSrc(name, src string) (interface{}, error) {
 			if v := recover(); v != nil {
 				if err, ok := v.(error); ok {
 					evalErr = err
+				} else {
+					evalErr = fmt.Errorf("panic: %v", v)
 				}
 			}
 		}()

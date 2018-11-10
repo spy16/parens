@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 
 	"github.com/chzyer/readline"
@@ -85,14 +84,6 @@ type ReadInFunc func() (string, error)
 
 // WriteOutFunc implementation is used by the REPL to write result.
 type WriteOutFunc func(res interface{}, err error)
-
-func defaultWriteOut(v interface{}, err error) {
-	if err != nil {
-		fmt.Fprintf(os.Stdout, "error: %s\n", err)
-	} else {
-		fmt.Fprintln(os.Stdout, formatResult(v))
-	}
-}
 
 type prompter struct {
 	ins *readline.Instance
