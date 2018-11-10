@@ -1,21 +1,28 @@
 package parens
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"io"
 	"os"
 	"strings"
+
+	"github.com/chzyer/readline"
 )
 
 // NewREPL initializes a REPL session with given evaluator.
-func NewREPL(exec Executor) *REPL {
+func NewREPL(exec Executor) (*REPL, error) {
+	ins, err := readline.New("> ")
+	if err != nil {
+		return nil, err
+	}
+	pr := &prompter{ins: ins}
+
 	return &REPL{
 		Exec:     exec,
-		ReadIn:   defaultReadIn,
-		WriteOut: defaultWriteOut,
-	}
+		ReadIn:   pr.readIn,
+		WriteOut: pr.writeOut,
+	}, nil
 }
 
 // Executor implementation is responsible for understanding
@@ -87,23 +94,32 @@ func defaultWriteOut(v interface{}, err error) {
 	}
 }
 
-func defaultReadIn() (string, error) {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("> ")
-	src, err := reader.ReadString('\n')
+type prompter struct {
+	ins *readline.Instance
+}
+
+func (pr *prompter) readIn() (string, error) {
+	src, err := pr.ins.Readline()
 	if err != nil {
+		if err == readline.ErrInterrupt {
+			return "", io.EOF
+		}
 		return "", err
 	}
 
 	// multiline source
 	if strings.HasSuffix(src, "\\\n") {
-		nl, err := defaultReadIn()
-		if err != nil {
-			return "", err
-		}
-
-		return strings.Trim(src, "\\\n") + "\n" + nl, nil
+		nl, err := pr.readIn()
+		return strings.Trim(src, "\\\n") + "\n" + nl, err
 	}
 
 	return strings.TrimSpace(src), nil
+}
+
+func (pr *prompter) writeOut(v interface{}, err error) {
+	if err != nil {
+		pr.ins.Write([]byte(fmt.Sprintf("error: %s\n", err)))
+		return
+	}
+	pr.ins.Write([]byte(formatResult(v) + "\n"))
 }
