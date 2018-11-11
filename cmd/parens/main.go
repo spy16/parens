@@ -18,11 +18,6 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	scope := makeGlobalScope()
 	scope.Bind("exit", cancel)
-	scope.Bind("check", func(v interface{}) {
-		if v != nil {
-			panic(v)
-		}
-	})
 	exec := parens.New(scope)
 
 	if len(strings.TrimSpace(src)) > 0 {
