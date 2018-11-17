@@ -25,15 +25,15 @@
 ; parens supports UTF-8
 (label ∂ 0)
 (label ∑ +)
-(label ≠ (lambda (a b) (not (== a b))))
+(label ≠ (lambda [a b] (not (== a b))))
 
 (println "1 + 2 =" (∑ 1 2))
 (println "false and nil are not same =" (≠ false nil))
 
-(label sign (lambda (in) (cond ((> in 0) "positive") ((< in 0) "negative") (true "zero"))))
+(label sign (lambda [in] (cond ((> in 0) "positive") ((< in 0) "negative") (true "zero"))))
 
 ; defining a lambda
-(label square (lambda (a) (* a a)))
+(label square (lambda [a] (* a a)))
 
 ; calling a lambda, obviously
 (printf "square of 2 is = %f\n" (square 2))

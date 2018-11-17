@@ -1,4 +1,4 @@
-(defn square (n) (* n n))
+(defn square [n] (* n n))
 
 ; threading-first and threading-last macros can be
 ; used to reduce nesting.
