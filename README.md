@@ -61,7 +61,8 @@ The type of `scope` argument in `parens.New(scope)` is the following interface:
 // Scope is responsible for managing bindings.
 type Scope interface {
 	Get(name string) (interface{}, error)
-	Bind(name string, v interface{}) error
+	Doc(name string) string
+	Bind(name string, v interface{}, doc ...string) error
 	Root() Scope
 }
 ```
@@ -143,7 +144,7 @@ See `stdlib/macros.go` for some built-in macros.
     - [ ] Better error reporting
 - [ ] Better `reflection` package
     - [x] Support for variadic functions
-    - [ ] Support for methods
+    - [x] Support for methods
     - [ ] Type promotion/conversion
         - [x] `intX` types to `int64` and `float64`
         - [x] `floatX` types to `int64` and `float64`
