@@ -4,7 +4,7 @@
 
 Parens is a LISP-like scripting layer for `Go` (or `Golang`).
 
-See (benchmarks)[#benchmarks].
+See [benchmarks](#benchmarks).
 
 ## Installation
 
