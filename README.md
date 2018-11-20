@@ -168,5 +168,7 @@ See `stdlib/macros.go` for some built-in macros.
         - [x] `floatX` types to `int64` and `float64`
         - [x] any values to `interface{}` type
         - [ ] `intX` and `floatX` types to `int8`, `int16`, `float32` and vice versa?
-- [ ] Performance Benchmark (optimization ?)
+- [ ] Optimization
+  - [x] Performance Benchmark 
+  - [ ] optimization ?
 - [ ] `Go` code generation?
