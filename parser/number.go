@@ -9,30 +9,30 @@ import (
 
 func newNumberExpr(token *lexer.Token) NumberExpr {
 	return NumberExpr{
-		numStr: token.Value,
+		NumStr: token.Value,
 	}
 }
 
 // NumberExpr represents number s-expression.
 type NumberExpr struct {
-	numStr string
-	number interface{}
+	NumStr string
+	Number interface{}
 }
 
 // Eval for a number returns itself.
 func (ne NumberExpr) Eval(scope Scope) (interface{}, error) {
-	if ne.number == nil {
-		num, err := strconv.ParseFloat(ne.numStr, 64)
+	if ne.Number == nil {
+		num, err := strconv.ParseFloat(ne.NumStr, 64)
 		if err != nil {
 			return nil, err
 		}
 
-		ne.number = num
+		ne.Number = num
 	}
 
-	return ne.number, nil
+	return ne.Number, nil
 }
 
 func (ne NumberExpr) String() string {
-	return fmt.Sprint(ne.numStr)
+	return fmt.Sprint(ne.NumStr)
 }

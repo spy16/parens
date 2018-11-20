@@ -134,6 +134,24 @@ See `stdlib/macros.go` for some built-in macros.
 2. A new dialect of LISP
 
 
+## Benchmarks
+
+```
+| Name                                             | Runs       | Time       | Memory    | Allocations  |
+| ------------------------------------------------ | ---------- | ---------- | --------- | ------------ |
+| BenchmarkParens_Execute/Execute-8                | 300000     | 4028 ns/op | 1736 B/op | 42 allocs/op | 
+| BenchmarkParens_Execute/ExecuteExpr-8            | 5000000    | 368 ns/op  | 112 B/op  | 5 allocs/op  |
+| BenchmarkParens_FunctionCall/DirectCall-8        | 2000000000 | 0.31 ns/op | 0 B/op    | 0 allocs/op  |
+| BenchmarkParens_FunctionCall/CallThroughParens-8 | 2000000    | 1023 ns/op | 224 B/op  | 9 allocs/op  |
+| BenchmarkNonVariadicCall/Normal-8                | 2000000000 | 0.36 ns/op | 0 B/op    | 0 allocs/op  |
+| BenchmarkNonVariadicCall/Reflection-8            | 3000000    | 364 ns/op  | 104 B/op  | 4 allocs/op  |
+| BenchmarkNonVariadicCall/WithTypeConversion-8    | 3000000    | 373 ns/op  | 104 B/op  | 4 allocs/op  |
+| BenchmarkVariadicCall/Normal-8                   | 300000000  | 3.87 ns/op | 0 B/op    | 0 allocs/op  |
+| BenchmarkVariadicCall/Reflection-8               | 5000000    | 341 ns/op  | 104 B/op  | 4 allocs/op  |
+| BenchmarkVariadicCall/WithTypeConversion-8       | 5000000    | 342 ns/op  | 104 B/op  | 4 allocs/op  |
+```
+
+
 ## TODO
 
 - [ ] Better way to map error returns from Go functios to LISP

@@ -14,6 +14,35 @@ func add(a, b float64) float64 {
 	return a + b
 }
 
+func BenchmarkParens_Execute(suite *testing.B) {
+	ins := parens.New(parens.NewScope(nil))
+	suite.Run("Execute", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			ins.Execute("(add 1 2)")
+		}
+	})
+
+	expr := parser.ListExpr{
+		List: []parser.Expr{
+			parser.SymbolExpr{
+				Symbol: "add",
+			},
+			parser.NumberExpr{
+				Number: 1,
+			},
+			parser.NumberExpr{
+				Number: 2,
+			},
+		},
+	}
+
+	suite.Run("ExecuteExpr", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			ins.ExecuteExpr(expr)
+		}
+	})
+}
+
 func BenchmarkParens_FunctionCall(suite *testing.B) {
 	suite.Run("DirectCall", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {

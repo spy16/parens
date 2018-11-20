@@ -75,7 +75,11 @@ func (parens *Interpreter) ExecuteFile(file string) (interface{}, error) {
 	}
 
 	return parens.executeSrc(file, string(data))
+}
 
+// ExecuteExpr executes the given expr using the appropriate scope.
+func (parens *Interpreter) ExecuteExpr(expr parser.Expr) (interface{}, error) {
+	return expr.Eval(parens.Scope)
 }
 
 func (parens *Interpreter) executeSrc(name, src string) (interface{}, error) {
