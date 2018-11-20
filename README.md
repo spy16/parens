@@ -138,7 +138,6 @@ See `stdlib/macros.go` for some built-in macros.
 
 ## Benchmarks
 
-```
 | Name                                             | Runs       | Time       | Memory    | Allocations  |
 | ------------------------------------------------ | ---------- | ---------- | --------- | ------------ |
 | BenchmarkParens_Execute/Execute-8                | 300000     | 4028 ns/op | 1736 B/op | 42 allocs/op | 
@@ -151,7 +150,6 @@ See `stdlib/macros.go` for some built-in macros.
 | BenchmarkVariadicCall/Normal-8                   | 300000000  | 3.87 ns/op | 0 B/op    | 0 allocs/op  |
 | BenchmarkVariadicCall/Reflection-8               | 5000000    | 341 ns/op  | 104 B/op  | 4 allocs/op  |
 | BenchmarkVariadicCall/WithTypeConversion-8       | 5000000    | 342 ns/op  | 104 B/op  | 4 allocs/op  |
-```
 
 
 ## TODO
