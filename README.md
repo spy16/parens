@@ -4,6 +4,8 @@
 
 Parens is a LISP-like scripting layer for `Go` (or `Golang`).
 
+See (benchmarks)[#benchmarks].
+
 ## Installation
 
 To embed parens in your application import `github.com/spy16/parens`.
