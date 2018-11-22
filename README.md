@@ -1,6 +1,7 @@
 # Parens
 
 [![GoDoc](https://godoc.org/github.com/spy16/parens?status.svg)](https://godoc.org/github.com/spy16/parens) [![Go Report Card](https://goreportcard.com/badge/github.com/spy16/parens)](https://goreportcard.com/report/github.com/spy16/parens)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fspy16%2Fparens.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fspy16%2Fparens?ref=badge_shield)
 
 Parens is a LISP-like scripting layer for `Go` (or `Golang`).
 
@@ -172,3 +173,7 @@ See `stdlib/macros.go` for some built-in macros.
   - [x] Performance Benchmark 
   - [ ] optimization ?
 - [ ] `Go` code generation?
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fspy16%2Fparens.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fspy16%2Fparens?ref=badge_large)
