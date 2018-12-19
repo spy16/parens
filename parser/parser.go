@@ -1,27 +1,56 @@
 package parser
 
 import (
-	"errors"
 	"fmt"
-
-	"github.com/spy16/parens/lexer"
+	"io"
+	"regexp"
+	"strings"
 )
 
-// ErrEOF is returned when the parser has consumed all tokens.
-var ErrEOF = errors.New("end of file")
+// ParseModule parses till the EOF and returns all s-exprs as a single ModuleExpr.
+// This should be used to build an entire module from a file or string etc.
+func ParseModule(name string, sc io.RuneScanner) (Expr, error) {
+	me := ModuleExpr{}
+	me.Name = name
 
-// Parse tokenizes and parses the src to build an AST.
-func Parse(name string, src string) (Expr, error) {
-	tokens, err := lexer.New(src).Tokens()
-	if err != nil {
-		return nil, err
+	var expr Expr
+	var err error
+	for {
+		expr, err = Parse(sc)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, err
+		}
+
+		me.Exprs = append(me.Exprs, expr)
 	}
 
-	queue := &tokenQueue{tokens: tokens}
-	return buildModuleExpr(name, queue)
+	return me, nil
 }
 
-// Expr represents an evaluatable expression.
+// Parse consumes runes from the reader until a single s-expression is extracted.
+// Returns any other errors from reader. This should be used when a continuous parse
+// eval from a stream is necessary (e.g. TCP socket).
+func Parse(sc io.RuneScanner) (Expr, error) {
+	var expr Expr
+	var err error
+	for {
+		expr, err = buildExpr(sc)
+		if err != nil {
+			return nil, err
+		}
+
+		// if expr is not nil, return it. otherwise, continue this loop
+		// (for example, a whitespace can lead to nil)
+		if expr != nil {
+			return expr, nil
+		}
+	}
+}
+
+// Expr represents an expression.
 type Expr interface {
 	Eval(env Scope) (interface{}, error)
 }
@@ -29,53 +58,279 @@ type Expr interface {
 // Scope is responsible for managing bindings.
 type Scope interface {
 	Get(name string) (interface{}, error)
-	Doc(name string) string
 	Bind(name string, v interface{}, doc ...string) error
 	Root() Scope
 }
 
-func buildExpr(tokens *tokenQueue) (Expr, error) {
-	if len(tokens.tokens) == 0 {
-		return nil, ErrEOF
+func buildExpr(rd io.RuneScanner) (Expr, error) {
+	ru, _, err := rd.ReadRune()
+	if err != nil {
+		return nil, err
 	}
 
-	token := tokens.Pop()
+	switch ru {
+	case '"':
+		rd.UnreadRune()
+		return buildStrExpr(rd)
+	case '(':
+		rd.UnreadRune()
+		return buildListExpr(rd)
+	case '[':
+		rd.UnreadRune()
+		return buildVectorExpr(rd)
+	case '\'':
+		rd.UnreadRune()
+		return buildQuoteExpr(rd)
+	case ':':
+		rd.UnreadRune()
+		return buildKeywordExpr(rd)
+	case ';':
+		rd.UnreadRune()
+		return buildCommentExpr(rd)
+	case ' ', '\t', '\n':
+		return nil, nil
+	case ')', ']':
+		return nil, io.EOF
+	default:
+		rd.UnreadRune()
+		return buildSymbolOrNumberExpr(rd)
+	}
 
-	switch token.Type {
-	case lexer.LPAREN:
-		return buildListExpr(tokens)
+}
 
-	case lexer.NUMBER:
-		return newNumberExpr(token), nil
+func buildListExpr(rd io.RuneScanner) (Expr, error) {
+	if err := ensurePrefix(rd, '('); err != nil {
+		return nil, err
+	}
 
-	case lexer.STRING:
-		return newStringExpr(token), nil
-
-	case lexer.SYMBOL:
-		return newSymbolExpr(token), nil
-
-	case lexer.LVECT:
-		return buildVectorExpr(tokens)
-
-	case lexer.LDICT:
-		return buildMapExpr(tokens)
-
-	case lexer.KEYWORD:
-		return KeywordExpr{
-			Keyword: token.Value,
-		}, nil
-
-	case lexer.QUOTE:
-		expr, err := buildExpr(tokens)
+	lst := []Expr{}
+	for {
+		ru, _, err := rd.ReadRune()
 		if err != nil {
 			return nil, err
 		}
-		return QuoteExpr{expr: expr}, nil
 
-	case lexer.RPAREN, lexer.RVECT, lexer.RDICT:
-		return nil, ErrEOF
+		if ru == ')' {
+			break
+		}
 
-	default:
-		return nil, fmt.Errorf("unknown token type: %s", (token.Type))
+		rd.UnreadRune()
+
+		expr, err := buildExpr(rd)
+		if err != nil {
+			return nil, err
+		}
+		if expr != nil {
+			lst = append(lst, expr)
+		}
 	}
+
+	return ListExpr{List: lst}, nil
+}
+func buildKeywordExpr(rd io.RuneScanner) (Expr, error) {
+	if err := ensurePrefix(rd, ':'); err != nil {
+		return nil, err
+	}
+
+	kw := []rune{}
+	for {
+		ru, _, err := rd.ReadRune()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, err
+		}
+
+		if isSepratingChar(ru) {
+			rd.UnreadRune()
+			break
+		}
+
+		if oneOf(ru, '\\') {
+			return nil, fmt.Errorf("unexpected character '%c'", ru)
+		}
+
+		kw = append(kw, ru)
+	}
+
+	return KeywordExpr{Keyword: string(kw)}, nil
+}
+
+func buildCommentExpr(rd io.RuneScanner) (Expr, error) {
+	if err := ensurePrefix(rd, ';'); err != nil {
+		return nil, err
+	}
+
+	comment := []rune{}
+	for {
+		ru, _, err := rd.ReadRune()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, err
+		}
+
+		if ru == '\n' {
+			break
+		}
+
+		comment = append(comment, ru)
+	}
+
+	return CommentExpr{
+		comment: strings.TrimSpace(string(comment)),
+	}, nil
+}
+
+func buildQuoteExpr(rd io.RuneScanner) (Expr, error) {
+	if err := ensurePrefix(rd, '\''); err != nil {
+		return nil, err
+	}
+
+	expr, err := buildExpr(rd)
+	if err != nil {
+		return nil, err
+	}
+
+	return QuoteExpr{Expr: expr}, nil
+}
+
+// TODO:
+// - Support for hex (0x) and binary (0x) numbers
+// - Support for scientific notation (1.3e10)
+// - Clear differentiation between symbol and number
+func buildSymbolOrNumberExpr(rd io.RuneScanner) (Expr, error) {
+	seq := []rune{}
+	for {
+		ru, _, err := rd.ReadRune()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, err
+		}
+
+		if isSepratingChar(ru) {
+			rd.UnreadRune()
+			break
+		}
+
+		seq = append(seq, ru)
+	}
+
+	s := string(seq)
+	if numberRegex.MatchString(s) {
+		return NumberExpr{
+			NumStr: s,
+		}, nil
+	}
+
+	return SymbolExpr{
+		Symbol: s,
+	}, nil
+}
+
+func buildVectorExpr(rd io.RuneScanner) (Expr, error) {
+	if err := ensurePrefix(rd, '['); err != nil {
+		return nil, err
+	}
+
+	vals := []Expr{}
+	for {
+		ru, _, err := rd.ReadRune()
+		if err != nil {
+			return nil, err
+		}
+
+		if ru == ']' {
+			break
+		}
+		rd.UnreadRune()
+
+		expr, err := buildExpr(rd)
+		if err != nil {
+			return nil, err
+		}
+
+		if expr != nil {
+			vals = append(vals, expr)
+		}
+	}
+
+	return VectorExpr{List: vals}, nil
+}
+
+func buildStrExpr(rd io.RuneScanner) (Expr, error) {
+	if err := ensurePrefix(rd, '"'); err != nil {
+		return nil, err
+	}
+
+	val := []rune{}
+
+	for {
+		ru, _, err := rd.ReadRune()
+		if err != nil {
+			return nil, err
+		}
+
+		lastI := len(val) - 1
+		if len(val) >= 1 && val[lastI] == '\\' {
+			var esc byte
+			switch ru {
+			case 'n':
+				esc = '\n'
+			case 't':
+				esc = '\t'
+			case 'r':
+				esc = '\r'
+			case '"':
+				esc = '"'
+			}
+
+			if esc != 0 {
+				val[lastI] = rune(esc)
+				continue
+			}
+
+		}
+		if oneOf(ru, 't', 'n', '"', 'r') {
+		}
+		if ru == '"' {
+			break
+		}
+
+		val = append(val, ru)
+	}
+
+	return StringExpr{Value: string(val)}, nil
+}
+
+var numberRegex = regexp.MustCompile("^(\\+|-)?\\d+(\\.\\d+)?$")
+
+func ensurePrefix(rd io.RuneScanner, prefix rune) error {
+	ru, _, err := rd.ReadRune()
+	if err != nil {
+		return err
+	}
+
+	if ru != prefix {
+		return fmt.Errorf("expected '%c' at the beginning, found '%c'", prefix, ru)
+	}
+
+	return nil
+}
+
+func isSepratingChar(ru rune) bool {
+	return oneOf(ru, ' ', '\t', '\n', '\r', '(', ')', '[', ']', '{', '}', '"', '\'')
+}
+
+func oneOf(ru rune, set ...rune) bool {
+	for _, rs := range set {
+		if ru == rs {
+			return true
+		}
+	}
+	return false
 }

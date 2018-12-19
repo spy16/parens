@@ -2,6 +2,7 @@ package parens
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"strings"
 
@@ -12,7 +13,7 @@ import (
 func New(scope parser.Scope) *Interpreter {
 	exec := &Interpreter{
 		Scope:         scope,
-		Parse:         parser.Parse,
+		Parse:         parser.ParseModule,
 		DefaultSource: "<string>",
 	}
 
@@ -52,7 +53,7 @@ func New(scope parser.Scope) *Interpreter {
 }
 
 // ParseFn is responsible for tokenizing and building Expr out of tokens.
-type ParseFn func(name, src string) (parser.Expr, error)
+type ParseFn func(name string, src io.RuneScanner) (parser.Expr, error)
 
 // Interpreter represents the LISP interpreter instance. You can provide
 // your own implementations of ParseFn to extend the interpreter.
@@ -84,7 +85,7 @@ func (parens *Interpreter) ExecuteExpr(expr parser.Expr) (interface{}, error) {
 
 func (parens *Interpreter) executeSrc(name, src string) (interface{}, error) {
 	src = strings.TrimSpace(src)
-	expr, err := parens.Parse(name, src)
+	expr, err := parens.Parse(name, strings.NewReader(src))
 	if err != nil {
 		return nil, err
 	}

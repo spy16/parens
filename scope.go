@@ -59,7 +59,9 @@ func (sc *Scope) Doc(name string) string {
 	}
 
 	if sc.parent != nil {
-		return sc.parent.Doc(name)
+		if swd, ok := sc.parent.(scopeWithDoc); ok {
+			return swd.Doc(name)
+		}
 	}
 
 	return ""
@@ -93,4 +95,8 @@ func (sc *Scope) entry(name string) *scopeEntry {
 	}
 
 	return nil
+}
+
+type scopeWithDoc interface {
+	Doc(name string) string
 }

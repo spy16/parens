@@ -33,25 +33,3 @@ func (me ModuleExpr) String() string {
 	}
 	return strings.Join(strs, "\n")
 }
-
-func buildModuleExpr(name string, queue *tokenQueue) (Expr, error) {
-	me := ModuleExpr{}
-	me.Name = name
-
-	for {
-		expr, err := buildExpr(queue)
-		if err != nil {
-			if err == ErrEOF {
-				break
-			}
-			return nil, err
-		}
-
-		if expr != nil {
-			me.Exprs = append(me.Exprs, expr)
-		}
-
-	}
-
-	return me, nil
-}

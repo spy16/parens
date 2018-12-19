@@ -4,24 +4,11 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-
-	"github.com/spy16/parens/lexer"
 )
-
-func newSymbolExpr(token *lexer.Token) SymbolExpr {
-	return SymbolExpr{
-		Symbol: token.Value,
-	}
-}
 
 // SymbolExpr represents a symbol.
 type SymbolExpr struct {
 	Symbol string
-}
-
-// ExpType returns s-expression type name.
-func (se SymbolExpr) ExpType() string {
-	return "symbol"
 }
 
 // Eval returns the symbol name itself.

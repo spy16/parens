@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/spy16/parens/lexer"
 	"github.com/spy16/parens/reflection"
 )
 
@@ -66,29 +65,4 @@ func (le ListExpr) String() string {
 	}
 
 	return fmt.Sprintf("(%s)", strings.Join(reprs, " "))
-}
-
-func buildListExpr(tokens *tokenQueue) (Expr, error) {
-	le := ListExpr{}
-
-	for {
-		next := tokens.Token(0)
-		if next == nil {
-			return nil, ErrEOF
-		}
-
-		if next.Type == lexer.RPAREN {
-			break
-		}
-
-		exp, err := buildExpr(tokens)
-		if err != nil {
-			return nil, err
-		}
-
-		le.List = append(le.List, exp)
-	}
-
-	tokens.Pop()
-	return le, nil
 }

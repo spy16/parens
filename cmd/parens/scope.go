@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/spy16/parens"
-	"github.com/spy16/parens/lexer"
 	"github.com/spy16/parens/stdlib"
 )
 
@@ -34,9 +33,6 @@ func makeGlobalScope() *parens.Scope {
 		return help
 	})
 
-	scope.Bind("tokenize", func(src string) ([]lexer.Token, error) {
-		return lexer.New(src).Tokens()
-	})
 
 	// user-defined values can be exposed too and their methods
 	// can be accessed.

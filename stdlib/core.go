@@ -6,9 +6,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/spy16/parens"
-
 	"github.com/k0kubun/pp"
+	"github.com/spy16/parens"
 	"github.com/spy16/parens/parser"
 )
 
@@ -141,7 +140,10 @@ func Doc(scope parser.Scope, _ string, exprs []parser.Expr) (interface{}, error)
 		return nil, err
 	}
 
-	docStr := scope.Doc(sym.Symbol)
+	var docStr string
+	if swd, ok := scope.(scopeWithDoc); ok {
+		docStr = swd.Doc(sym.Symbol)
+	}
 	if len(strings.TrimSpace(docStr)) == 0 {
 		docStr = fmt.Sprintf("No documentation available for '%s'", sym.Symbol)
 	}
@@ -312,4 +314,8 @@ func labelInScope(scope parser.Scope, _ string, exprs []parser.Expr) (interface{
 	scope.Bind(symbol.Symbol, val)
 
 	return val, nil
+}
+
+type scopeWithDoc interface {
+	Doc(name string) string
 }

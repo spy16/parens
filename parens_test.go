@@ -2,6 +2,8 @@ package parens_test
 
 import (
 	"errors"
+	"io"
+	"strings"
 	"testing"
 
 	"github.com/spy16/parens"
@@ -50,7 +52,7 @@ func BenchmarkParens_FunctionCall(suite *testing.B) {
 		}
 	})
 
-	expr, err := parser.Parse("<test>", "(add 1 2)")
+	expr, err := parser.Parse(strings.NewReader("(add 1 2)"))
 	if err != nil {
 		suite.Fatalf("failed to parse expression: %s", err)
 	}
@@ -108,7 +110,7 @@ func mockExpr(v interface{}, err error) parser.Expr {
 }
 
 func mockParseFn(expr parser.Expr, err error) parens.ParseFn {
-	return func(name, src string) (parser.Expr, error) {
+	return func(name string, rd io.RuneScanner) (parser.Expr, error) {
 		if err != nil {
 			return nil, err
 		}

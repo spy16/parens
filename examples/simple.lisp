@@ -5,7 +5,6 @@
 ; look under the hood
 (inspect hello)
 (println (type +))
-(println (tokenize "(println \"hello\")"))
 
 ; calling variadic Go functions
 (println "Hello" "from" "Parens!")

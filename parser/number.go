@@ -3,15 +3,7 @@ package parser
 import (
 	"fmt"
 	"strconv"
-
-	"github.com/spy16/parens/lexer"
 )
-
-func newNumberExpr(token *lexer.Token) NumberExpr {
-	return NumberExpr{
-		NumStr: token.Value,
-	}
-}
 
 // NumberExpr represents number s-expression.
 type NumberExpr struct {

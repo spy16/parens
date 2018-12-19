@@ -101,7 +101,7 @@ exec.Execute(`(printf "value of π is = %f" π)`)
 Special constructs like `do`, `cond`, `if` etc. can be added using Macros.
 
 ```go
-// This is standard implementation of '(do expr*)' special-form from Clojure!
+// This is simple implementation of '(do expr*)' special-form from Clojure!
 func doMacro(scope *reflection.Scope, callName string, exps []parser.Expr) (interface{}, error) {
     var val interface{}
     var err error
@@ -139,19 +139,20 @@ See `stdlib/macros.go` for some built-in macros.
 
 ## Benchmarks
 
-| Name                                             | Runs       | Time       | Memory    | Allocations  |
-| ------------------------------------------------ | ---------- | ---------- | --------- | ------------ |
-| BenchmarkParens_Execute/Execute-8                | 300000     | 4028 ns/op | 1736 B/op | 42 allocs/op | 
-| BenchmarkParens_Execute/ExecuteExpr-8            | 5000000    | 368 ns/op  | 112 B/op  | 5 allocs/op  |
-| BenchmarkParens_FunctionCall/DirectCall-8        | 2000000000 | 0.31 ns/op | 0 B/op    | 0 allocs/op  |
-| BenchmarkParens_FunctionCall/CallThroughParens-8 | 2000000    | 1023 ns/op | 224 B/op  | 9 allocs/op  |
-| BenchmarkNonVariadicCall/Normal-8                | 2000000000 | 0.36 ns/op | 0 B/op    | 0 allocs/op  |
-| BenchmarkNonVariadicCall/Reflection-8            | 3000000    | 364 ns/op  | 104 B/op  | 4 allocs/op  |
-| BenchmarkNonVariadicCall/WithTypeConversion-8    | 3000000    | 373 ns/op  | 104 B/op  | 4 allocs/op  |
-| BenchmarkVariadicCall/Normal-8                   | 300000000  | 3.87 ns/op | 0 B/op    | 0 allocs/op  |
-| BenchmarkVariadicCall/Reflection-8               | 5000000    | 341 ns/op  | 104 B/op  | 4 allocs/op  |
-| BenchmarkVariadicCall/WithTypeConversion-8       | 5000000    | 342 ns/op  | 104 B/op  | 4 allocs/op  |
+| Name                                             | Runs       | Time       | Memory   | Allocations  |
+| ------------------------------------------------ | ---------- | ---------- | -------- | ------------ |
+| BenchmarkParens_Execute/Execute-8                | 1000000    | 1977 ns/op | 464 B/op | 21 allocs/op |
+| BenchmarkParens_Execute/ExecuteExpr-8            | 5000000    | 323 ns/op  | 112 B/op | 5 allocs/op  |
+| BenchmarkParens_FunctionCall/DirectCall-8        | 2000000000 | 0.30 ns/op | 0 B/op   | 0 allocs/op  |
+| BenchmarkParens_FunctionCall/CallThroughParens-8 | 2000000    | 844 ns/op  | 224 B/op | 9 allocs/op  |
+| BenchmarkNonVariadicCall/Normal-8                | 2000000000 | 0.28 ns/op | 0 B/op   | 0 allocs/op  |
+| BenchmarkNonVariadicCall/Reflection-8            | 5000000    | 342 ns/op  | 104 B/op | 4 allocs/op  |
+| BenchmarkNonVariadicCall/WithTypeConversio-8     | 5000000    | 343 ns/op  | 104 B/op | 4 allocs/op  |
+| BenchmarkVariadicCall/Normal-8                   | 500000000  | 3.77 ns/op | 0 B/op   | 0 allocs/op  |
+| BenchmarkVariadicCall/Reflection-8               | 5000000    | 350 ns/op  | 104 B/op | 4 allocs/op  |
+| BenchmarkVariadicCall/WithTypeConversion-8       | 5000000    | 354 ns/op  | 104 B/op | 4 allocs/op  |
 
+See `v0.0.6` or lower for old benchmarks.
 
 ## TODO
 
@@ -170,8 +171,8 @@ See `stdlib/macros.go` for some built-in macros.
         - [x] any values to `interface{}` type
         - [ ] `intX` and `floatX` types to `int8`, `int16`, `float32` and vice versa?
 - [ ] Optimization
-  - [x] Performance Benchmark 
-  - [ ] optimization ?
+  - [x] Performance Benchmark
+  - [x] optimization ?
 - [ ] `Go` code generation?
 
 
