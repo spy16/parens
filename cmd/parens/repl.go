@@ -1,4 +1,4 @@
-package parens
+package main
 
 import (
 	"context"
@@ -8,10 +8,10 @@ import (
 	"strings"
 
 	"github.com/chzyer/readline"
+	"github.com/spy16/parens"
 )
 
-// NewREPL initializes a REPL session with given evaluator.
-func NewREPL(env Scope) (*REPL, error) {
+func newREPL(env parens.Scope) (*REPL, error) {
 	ins, err := readline.New("> ")
 	if err != nil {
 		return nil, err
@@ -25,15 +25,9 @@ func NewREPL(env Scope) (*REPL, error) {
 	}, nil
 }
 
-// Executor implementation is responsible for understanding
-// and evaluating the input to generate a result.
-type Executor interface {
-	Execute(src string) (interface{}, error)
-}
-
 // REPL represents a session of read-eval-print-loop.
 type REPL struct {
-	Env    Scope
+	Env    parens.Scope
 	Banner string
 
 	ReadIn   ReadInFunc
@@ -76,7 +70,7 @@ func (repl *REPL) readAndExecute() bool {
 		return false
 	}
 
-	repl.WriteOut(Execute("<REPL>", strings.NewReader(expr), repl.Env))
+	repl.WriteOut(parens.Execute("<REPL>", strings.NewReader(expr), repl.Env))
 	return false
 }
 

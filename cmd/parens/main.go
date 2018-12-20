@@ -59,7 +59,7 @@ func execFile(env parens.Scope) {
 }
 
 func runREPL(ctx context.Context, env parens.Scope) {
-	repl, err := parens.NewREPL(env)
+	repl, err := newREPL(env)
 	if err != nil {
 		panic(err)
 	}

@@ -20,7 +20,7 @@ type defaultScope struct {
 }
 
 type scopeEntry struct {
-	val Value
+	val reflectVal
 	doc string
 }
 
@@ -33,7 +33,7 @@ func (sc *defaultScope) Root() Scope {
 }
 
 func (sc *defaultScope) Bind(name string, v interface{}, doc ...string) error {
-	val := NewValue(v)
+	val := newValue(v)
 	sc.vals[name] = scopeEntry{
 		val: val,
 		doc: strings.TrimSpace(strings.Join(doc, "\n")),

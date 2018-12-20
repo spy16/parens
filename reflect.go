@@ -97,7 +97,7 @@ func makeArgs(rType reflect.Type, args ...interface{}) ([]reflect.Value, error) 
 }
 
 func convertValueType(v interface{}, expected reflect.Type) (reflect.Value, error) {
-	val := NewValue(v)
+	val := newValue(v)
 	if val.RVal.Type() == expected {
 		return val.RVal, nil
 	}
@@ -113,20 +113,18 @@ func convertValueType(v interface{}, expected reflect.Type) (reflect.Value, erro
 	return reflect.ValueOf(converted), nil
 }
 
-// NewValue creates a reflection wrapper around given value.
-func NewValue(v interface{}) Value {
-	return Value{
+func newValue(v interface{}) reflectVal {
+	return reflectVal{
 		RVal: reflect.ValueOf(v),
 	}
 }
 
-// Value represents every value in parens.
-type Value struct {
+type reflectVal struct {
 	RVal reflect.Value
 }
 
 // To converts the value to requested kind if possible.
-func (val *Value) To(kind reflect.Kind) (interface{}, error) {
+func (val *reflectVal) To(kind reflect.Kind) (interface{}, error) {
 	switch kind {
 	case reflect.Int, reflect.Int64:
 		return val.ToInt64()
@@ -144,7 +142,7 @@ func (val *Value) To(kind reflect.Kind) (interface{}, error) {
 }
 
 // ToInt64 attempts converting the value to int64.
-func (val *Value) ToInt64() (int64, error) {
+func (val *reflectVal) ToInt64() (int64, error) {
 	if val.isInt() {
 		return val.RVal.Int(), nil
 	} else if val.isFloat() {
@@ -155,7 +153,7 @@ func (val *Value) ToInt64() (int64, error) {
 }
 
 // ToFloat64 attempts converting the value to float64.
-func (val *Value) ToFloat64() (float64, error) {
+func (val *reflectVal) ToFloat64() (float64, error) {
 	if val.isFloat() {
 		return val.RVal.Float(), nil
 	} else if val.isInt() {
@@ -166,7 +164,7 @@ func (val *Value) ToFloat64() (float64, error) {
 }
 
 // ToBool attempts converting the value to bool.
-func (val *Value) ToBool() (bool, error) {
+func (val *reflectVal) ToBool() (bool, error) {
 	if isKind(val.RVal, reflect.Bool) {
 		return val.RVal.Bool(), nil
 	}
@@ -175,7 +173,7 @@ func (val *Value) ToBool() (bool, error) {
 }
 
 // ToString attempts converting the value to bool.
-func (val *Value) ToString() (string, error) {
+func (val *reflectVal) ToString() (string, error) {
 	if isKind(val.RVal, reflect.String) {
 		return val.RVal.String(), nil
 	}
@@ -183,11 +181,11 @@ func (val *Value) ToString() (string, error) {
 	return "", ErrConversionImpossible
 }
 
-func (val *Value) isInt() bool {
+func (val *reflectVal) isInt() bool {
 	return isKind(val.RVal, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64)
 }
 
-func (val *Value) isFloat() bool {
+func (val *reflectVal) isFloat() bool {
 	return isKind(val.RVal, reflect.Float32, reflect.Float64)
 }
 
