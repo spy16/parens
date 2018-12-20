@@ -5,8 +5,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-
-	"github.com/spy16/parens/reflection"
 )
 
 // MacroFunc represents the signature of the Go macro functions. Functions
@@ -244,7 +242,7 @@ func (le ListExpr) Eval(scope Scope) (interface{}, error) {
 		args = append(args, arg)
 	}
 
-	return reflection.Call(val, args...)
+	return Call(val, args...)
 }
 
 func (le ListExpr) String() string {

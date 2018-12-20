@@ -1,10 +1,10 @@
-package reflection_test
+package parens_test
 
 import (
 	"reflect"
 	"testing"
 
-	"github.com/spy16/parens/reflection"
+	"github.com/spy16/parens"
 )
 
 func add2(a, b int) int {
@@ -31,15 +31,15 @@ func BenchmarkNonVariadicCall(suite *testing.B) {
 
 	suite.Run("Reflection", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			reflection.Call(addFunc, 1, 2)
+			parens.Call(addFunc, 1, 2)
 		}
 	})
 
 	suite.Run("WithTypeConversion", func(b *testing.B) {
 		// addFunc expects float64 but forcefully passing int64 which
-		// triggers type-conversion in parens' reflection package.
+		// triggers type-conversion
 		for i := 0; i < b.N; i++ {
-			reflection.Call(addFunc, []interface{}{int64(1), int64(2)}...)
+			parens.Call(addFunc, []interface{}{int64(1), int64(2)}...)
 		}
 	})
 }
@@ -53,15 +53,15 @@ func BenchmarkVariadicCall(suite *testing.B) {
 
 	suite.Run("Reflection", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			reflection.Call(sumFunc, 1, 2)
+			parens.Call(sumFunc, 1, 2)
 		}
 	})
 
 	suite.Run("WithTypeConversion", func(b *testing.B) {
 		// sumFunc expects float64 but forcefully passing int64 which
-		// triggers type-conversion in parens' reflection package.
+		// triggers type-conversion
 		for i := 0; i < b.N; i++ {
-			reflection.Call(sumFunc, []interface{}{int64(1), int64(2)}...)
+			parens.Call(sumFunc, []interface{}{int64(1), int64(2)}...)
 		}
 	})
 }

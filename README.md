@@ -37,7 +37,7 @@ Check out `examples/` for supported constructs.
 Should have absolute bare minimum functionality.
 
 ```go
-scope := reflection.NewScope(nil)
+scope := parens.NewScope(nil)
 exec := parens.New(scope)
 exec.Execute("10")
 ```
@@ -102,7 +102,7 @@ Special constructs like `do`, `cond`, `if` etc. can be added using Macros.
 
 ```go
 // This is simple implementation of '(do expr*)' special-form from Clojure!
-func doMacro(scope *reflection.Scope, callName string, exps []parens.Expr) (interface{}, error) {
+func doMacro(scope parens.Scope, exps []parens.Expr) (interface{}, error) {
     var val interface{}
     var err error
     for _, exp := range exps {

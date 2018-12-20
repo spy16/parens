@@ -3,8 +3,6 @@ package parens
 import (
 	"fmt"
 	"strings"
-
-	"github.com/spy16/parens/reflection"
 )
 
 // NewScope initializes a new scope with given parent scope. parent
@@ -22,7 +20,7 @@ type defaultScope struct {
 }
 
 type scopeEntry struct {
-	val reflection.Value
+	val Value
 	doc string
 }
 
@@ -35,7 +33,7 @@ func (sc *defaultScope) Root() Scope {
 }
 
 func (sc *defaultScope) Bind(name string, v interface{}, doc ...string) error {
-	val := reflection.NewValue(v)
+	val := NewValue(v)
 	sc.vals[name] = scopeEntry{
 		val: val,
 		doc: strings.TrimSpace(strings.Join(doc, "\n")),

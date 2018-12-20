@@ -2,9 +2,7 @@
 ; the value is "prod".
 
 ; checks if the value of ENV variable is prod.
-(defn is-production []
-   (label current-env (env "ENV"))
-   (== current-env "prod"))
+(defn is-production [] (== (env "ENV") "prod"))
 
 ; prints different message for different environments.
 (cond
