@@ -5,6 +5,8 @@ import (
 	"io"
 	"regexp"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 // ParseModule parses till the EOF and returns all s-exprs as a single ModuleExpr.
@@ -68,6 +70,10 @@ func buildExpr(rd io.RuneScanner) (Expr, error) {
 		return nil, err
 	}
 
+	if unicode.IsControl(ru) {
+		return nil, nil
+	}
+
 	switch ru {
 	case '"':
 		rd.UnreadRune()
@@ -97,9 +103,13 @@ func buildExpr(rd io.RuneScanner) (Expr, error) {
 	case ')', ']':
 		return nil, io.EOF
 	default:
-		rd.UnreadRune()
-		return buildSymbolOrNumberExpr(rd)
+		if utf8.ValidRune(ru) {
+			rd.UnreadRune()
+			return buildSymbolOrNumberExpr(rd)
+		}
 	}
+
+	return nil, fmt.Errorf("invalid character '%c'", ru)
 
 }
 
