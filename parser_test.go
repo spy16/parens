@@ -16,7 +16,7 @@ func TestParse(suite *testing.T) {
 	suite.Parallel()
 
 	suite.Run("ReaderFailure", func(t *testing.T) {
-		expr, err := parens.Parse(bufio.NewReader(readerFunc(func([]byte) (int, error) {
+		expr, err := parens.ParseOne(bufio.NewReader(readerFunc(func([]byte) (int, error) {
 			return 0, errors.New("failed")
 		})))
 		require.Error(t, err)
@@ -24,7 +24,7 @@ func TestParse(suite *testing.T) {
 	})
 
 	suite.Run("UnexpectedEOF", func(t *testing.T) {
-		expr, err := parens.Parse(reader(")"))
+		expr, err := parens.ParseOne(reader(")"))
 		require.Error(t, err)
 		assert.Nil(t, expr)
 	})
@@ -34,21 +34,21 @@ func TestParse_Vector(suite *testing.T) {
 	suite.Parallel()
 
 	suite.Run("UnexpectedEOF", func(t *testing.T) {
-		expr, err := parens.Parse(reader("]"))
+		expr, err := parens.ParseOne(reader("]"))
 		require.Error(t, err)
 		assert.Equal(t, io.EOF, err)
 		assert.Nil(t, expr)
 	})
 
 	suite.Run("UnexpectedEOF", func(t *testing.T) {
-		expr, err := parens.Parse(reader("["))
+		expr, err := parens.ParseOne(reader("["))
 		require.Error(t, err)
 		assert.Equal(t, io.EOF, err)
 		assert.Nil(t, expr)
 	})
 
 	suite.Run("EmptyList", func(t *testing.T) {
-		expr, err := parens.Parse(reader("[]"))
+		expr, err := parens.ParseOne(reader("[]"))
 		require.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.VectorExpr{}, expr)
@@ -56,7 +56,7 @@ func TestParse_Vector(suite *testing.T) {
 	})
 
 	suite.Run("SimpleList", func(t *testing.T) {
-		expr, err := parens.Parse(reader("[1 \"hello\"]"))
+		expr, err := parens.ParseOne(reader("[1 \"hello\"]"))
 		require.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.VectorExpr{}, expr)
@@ -64,7 +64,7 @@ func TestParse_Vector(suite *testing.T) {
 	})
 
 	suite.Run("NestedList", func(t *testing.T) {
-		expr, err := parens.Parse(reader("[1 [[] 'hello]]"))
+		expr, err := parens.ParseOne(reader("[1 [[] 'hello]]"))
 		require.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.VectorExpr{}, expr)
@@ -76,7 +76,7 @@ func TestParse_Symbol(suite *testing.T) {
 	suite.Parallel()
 
 	suite.Run("AlphaSymbol", func(t *testing.T) {
-		expr, err := parens.Parse(reader("hello"))
+		expr, err := parens.ParseOne(reader("hello"))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.SymbolExpr(""), expr)
@@ -84,7 +84,7 @@ func TestParse_Symbol(suite *testing.T) {
 	})
 
 	suite.Run("AlphaNumericSymbol", func(t *testing.T) {
-		expr, err := parens.Parse(reader("hello123"))
+		expr, err := parens.ParseOne(reader("hello123"))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.SymbolExpr(""), expr)
@@ -92,7 +92,7 @@ func TestParse_Symbol(suite *testing.T) {
 	})
 
 	suite.Run("NonASCIISymbol", func(t *testing.T) {
-		expr, err := parens.Parse(reader("π"))
+		expr, err := parens.ParseOne(reader("π"))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.SymbolExpr(""), expr)
@@ -100,7 +100,7 @@ func TestParse_Symbol(suite *testing.T) {
 	})
 
 	suite.Run("NumerciSymbol", func(t *testing.T) {
-		expr, err := parens.Parse(reader("1.2.3"))
+		expr, err := parens.ParseOne(reader("1.2.3"))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.SymbolExpr(""), expr)
@@ -112,7 +112,7 @@ func TestParse_String(suite *testing.T) {
 	suite.Parallel()
 
 	suite.Run("SimpleString", func(t *testing.T) {
-		expr, err := parens.Parse(reader(`"hello"`))
+		expr, err := parens.ParseOne(reader(`"hello"`))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.StringExpr(""), expr)
@@ -120,7 +120,7 @@ func TestParse_String(suite *testing.T) {
 	})
 
 	suite.Run("EscapeQuote", func(t *testing.T) {
-		expr, err := parens.Parse(reader(`"hello\"world"`))
+		expr, err := parens.ParseOne(reader(`"hello\"world"`))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.StringExpr(""), expr)
@@ -128,7 +128,7 @@ func TestParse_String(suite *testing.T) {
 	})
 
 	suite.Run("EscapeNewline", func(t *testing.T) {
-		expr, err := parens.Parse(reader(`"hello\nworld"`))
+		expr, err := parens.ParseOne(reader(`"hello\nworld"`))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.StringExpr(""), expr)
@@ -136,7 +136,7 @@ func TestParse_String(suite *testing.T) {
 	})
 
 	suite.Run("EscapeTab", func(t *testing.T) {
-		expr, err := parens.Parse(reader(`"hello\tworld"`))
+		expr, err := parens.ParseOne(reader(`"hello\tworld"`))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.StringExpr(""), expr)
@@ -144,7 +144,7 @@ func TestParse_String(suite *testing.T) {
 	})
 
 	suite.Run("EscapeCR", func(t *testing.T) {
-		expr, err := parens.Parse(reader(`"hello\rworld"`))
+		expr, err := parens.ParseOne(reader(`"hello\rworld"`))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.StringExpr(""), expr)
@@ -152,7 +152,7 @@ func TestParse_String(suite *testing.T) {
 	})
 
 	suite.Run("PrematureEOF", func(t *testing.T) {
-		expr, err := parens.Parse(reader(`"hello`))
+		expr, err := parens.ParseOne(reader(`"hello`))
 		require.Error(t, err)
 		assert.Equal(t, io.EOF, err)
 		assert.Nil(t, expr)
@@ -164,7 +164,7 @@ func TestParse_Number(suite *testing.T) {
 	suite.Parallel()
 
 	suite.Run("NumberFollowedBySymbol", func(t *testing.T) {
-		expr, err := parens.Parse(reader(`-12.34 hello`))
+		expr, err := parens.ParseOne(reader(`-12.34 hello`))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.NumberExpr{}, expr)
@@ -172,7 +172,7 @@ func TestParse_Number(suite *testing.T) {
 	})
 
 	suite.Run("SimpleInteger", func(t *testing.T) {
-		expr, err := parens.Parse(reader(`12`))
+		expr, err := parens.ParseOne(reader(`12`))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.NumberExpr{}, expr)
@@ -180,7 +180,7 @@ func TestParse_Number(suite *testing.T) {
 	})
 
 	suite.Run("Signed(-)Integer", func(t *testing.T) {
-		expr, err := parens.Parse(reader(`-12`))
+		expr, err := parens.ParseOne(reader(`-12`))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.NumberExpr{}, expr)
@@ -188,7 +188,7 @@ func TestParse_Number(suite *testing.T) {
 	})
 
 	suite.Run("Signed(+)Integer", func(t *testing.T) {
-		expr, err := parens.Parse(reader(`+12`))
+		expr, err := parens.ParseOne(reader(`+12`))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.NumberExpr{}, expr)
@@ -196,7 +196,7 @@ func TestParse_Number(suite *testing.T) {
 	})
 
 	suite.Run("SimpleFloat", func(t *testing.T) {
-		expr, err := parens.Parse(reader(`+12.34`))
+		expr, err := parens.ParseOne(reader(`+12.34`))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.NumberExpr{}, expr)
@@ -204,7 +204,7 @@ func TestParse_Number(suite *testing.T) {
 	})
 
 	suite.Run("SignedFloat", func(t *testing.T) {
-		expr, err := parens.Parse(reader(`-12.34`))
+		expr, err := parens.ParseOne(reader(`-12.34`))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.NumberExpr{}, expr)
@@ -216,7 +216,7 @@ func TestParse_Keyword(suite *testing.T) {
 	suite.Parallel()
 
 	suite.Run("SimpleKeyword", func(t *testing.T) {
-		expr, err := parens.Parse(reader(`:hello world`))
+		expr, err := parens.ParseOne(reader(`:hello world`))
 		require.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.KeywordExpr(""), expr)
@@ -224,7 +224,7 @@ func TestParse_Keyword(suite *testing.T) {
 	})
 
 	suite.Run("ComplexKeyword", func(t *testing.T) {
-		expr, err := parens.Parse(reader(`:hello/world`))
+		expr, err := parens.ParseOne(reader(`:hello/world`))
 		require.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.KeywordExpr(""), expr)
@@ -232,7 +232,7 @@ func TestParse_Keyword(suite *testing.T) {
 	})
 
 	suite.Run("SkipsEscape", func(t *testing.T) {
-		expr, err := parens.Parse(reader(`:hello\nworld`))
+		expr, err := parens.ParseOne(reader(`:hello\nworld`))
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "unexpected character")
 		assert.Nil(t, expr)
@@ -243,21 +243,21 @@ func TestParse_List(suite *testing.T) {
 	suite.Parallel()
 
 	suite.Run("UnexpectedEOF", func(t *testing.T) {
-		expr, err := parens.Parse(reader(")"))
+		expr, err := parens.ParseOne(reader(")"))
 		require.Error(t, err)
 		assert.Equal(t, io.EOF, err)
 		assert.Nil(t, expr)
 	})
 
 	suite.Run("UnexpectedEOF", func(t *testing.T) {
-		expr, err := parens.Parse(reader("("))
+		expr, err := parens.ParseOne(reader("("))
 		require.Error(t, err)
 		assert.Equal(t, io.EOF, err)
 		assert.Nil(t, expr)
 	})
 
 	suite.Run("EmptyList", func(t *testing.T) {
-		expr, err := parens.Parse(reader("()"))
+		expr, err := parens.ParseOne(reader("()"))
 		require.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.ListExpr{}, expr)
@@ -265,7 +265,7 @@ func TestParse_List(suite *testing.T) {
 	})
 
 	suite.Run("SimpleList", func(t *testing.T) {
-		expr, err := parens.Parse(reader("(1 \"hello\")"))
+		expr, err := parens.ParseOne(reader("(1 \"hello\")"))
 		require.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.ListExpr{}, expr)
@@ -273,7 +273,7 @@ func TestParse_List(suite *testing.T) {
 	})
 
 	suite.Run("NestedList", func(t *testing.T) {
-		expr, err := parens.Parse(reader("(1 ([] 'hello))"))
+		expr, err := parens.ParseOne(reader("(1 ([] 'hello))"))
 		require.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.ListExpr{}, expr)

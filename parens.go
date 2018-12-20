@@ -14,7 +14,7 @@ func ExecuteStr(src string, env Scope) (interface{}, error) {
 // Execute reads until EOF or an error from the RuneScanner and executes the
 // read s-expressions in the given scope.
 func Execute(rd io.RuneScanner, env Scope) (interface{}, error) {
-	expr, err := ParseModule(rd)
+	expr, err := Parse(rd)
 	if err != nil {
 		return nil, err
 	}

@@ -24,9 +24,9 @@ var (
 	ErrInvalidNumberOfArgs = errors.New("invalid number of arguments")
 )
 
-// Call will execute a callable with given args. If the value bound
+// reflectCall will execute a callable with given args. If the value bound
 // to the name is not a callable, ErrNotCallable will be returned.
-func Call(callable interface{}, args ...interface{}) (interface{}, error) {
+func reflectCall(callable interface{}, args ...interface{}) (interface{}, error) {
 	rVal := reflect.ValueOf(callable)
 	if rVal.Kind() != reflect.Func {
 		return nil, fmt.Errorf("value of kind '%s' is not callable", rVal.Kind())

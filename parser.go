@@ -9,15 +9,20 @@ import (
 	"unicode/utf8"
 )
 
-// ParseModule parses till the EOF and returns all s-exprs as a single ModuleExpr.
+// ParseStr is a convenience wrapper for Parse.
+func ParseStr(src string) (Expr, error) {
+	return Parse(strings.NewReader(src))
+}
+
+// Parse parses till the EOF and returns all s-exprs as a single ModuleExpr.
 // This should be used to build an entire module from a file or string etc.
-func ParseModule(sc io.RuneScanner) (Expr, error) {
+func Parse(sc io.RuneScanner) (Expr, error) {
 	me := ModuleExpr{}
 
 	var expr Expr
 	var err error
 	for {
-		expr, err = Parse(sc)
+		expr, err = ParseOne(sc)
 		if err != nil {
 			if err == io.EOF {
 				break
@@ -31,10 +36,10 @@ func ParseModule(sc io.RuneScanner) (Expr, error) {
 	return me, nil
 }
 
-// Parse consumes runes from the reader until a single s-expression is extracted.
+// ParseOne consumes runes from the reader until a single s-expression is extracted.
 // Returns any other errors from reader. This should be used when a continuous parse
 // eval from a stream is necessary (e.g. TCP socket).
-func Parse(sc io.RuneScanner) (Expr, error) {
+func ParseOne(sc io.RuneScanner) (Expr, error) {
 	var expr Expr
 	var err error
 	for {

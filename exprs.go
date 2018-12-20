@@ -1,10 +1,7 @@
 package parens
 
 import (
-	"fmt"
-	"reflect"
 	"strconv"
-	"strings"
 )
 
 // MacroFunc represents the signature of the Go macro functions. Functions
@@ -94,54 +91,7 @@ type SymbolExpr string
 
 // Eval returns the symbol name itself.
 func (se SymbolExpr) Eval(scope Scope) (interface{}, error) {
-	parts := strings.Split(string(se), ".")
-	if len(parts) > 2 {
-		return nil, fmt.Errorf("invalid member access symbol. must be of format <parent>.<member>")
-	}
-
-	obj, err := scope.Get(parts[0])
-	if err != nil {
-		return nil, err
-	}
-
-	if len(parts) == 1 {
-		return obj, nil
-	}
-
-	member := resolveMember(reflect.ValueOf(obj), parts[1])
-	if !member.IsValid() {
-		return nil, fmt.Errorf("member '%s' not found on '%s'", parts[1], parts[0])
-	}
-
-	return member.Interface(), nil
-}
-
-func resolveMember(obj reflect.Value, name string) reflect.Value {
-	firstMatch := func(fxs ...func(string) reflect.Value) reflect.Value {
-		for _, fx := range fxs {
-			if val := fx(name); val.IsValid() && val.CanInterface() {
-				return val
-			}
-		}
-
-		return reflect.Value{}
-	}
-
-	var funcs []func(string) reflect.Value
-	if obj.Kind() == reflect.Ptr {
-		funcs = append(funcs,
-			obj.Elem().FieldByName,
-			obj.MethodByName,
-			obj.Elem().MethodByName,
-		)
-	} else {
-		funcs = append(funcs,
-			obj.FieldByName,
-			obj.MethodByName,
-		)
-	}
-
-	return firstMatch(funcs...)
+	return scope.Get(string(se))
 }
 
 // VectorExpr represents a vector form.
@@ -190,5 +140,5 @@ func (le ListExpr) Eval(scope Scope) (interface{}, error) {
 		args = append(args, arg)
 	}
 
-	return Call(val, args...)
+	return reflectCall(val, args...)
 }
