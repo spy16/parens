@@ -86,7 +86,12 @@ func buildExpr(rd io.RuneScanner) (Expr, error) {
 		return buildKeywordExpr(rd)
 	case ';':
 		rd.UnreadRune()
-		return buildCommentExpr(rd)
+		_, err := buildCommentExpr(rd)
+		if err != nil {
+			return nil, err
+		}
+		return nil, nil
+
 	case ' ', '\t', '\n':
 		return nil, nil
 	case ')', ']':
