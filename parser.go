@@ -11,9 +11,8 @@ import (
 
 // ParseModule parses till the EOF and returns all s-exprs as a single ModuleExpr.
 // This should be used to build an entire module from a file or string etc.
-func ParseModule(name string, sc io.RuneScanner) (Expr, error) {
+func ParseModule(sc io.RuneScanner) (Expr, error) {
 	me := ModuleExpr{}
-	me.Name = name
 
 	var expr Expr
 	var err error
@@ -26,7 +25,7 @@ func ParseModule(name string, sc io.RuneScanner) (Expr, error) {
 			return nil, err
 		}
 
-		me.Exprs = append(me.Exprs, expr)
+		me = append(me, expr)
 	}
 
 	return me, nil
@@ -140,7 +139,7 @@ func buildListExpr(rd io.RuneScanner) (Expr, error) {
 		}
 	}
 
-	return ListExpr{List: lst}, nil
+	return ListExpr(lst), nil
 }
 func buildKeywordExpr(rd io.RuneScanner) (Expr, error) {
 	if err := ensurePrefix(rd, ':'); err != nil {
@@ -169,7 +168,7 @@ func buildKeywordExpr(rd io.RuneScanner) (Expr, error) {
 		kw = append(kw, ru)
 	}
 
-	return KeywordExpr{Keyword: string(kw)}, nil
+	return KeywordExpr(kw), nil
 }
 
 func buildCommentExpr(rd io.RuneScanner) (Expr, error) {
@@ -194,9 +193,7 @@ func buildCommentExpr(rd io.RuneScanner) (Expr, error) {
 		comment = append(comment, ru)
 	}
 
-	return CommentExpr{
-		comment: strings.TrimSpace(string(comment)),
-	}, nil
+	return CommentExpr(strings.TrimSpace(string(comment))), nil
 }
 
 func buildQuoteExpr(rd io.RuneScanner) (Expr, error) {
@@ -242,9 +239,7 @@ func buildSymbolOrNumberExpr(rd io.RuneScanner) (Expr, error) {
 		}, nil
 	}
 
-	return SymbolExpr{
-		Symbol: s,
-	}, nil
+	return SymbolExpr(s), nil
 }
 
 func buildVectorExpr(rd io.RuneScanner) (Expr, error) {
@@ -274,7 +269,7 @@ func buildVectorExpr(rd io.RuneScanner) (Expr, error) {
 		}
 	}
 
-	return VectorExpr{List: vals}, nil
+	return VectorExpr(vals), nil
 }
 
 func buildStrExpr(rd io.RuneScanner) (Expr, error) {
@@ -319,7 +314,7 @@ func buildStrExpr(rd io.RuneScanner) (Expr, error) {
 		val = append(val, ru)
 	}
 
-	return StringExpr{Value: string(val)}, nil
+	return StringExpr(val), nil
 }
 
 var numberRegex = regexp.MustCompile("^(\\+|-)?\\d+(\\.\\d+)?$")

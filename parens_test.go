@@ -17,23 +17,20 @@ func BenchmarkParens_Execute(suite *testing.B) {
 	env := parens.NewScope(nil)
 	suite.Run("Execute", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			parens.Execute("<test>", strings.NewReader("(add 1 2)"), env)
+			parens.ExecuteStr("(add 1 2)", env)
 		}
 	})
 
-	expr := parens.ListExpr{
-		List: []parens.Expr{
-			parens.SymbolExpr{
-				Symbol: "add",
-			},
+	expr := parens.ListExpr(
+		[]parens.Expr{
+			parens.SymbolExpr("add"),
 			parens.NumberExpr{
 				Number: 1,
 			},
 			parens.NumberExpr{
 				Number: 2,
 			},
-		},
-	}
+		})
 
 	suite.Run("ExecuteExpr", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {

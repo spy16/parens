@@ -77,7 +77,7 @@ func LoadFile(env parens.Scope) func(file string) interface{} {
 		defer fh.Close()
 		rd := bufio.NewReader(fh)
 
-		val, err := parens.Execute(file, rd, env)
+		val, err := parens.Execute(rd, env)
 		if err != nil {
 			panic(err)
 		}
@@ -133,14 +133,14 @@ func thread(first bool, scope parens.Scope, exprs []parens.Expr) (interface{}, e
 		}
 		res := anyExpr{val: val}
 
-		nextCall := parens.ListExpr{List: []parens.Expr{lst.List[0]}}
+		nextCall := parens.ListExpr([]parens.Expr{lst[0]})
 
 		if first {
-			nextCall.List = append(nextCall.List, res)
-			nextCall.List = append(nextCall.List, lst.List[1:]...)
+			nextCall = append(nextCall, res)
+			nextCall = append(nextCall, lst[1:]...)
 		} else {
-			nextCall.List = append(nextCall.List, lst.List[1:]...)
-			nextCall.List = append(nextCall.List, res)
+			nextCall = append(nextCall, lst[1:]...)
+			nextCall = append(nextCall, res)
 		}
 
 		result, err = nextCall.Eval(scope)
@@ -179,10 +179,10 @@ func Doc(scope parens.Scope, exprs []parens.Expr) (interface{}, error) {
 
 	var docStr string
 	if swd, ok := scope.(scopeWithDoc); ok {
-		docStr = swd.Doc(sym.Symbol)
+		docStr = swd.Doc(string(sym))
 	}
 	if len(strings.TrimSpace(docStr)) == 0 {
-		docStr = fmt.Sprintf("No documentation available for '%s'", sym.Symbol)
+		docStr = fmt.Sprintf("No documentation available for '%s'", string(sym))
 	}
 
 	docStr = fmt.Sprintf("%s\n\nGo Type: %s", docStr, reflect.TypeOf(val))
@@ -206,8 +206,8 @@ func Defn(scope parens.Scope, exprs []parens.Expr) (interface{}, error) {
 		return nil, err
 	}
 
-	scope.Bind(sym.Symbol, lambda)
-	return sym.Symbol, nil
+	scope.Bind(string(sym), lambda)
+	return string(sym), nil
 }
 
 // Lambda macro is for defining lambdas. (lambda (params) body)
@@ -222,13 +222,13 @@ func Lambda(scope parens.Scope, exprs []parens.Expr) (interface{}, error) {
 	}
 
 	params := []string{}
-	for _, entry := range paramList.List {
+	for _, entry := range paramList {
 		sym, ok := entry.(parens.SymbolExpr)
 		if !ok {
 			return nil, fmt.Errorf("param list must contain symbols, not '%s'", reflect.TypeOf(entry))
 		}
 
-		params = append(params, sym.Symbol)
+		params = append(params, string(sym))
 	}
 
 	lambdaFunc := func(args ...interface{}) interface{} {
@@ -286,14 +286,14 @@ func Conditional(scope parens.Scope, exprs []parens.Expr) (interface{}, error) {
 		if !ok {
 			return nil, errors.New("all arguments must be lists")
 		}
-		if len(listExp.List) != 2 {
+		if len(listExp) != 2 {
 			return nil, errors.New("each argument must be of the form (test action)")
 		}
 		lists = append(lists, listExp)
 	}
 
 	for _, list := range lists {
-		testResult, err := list.List[0].Eval(scope)
+		testResult, err := list[0].Eval(scope)
 		if err != nil {
 			return nil, err
 		}
@@ -306,7 +306,7 @@ func Conditional(scope parens.Scope, exprs []parens.Expr) (interface{}, error) {
 			continue
 		}
 
-		return list.List[1].Eval(scope)
+		return list[1].Eval(scope)
 	}
 
 	return nil, nil
@@ -348,7 +348,7 @@ func labelInScope(scope parens.Scope, exprs []parens.Expr) (interface{}, error) 
 		return nil, err
 	}
 
-	scope.Bind(symbol.Symbol, val)
+	scope.Bind(string(symbol), val)
 
 	return val, nil
 }

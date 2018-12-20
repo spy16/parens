@@ -70,7 +70,7 @@ func (repl *REPL) readAndExecute() bool {
 		return false
 	}
 
-	repl.WriteOut(parens.Execute("<REPL>", strings.NewReader(expr), repl.Env))
+	repl.WriteOut(parens.Execute(strings.NewReader(expr), repl.Env))
 	return false
 }
 

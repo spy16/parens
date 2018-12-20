@@ -13,17 +13,14 @@ import (
 type MacroFunc func(scope Scope, exprs []Expr) (interface{}, error)
 
 // ModuleExpr represents a list of Exprs.
-type ModuleExpr struct {
-	Name  string
-	Exprs []Expr
-}
+type ModuleExpr []Expr
 
 // Eval executes each expression in the module and returns the last result.
 func (me ModuleExpr) Eval(scope Scope) (interface{}, error) {
 	var val interface{}
 	var err error
 
-	for _, expr := range me.Exprs {
+	for _, expr := range me {
 		val, err = expr.Eval(scope)
 		if err != nil {
 			return nil, err
@@ -31,14 +28,6 @@ func (me ModuleExpr) Eval(scope Scope) (interface{}, error) {
 	}
 
 	return val, nil
-}
-
-func (me ModuleExpr) String() string {
-	strs := []string{}
-	for _, expr := range me.Exprs {
-		strs = append(strs, fmt.Sprint(expr))
-	}
-	return strings.Join(strs, "\n")
 }
 
 // NumberExpr represents number s-expression.
@@ -61,18 +50,12 @@ func (ne NumberExpr) Eval(scope Scope) (interface{}, error) {
 	return ne.Number, nil
 }
 
-func (ne NumberExpr) String() string {
-	return fmt.Sprint(ne.NumStr)
-}
-
 // StringExpr represents single and double quoted strings.
-type StringExpr struct {
-	Value string
-}
+type StringExpr string
 
 // Eval returns unquoted version of the STRING token.
 func (se StringExpr) Eval(_ Scope) (interface{}, error) {
-	return se.Value, nil
+	return string(se), nil
 }
 
 // QuoteExpr implements the quote-literal form.
@@ -90,46 +73,28 @@ func (qe QuoteExpr) UnquoteEval(scope Scope) (interface{}, error) {
 	return qe.Expr.Eval(scope)
 }
 
-func (qe QuoteExpr) String() string {
-	return fmt.Sprintf("'%s", qe.Expr)
-}
-
 // CommentExpr is returned to represent a lisp-style comment.
-type CommentExpr struct {
-	comment string
-}
+type CommentExpr string
 
 // Eval returns the comment string.
 func (ce CommentExpr) Eval(_ Scope) (interface{}, error) {
-	return ce.comment, nil
-}
-
-func (ce CommentExpr) String() string {
-	return ce.comment
+	return string(ce), nil
 }
 
 // KeywordExpr represents a keyword literal.
-type KeywordExpr struct {
-	Keyword string
-}
+type KeywordExpr string
 
 // Eval returns the keyword itself.
 func (ke KeywordExpr) Eval(_ Scope) (interface{}, error) {
-	return ke.Keyword, nil
-}
-
-func (ke KeywordExpr) String() string {
-	return ke.Keyword
+	return string(ke), nil
 }
 
 // SymbolExpr represents a symbol.
-type SymbolExpr struct {
-	Symbol string
-}
+type SymbolExpr string
 
 // Eval returns the symbol name itself.
 func (se SymbolExpr) Eval(scope Scope) (interface{}, error) {
-	parts := strings.Split(se.Symbol, ".")
+	parts := strings.Split(string(se), ".")
 	if len(parts) > 2 {
 		return nil, fmt.Errorf("invalid member access symbol. must be of format <parent>.<member>")
 	}
@@ -149,10 +114,6 @@ func (se SymbolExpr) Eval(scope Scope) (interface{}, error) {
 	}
 
 	return member.Interface(), nil
-}
-
-func (se SymbolExpr) String() string {
-	return se.Symbol
 }
 
 func resolveMember(obj reflect.Value, name string) reflect.Value {
@@ -184,15 +145,13 @@ func resolveMember(obj reflect.Value, name string) reflect.Value {
 }
 
 // VectorExpr represents a vector form.
-type VectorExpr struct {
-	List []Expr
-}
+type VectorExpr []Expr
 
 // Eval creates a golang slice.
 func (ve VectorExpr) Eval(scope Scope) (interface{}, error) {
 	lst := []interface{}{}
 
-	for _, expr := range ve.List {
+	for _, expr := range ve {
 		val, err := expr.Eval(scope)
 		if err != nil {
 			return nil, err
@@ -203,39 +162,28 @@ func (ve VectorExpr) Eval(scope Scope) (interface{}, error) {
 	return lst, nil
 }
 
-func (ve VectorExpr) String() string {
-	strs := []string{}
-	for _, expr := range ve.List {
-		strs = append(strs, fmt.Sprint(expr))
-	}
-
-	return fmt.Sprintf("[%s]", strings.Join(strs, " "))
-}
-
 // ListExpr represents a list (i.e., a function call) expression.
-type ListExpr struct {
-	List []Expr
-}
+type ListExpr []Expr
 
 // Eval evaluates each s-exp in the list and then evaluates the list itself
 // as an s-exp.
 func (le ListExpr) Eval(scope Scope) (interface{}, error) {
-	if len(le.List) == 0 {
-		return le.List, nil
+	if len(le) == 0 {
+		return le, nil
 	}
 
-	val, err := le.List[0].Eval(scope)
+	val, err := le[0].Eval(scope)
 	if err != nil {
 		return nil, err
 	}
 
 	if macroFn, ok := val.(MacroFunc); ok {
-		return macroFn(scope, le.List[1:])
+		return macroFn(scope, le[1:])
 	}
 
 	args := []interface{}{}
-	for i := 1; i < len(le.List); i++ {
-		arg, err := le.List[i].Eval(scope)
+	for i := 1; i < len(le); i++ {
+		arg, err := le[i].Eval(scope)
 		if err != nil {
 			return nil, err
 		}
@@ -243,13 +191,4 @@ func (le ListExpr) Eval(scope Scope) (interface{}, error) {
 	}
 
 	return Call(val, args...)
-}
-
-func (le ListExpr) String() string {
-	reprs := []string{}
-	for _, item := range le.List {
-		reprs = append(reprs, fmt.Sprint(item))
-	}
-
-	return fmt.Sprintf("(%s)", strings.Join(reprs, " "))
 }

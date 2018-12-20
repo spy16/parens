@@ -52,7 +52,7 @@ func TestParse_Vector(suite *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.VectorExpr{}, expr)
-		assert.Equal(t, 0, len(expr.(parens.VectorExpr).List))
+		assert.Equal(t, 0, len(expr.(parens.VectorExpr)))
 	})
 
 	suite.Run("SimpleList", func(t *testing.T) {
@@ -60,7 +60,7 @@ func TestParse_Vector(suite *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.VectorExpr{}, expr)
-		assert.Equal(t, 2, len(expr.(parens.VectorExpr).List))
+		assert.Equal(t, 2, len(expr.(parens.VectorExpr)))
 	})
 
 	suite.Run("NestedList", func(t *testing.T) {
@@ -68,7 +68,7 @@ func TestParse_Vector(suite *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.VectorExpr{}, expr)
-		assert.Equal(t, 2, len(expr.(parens.VectorExpr).List))
+		assert.Equal(t, 2, len(expr.(parens.VectorExpr)))
 	})
 }
 
@@ -79,32 +79,32 @@ func TestParse_Symbol(suite *testing.T) {
 		expr, err := parens.Parse(reader("hello"))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
-		require.IsType(t, parens.SymbolExpr{}, expr)
-		assert.Equal(t, "hello", expr.(parens.SymbolExpr).String())
+		require.IsType(t, parens.SymbolExpr(""), expr)
+		assert.Equal(t, "hello", string(expr.(parens.SymbolExpr)))
 	})
 
 	suite.Run("AlphaNumericSymbol", func(t *testing.T) {
 		expr, err := parens.Parse(reader("hello123"))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
-		require.IsType(t, parens.SymbolExpr{}, expr)
-		assert.Equal(t, "hello123", expr.(parens.SymbolExpr).String())
+		require.IsType(t, parens.SymbolExpr(""), expr)
+		assert.Equal(t, "hello123", string(expr.(parens.SymbolExpr)))
 	})
 
 	suite.Run("NonASCIISymbol", func(t *testing.T) {
 		expr, err := parens.Parse(reader("π"))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
-		require.IsType(t, parens.SymbolExpr{}, expr)
-		assert.Equal(t, "π", expr.(parens.SymbolExpr).String())
+		require.IsType(t, parens.SymbolExpr(""), expr)
+		assert.Equal(t, "π", string(expr.(parens.SymbolExpr)))
 	})
 
 	suite.Run("NumerciSymbol", func(t *testing.T) {
 		expr, err := parens.Parse(reader("1.2.3"))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
-		require.IsType(t, parens.SymbolExpr{}, expr)
-		assert.Equal(t, "1.2.3", expr.(parens.SymbolExpr).String())
+		require.IsType(t, parens.SymbolExpr(""), expr)
+		assert.Equal(t, "1.2.3", string(expr.(parens.SymbolExpr)))
 	})
 }
 
@@ -115,40 +115,40 @@ func TestParse_String(suite *testing.T) {
 		expr, err := parens.Parse(reader(`"hello"`))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
-		require.IsType(t, parens.StringExpr{}, expr)
-		assert.Equal(t, "hello", expr.(parens.StringExpr).Value)
+		require.IsType(t, parens.StringExpr(""), expr)
+		assert.Equal(t, "hello", string(expr.(parens.StringExpr)))
 	})
 
 	suite.Run("EscapeQuote", func(t *testing.T) {
 		expr, err := parens.Parse(reader(`"hello\"world"`))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
-		require.IsType(t, parens.StringExpr{}, expr)
-		assert.Equal(t, "hello\"world", expr.(parens.StringExpr).Value)
+		require.IsType(t, parens.StringExpr(""), expr)
+		assert.Equal(t, "hello\"world", string(expr.(parens.StringExpr)))
 	})
 
 	suite.Run("EscapeNewline", func(t *testing.T) {
 		expr, err := parens.Parse(reader(`"hello\nworld"`))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
-		require.IsType(t, parens.StringExpr{}, expr)
-		assert.Equal(t, "hello\nworld", expr.(parens.StringExpr).Value)
+		require.IsType(t, parens.StringExpr(""), expr)
+		assert.Equal(t, "hello\nworld", string(expr.(parens.StringExpr)))
 	})
 
 	suite.Run("EscapeTab", func(t *testing.T) {
 		expr, err := parens.Parse(reader(`"hello\tworld"`))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
-		require.IsType(t, parens.StringExpr{}, expr)
-		assert.Equal(t, "hello\tworld", expr.(parens.StringExpr).Value)
+		require.IsType(t, parens.StringExpr(""), expr)
+		assert.Equal(t, "hello\tworld", string(expr.(parens.StringExpr)))
 	})
 
 	suite.Run("EscapeCR", func(t *testing.T) {
 		expr, err := parens.Parse(reader(`"hello\rworld"`))
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
-		require.IsType(t, parens.StringExpr{}, expr)
-		assert.Equal(t, "hello\rworld", expr.(parens.StringExpr).Value)
+		require.IsType(t, parens.StringExpr(""), expr)
+		assert.Equal(t, "hello\rworld", string(expr.(parens.StringExpr)))
 	})
 
 	suite.Run("PrematureEOF", func(t *testing.T) {
@@ -168,7 +168,7 @@ func TestParse_Number(suite *testing.T) {
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.NumberExpr{}, expr)
-		assert.Equal(t, "-12.34", expr.(parens.NumberExpr).String())
+		assert.Equal(t, "-12.34", expr.(parens.NumberExpr).NumStr)
 	})
 
 	suite.Run("SimpleInteger", func(t *testing.T) {
@@ -176,7 +176,7 @@ func TestParse_Number(suite *testing.T) {
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.NumberExpr{}, expr)
-		assert.Equal(t, "12", expr.(parens.NumberExpr).String())
+		assert.Equal(t, "12", expr.(parens.NumberExpr).NumStr)
 	})
 
 	suite.Run("Signed(-)Integer", func(t *testing.T) {
@@ -184,7 +184,7 @@ func TestParse_Number(suite *testing.T) {
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.NumberExpr{}, expr)
-		assert.Equal(t, "-12", expr.(parens.NumberExpr).String())
+		assert.Equal(t, "-12", expr.(parens.NumberExpr).NumStr)
 	})
 
 	suite.Run("Signed(+)Integer", func(t *testing.T) {
@@ -192,7 +192,7 @@ func TestParse_Number(suite *testing.T) {
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.NumberExpr{}, expr)
-		assert.Equal(t, "+12", expr.(parens.NumberExpr).String())
+		assert.Equal(t, "+12", expr.(parens.NumberExpr).NumStr)
 	})
 
 	suite.Run("SimpleFloat", func(t *testing.T) {
@@ -200,7 +200,7 @@ func TestParse_Number(suite *testing.T) {
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.NumberExpr{}, expr)
-		assert.Equal(t, "+12.34", expr.(parens.NumberExpr).String())
+		assert.Equal(t, "+12.34", expr.(parens.NumberExpr).NumStr)
 	})
 
 	suite.Run("SignedFloat", func(t *testing.T) {
@@ -208,7 +208,7 @@ func TestParse_Number(suite *testing.T) {
 		assert.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.NumberExpr{}, expr)
-		assert.Equal(t, "-12.34", expr.(parens.NumberExpr).String())
+		assert.Equal(t, "-12.34", expr.(parens.NumberExpr).NumStr)
 	})
 }
 
@@ -219,16 +219,16 @@ func TestParse_Keyword(suite *testing.T) {
 		expr, err := parens.Parse(reader(`:hello world`))
 		require.NoError(t, err)
 		require.NotNil(t, expr)
-		require.IsType(t, parens.KeywordExpr{}, expr)
-		assert.Equal(t, "hello", expr.(parens.KeywordExpr).String())
+		require.IsType(t, parens.KeywordExpr(""), expr)
+		assert.Equal(t, "hello", string(expr.(parens.KeywordExpr)))
 	})
 
 	suite.Run("ComplexKeyword", func(t *testing.T) {
 		expr, err := parens.Parse(reader(`:hello/world`))
 		require.NoError(t, err)
 		require.NotNil(t, expr)
-		require.IsType(t, parens.KeywordExpr{}, expr)
-		assert.Equal(t, "hello/world", expr.(parens.KeywordExpr).String())
+		require.IsType(t, parens.KeywordExpr(""), expr)
+		assert.Equal(t, "hello/world", string(expr.(parens.KeywordExpr)))
 	})
 
 	suite.Run("SkipsEscape", func(t *testing.T) {
@@ -261,7 +261,7 @@ func TestParse_List(suite *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.ListExpr{}, expr)
-		assert.Equal(t, 0, len(expr.(parens.ListExpr).List))
+		assert.Equal(t, 0, len(expr.(parens.ListExpr)))
 	})
 
 	suite.Run("SimpleList", func(t *testing.T) {
@@ -269,7 +269,7 @@ func TestParse_List(suite *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.ListExpr{}, expr)
-		assert.Equal(t, 2, len(expr.(parens.ListExpr).List))
+		assert.Equal(t, 2, len(expr.(parens.ListExpr)))
 	})
 
 	suite.Run("NestedList", func(t *testing.T) {
@@ -277,7 +277,7 @@ func TestParse_List(suite *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, expr)
 		require.IsType(t, parens.ListExpr{}, expr)
-		assert.Equal(t, 2, len(expr.(parens.ListExpr).List))
+		assert.Equal(t, 2, len(expr.(parens.ListExpr)))
 	})
 }
 

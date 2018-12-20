@@ -38,8 +38,7 @@ Should have absolute bare minimum functionality.
 
 ```go
 scope := parens.NewScope(nil)
-exec := parens.New(scope)
-exec.Execute("10")
+parens.ExecuteStr("10")
 ```
 
 Above snippet gives you an interpreter that understands literals, `(eval expr)`
@@ -58,21 +57,16 @@ Adding this one line into the previous snippet allows you to include some minima
 of standard functions like `+`, `-`, `*`, `/` etc. and macros like `let`, `cond`, `do`
 etc.
 
-The type of `scope` argument in `parens.New(scope)` is the following interface:
+The type of `scope` argument in any `parens` function is the following interface:
 
 ```go
 // Scope is responsible for managing bindings.
 type Scope interface {
 	Get(name string) (interface{}, error)
-	Doc(name string) string
 	Bind(name string, v interface{}, doc ...string) error
 	Root() Scope
 }
 ```
-
-So, if you wanted to do some dynamic resolution during `Get(name)` (e.g. If you wanted to return
-*method* `Print` of object `stdout` when `Get("stdout.Print")` is called), you can easily implement
-this interface and pass it to `parens.New`.
 
 
 ### 3. Interoperable
@@ -91,8 +85,8 @@ scope.Bind("printf", fmt.Printf)
 scope.Bind("sin", math.Sin)
 
 // once bound you can use them just as easily:
-exec.Execute("(println banner)")
-exec.Execute(`(printf "value of π is = %f" π)`)
+parens.ExecuteStr("(println banner)", scope)
+parens.ExecuteStr(`(printf "value of π is = %f" π)`, scope)
 ```
 
 
@@ -125,7 +119,7 @@ src := `
     (label π 3.1412))
 `
 // value of 'val' after below statement should be 3.1412
-val, _ := exec.Execute(src)
+val, _ := parens.ExecuteStr(src, scope)
 
 ```
 
@@ -141,16 +135,16 @@ See `stdlib/macros.go` for some built-in macros.
 
 | Name                                             | Runs       | Time       | Memory   | Allocations  |
 | ------------------------------------------------ | ---------- | ---------- | -------- | ------------ |
-| BenchmarkParens_Execute/Execute-8                | 1000000    | 1977 ns/op | 464 B/op | 21 allocs/op |
-| BenchmarkParens_Execute/ExecuteExpr-8            | 5000000    | 323 ns/op  | 112 B/op | 5 allocs/op  |
-| BenchmarkParens_FunctionCall/DirectCall-8        | 2000000000 | 0.30 ns/op | 0 B/op   | 0 allocs/op  |
-| BenchmarkParens_FunctionCall/CallThroughParens-8 | 2000000    | 844 ns/op  | 224 B/op | 9 allocs/op  |
+| BenchmarkParens_Execute/Execute-8                | 1000000    | 1569 ns/op | 448 B/op | 21 allocs/op |
+| BenchmarkParens_Execute/ExecuteExpr-8            | 5000000    | 329 ns/op  | 112 B/op | 5 allocs/op  |
+| BenchmarkParens_FunctionCall/DirectCall-8        | 2000000000 | 0.29 ns/op | 0 B/op   | 0 allocs/op  |
+| BenchmarkParens_FunctionCall/CallThroughParens-8 | 2000000    | 827 ns/op  | 224 B/op | 9 allocs/op  |
 | BenchmarkNonVariadicCall/Normal-8                | 2000000000 | 0.28 ns/op | 0 B/op   | 0 allocs/op  |
-| BenchmarkNonVariadicCall/Reflection-8            | 5000000    | 342 ns/op  | 104 B/op | 4 allocs/op  |
-| BenchmarkNonVariadicCall/WithTypeConversio-8     | 5000000    | 343 ns/op  | 104 B/op | 4 allocs/op  |
-| BenchmarkVariadicCall/Normal-8                   | 500000000  | 3.77 ns/op | 0 B/op   | 0 allocs/op  |
-| BenchmarkVariadicCall/Reflection-8               | 5000000    | 350 ns/op  | 104 B/op | 4 allocs/op  |
-| BenchmarkVariadicCall/WithTypeConversion-8       | 5000000    | 354 ns/op  | 104 B/op | 4 allocs/op  |
+| BenchmarkNonVariadicCall/Reflection-8            | 5000000    | 370 ns/op  | 104 B/op | 4 allocs/op  |
+| BenchmarkNonVariadicCall/WithTypeConversion-8    | 5000000    | 367 ns/op  | 104 B/op | 4 allocs/op  |
+| BenchmarkVariadicCall/Normal-8                   | 500000000  | 3.22 ns/op | 0 B/op   | 0 allocs/op  |
+| BenchmarkVariadicCall/Reflection-8               | 5000000    | 366 ns/op  | 104 B/op | 4 allocs/op  |
+| BenchmarkVariadicCall/WithTypeConversion-8       | 5000000    | 347 ns/op  | 104 B/op | 4 allocs/op  |
 
 See `v0.0.6` or lower for old benchmarks.
 

@@ -3,12 +3,18 @@ package parens
 import (
 	"fmt"
 	"io"
+	"strings"
 )
+
+// ExecuteStr is a convenience wrapper for Execute.
+func ExecuteStr(src string, env Scope) (interface{}, error) {
+	return Execute(strings.NewReader(src), env)
+}
 
 // Execute reads until EOF or an error from the RuneScanner and executes the
 // read s-expressions in the given scope.
-func Execute(name string, rd io.RuneScanner, env Scope) (interface{}, error) {
-	expr, err := ParseModule(name, rd)
+func Execute(rd io.RuneScanner, env Scope) (interface{}, error) {
+	expr, err := ParseModule(rd)
 	if err != nil {
 		return nil, err
 	}

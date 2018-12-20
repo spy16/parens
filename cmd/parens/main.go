@@ -31,7 +31,7 @@ func main() {
 }
 
 func execString(src string, env parens.Scope) {
-	val, err := parens.Execute("<arg>", strings.NewReader(src), env)
+	val, err := parens.Execute(strings.NewReader(src), env)
 	if err != nil {
 		fmt.Printf("error: %s\n", err)
 		os.Exit(1)
@@ -50,7 +50,7 @@ func execFile(env parens.Scope) {
 	defer fh.Close()
 	rd := bufio.NewReader(fh)
 
-	_, err = parens.Execute(os.Args[1], rd, env)
+	_, err = parens.Execute(rd, env)
 	if err != nil {
 		fmt.Printf("error: %s\n", err)
 		os.Exit(1)
