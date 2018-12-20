@@ -1,8 +1,6 @@
 package parens_test
 
 import (
-	"errors"
-	"io"
 	"strings"
 	"testing"
 
@@ -16,10 +14,10 @@ func add(a, b float64) float64 {
 }
 
 func BenchmarkParens_Execute(suite *testing.B) {
-	ins := parens.New(parens.NewScope(nil))
+	env := parens.NewScope(nil)
 	suite.Run("Execute", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			ins.Execute("(add 1 2)")
+			parens.Execute("<test>", strings.NewReader("(add 1 2)"), env)
 		}
 	})
 
@@ -39,7 +37,7 @@ func BenchmarkParens_Execute(suite *testing.B) {
 
 	suite.Run("ExecuteExpr", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			ins.ExecuteExpr(expr)
+			parens.ExecuteExpr(expr, env)
 		}
 	})
 }
@@ -68,57 +66,17 @@ func BenchmarkParens_FunctionCall(suite *testing.B) {
 
 func TestExecute_Success(t *testing.T) {
 	scope := parens.NewScope(nil)
-	par := parens.New(scope)
-	par.Parse = mockParseFn(mockExpr(10, nil), nil)
 
-	res, err := par.Execute("10")
+	res, err := parens.ExecuteOne(strings.NewReader("10"), scope)
 	assert.NoError(t, err)
 	require.NotNil(t, res)
-	assert.Equal(t, res, 10)
+	assert.Equal(t, 10.0, res)
 }
 
 func TestExecute_EvalFailure(t *testing.T) {
 	scope := parens.NewScope(nil)
-	par := parens.New(scope)
-	par.Parse = mockParseFn(mockExpr(nil, errors.New("failed")), nil)
 
-	res, err := par.Execute("(hello)")
+	res, err := parens.ExecuteOne(strings.NewReader("(hello)"), scope)
 	require.Error(t, err)
-	assert.Equal(t, errors.New("failed"), err)
 	assert.Nil(t, res)
-}
-
-func TestExecute_ParseFailure(t *testing.T) {
-	scope := parens.NewScope(nil)
-	par := parens.New(scope)
-	par.Parse = mockParseFn(nil, errors.New("failed"))
-
-	res, err := par.Execute("(hello)")
-	require.Error(t, err)
-	assert.Equal(t, errors.New("failed"), err)
-	assert.Nil(t, res)
-}
-
-func mockExpr(v interface{}, err error) parens.Expr {
-	return exprMock(func(scope parens.Scope) (interface{}, error) {
-		if err != nil {
-			return nil, err
-		}
-		return v, nil
-	})
-}
-
-func mockParseFn(expr parens.Expr, err error) parens.ParseFn {
-	return func(name string, rd io.RuneScanner) (parens.Expr, error) {
-		if err != nil {
-			return nil, err
-		}
-		return expr, nil
-	}
-}
-
-type exprMock func(scope parens.Scope) (interface{}, error)
-
-func (sm exprMock) Eval(scope parens.Scope) (interface{}, error) {
-	return sm(scope)
 }

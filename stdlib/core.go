@@ -1,8 +1,10 @@
 package stdlib
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 
@@ -63,6 +65,42 @@ var core = []mapEntry{
 
 	// core functions
 	entry("type", reflect.TypeOf),
+}
+
+// LoadFile returns function that reads and executes a lisp file.
+func LoadFile(env parens.Scope) func(file string) interface{} {
+	return func(file string) interface{} {
+		fh, err := os.Open(file)
+		if err != nil {
+			panic(err)
+		}
+		defer fh.Close()
+		rd := bufio.NewReader(fh)
+
+		val, err := parens.Execute(file, rd, env)
+		if err != nil {
+			panic(err)
+		}
+
+		return val
+	}
+}
+
+// Eval returns the (eval <val>) function.
+func Eval(env parens.Scope) func(val interface{}) interface{} {
+	return func(val interface{}) interface{} {
+		expr, ok := val.(parens.Expr)
+		if !ok {
+			return val
+		}
+
+		res, err := expr.Eval(env)
+		if err != nil {
+			panic(err)
+		}
+
+		return res
+	}
 }
 
 // ThreadFirst macro appends first evaluation result as first argument of next function

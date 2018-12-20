@@ -26,6 +26,16 @@ func RegisterIO(scope parens.Scope) error {
 // RegisterCore binds all the core macros and functions into
 // the scope.
 func RegisterCore(scope parens.Scope) error {
+	scope.Bind("eval", Eval(scope),
+		"Executes given LISP string in the current scope",
+		"Usage: (eval <form>)",
+	)
+
+	scope.Bind("load", LoadFile(scope),
+		"Reads and executes the file in the current scope",
+		"Example: (load \"sample.lisp\")",
+	)
+
 	return registerList(scope, core)
 }
 

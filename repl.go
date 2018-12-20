@@ -11,7 +11,7 @@ import (
 )
 
 // NewREPL initializes a REPL session with given evaluator.
-func NewREPL(exec Executor) (*REPL, error) {
+func NewREPL(env Scope) (*REPL, error) {
 	ins, err := readline.New("> ")
 	if err != nil {
 		return nil, err
@@ -19,7 +19,7 @@ func NewREPL(exec Executor) (*REPL, error) {
 	pr := &prompter{ins: ins}
 
 	return &REPL{
-		Exec:     exec,
+		Env:      env,
 		ReadIn:   pr.readIn,
 		WriteOut: pr.writeOut,
 	}, nil
@@ -33,7 +33,7 @@ type Executor interface {
 
 // REPL represents a session of read-eval-print-loop.
 type REPL struct {
-	Exec   Executor
+	Env    Scope
 	Banner string
 
 	ReadIn   ReadInFunc
@@ -76,7 +76,7 @@ func (repl *REPL) readAndExecute() bool {
 		return false
 	}
 
-	repl.WriteOut(repl.Exec.Execute(expr))
+	repl.WriteOut(Execute("<REPL>", strings.NewReader(expr), repl.Env))
 	return false
 }
 
