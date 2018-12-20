@@ -25,14 +25,13 @@ more information.
 https://github.com/spy16/parens
 `
 
-func makeGlobalScope() *parens.Scope {
+func makeGlobalScope() parens.Scope {
 	scope := parens.NewScope(nil)
 	scope.Bind("parens-version", version)
 
 	scope.Bind("?", func() string {
 		return help
 	})
-
 
 	// user-defined values can be exposed too and their methods
 	// can be accessed.

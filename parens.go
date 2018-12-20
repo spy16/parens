@@ -5,15 +5,13 @@ import (
 	"io"
 	"io/ioutil"
 	"strings"
-
-	"github.com/spy16/parens/parser"
 )
 
 // New initializes new parens LISP interpreter with given env.
-func New(scope parser.Scope) *Interpreter {
+func New(scope Scope) *Interpreter {
 	exec := &Interpreter{
 		Scope:         scope,
-		Parse:         parser.ParseModule,
+		Parse:         ParseModule,
 		DefaultSource: "<string>",
 	}
 
@@ -27,7 +25,7 @@ func New(scope parser.Scope) *Interpreter {
 	}
 
 	evalStr := func(val interface{}) interface{} {
-		expr, ok := val.(parser.Expr)
+		expr, ok := val.(Expr)
 		if !ok {
 			return val
 		}
@@ -53,22 +51,22 @@ func New(scope parser.Scope) *Interpreter {
 }
 
 // ParseFn is responsible for tokenizing and building Expr out of tokens.
-type ParseFn func(name string, src io.RuneScanner) (parser.Expr, error)
+type ParseFn func(name string, src io.RuneScanner) (Expr, error)
 
 // Interpreter represents the LISP interpreter instance. You can provide
 // your own implementations of ParseFn to extend the interpreter.
 type Interpreter struct {
-	Scope         parser.Scope
+	Scope         Scope
 	Parse         ParseFn
 	DefaultSource string
 }
 
-// Execute tokenizes, parses and executes the given LISP code.
+// Execute parses and executes the given LISP code.
 func (parens *Interpreter) Execute(src string) (interface{}, error) {
 	return parens.executeSrc(parens.DefaultSource, src)
 }
 
-// ExecuteFile reads, tokenizes, parses and executes the contents of the given file.
+// ExecuteFile reads, parses and executes the contents of the given file.
 func (parens *Interpreter) ExecuteFile(file string) (interface{}, error) {
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
@@ -79,7 +77,7 @@ func (parens *Interpreter) ExecuteFile(file string) (interface{}, error) {
 }
 
 // ExecuteExpr executes the given expr using the appropriate scope.
-func (parens *Interpreter) ExecuteExpr(expr parser.Expr) (interface{}, error) {
+func (parens *Interpreter) ExecuteExpr(expr Expr) (interface{}, error) {
 	return expr.Eval(parens.Scope)
 }
 

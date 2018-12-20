@@ -1,4 +1,4 @@
-package parser
+package parens
 
 import (
 	"fmt"
@@ -9,15 +9,10 @@ import (
 	"github.com/spy16/parens/reflection"
 )
 
-// MacroFunc will receive un-evaluated list of s-expressions and the
-// current scope. In addition, if the macro was accessed through a name
-// the name will be passed as well. If the macro was not accessed by name
-// (e.g. was result of another list etc.), name will be empty string.
-type MacroFunc func(scope Scope, name string, exprs []Expr) (interface{}, error)
-
-// ScopedFunc are like normal functions but get access to the current scope.
-// Eval is an example of a ScopedFunc.
-type ScopedFunc func(scope Scope, vals ...interface{}) (interface{}, error)
+// MacroFunc represents the signature of the Go macro functions. Functions
+// bound in the scope as MacroFunc will receive un-evaluated list of s-exps
+// and the current scope.
+type MacroFunc func(scope Scope, exprs []Expr) (interface{}, error)
 
 // ModuleExpr represents a list of Exprs.
 type ModuleExpr struct {
@@ -237,11 +232,7 @@ func (le ListExpr) Eval(scope Scope) (interface{}, error) {
 	}
 
 	if macroFn, ok := val.(MacroFunc); ok {
-		var name string
-		if sym, ok := le.List[0].(SymbolExpr); ok {
-			name = sym.Symbol
-		}
-		return macroFn(scope, name, le.List[1:])
+		return macroFn(scope, le.List[1:])
 	}
 
 	args := []interface{}{}
@@ -251,10 +242,6 @@ func (le ListExpr) Eval(scope Scope) (interface{}, error) {
 			return nil, err
 		}
 		args = append(args, arg)
-	}
-
-	if scopedFn, ok := val.(ScopedFunc); ok {
-		return scopedFn(scope, args...)
 	}
 
 	return reflection.Call(val, args...)

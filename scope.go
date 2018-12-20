@@ -4,23 +4,20 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/spy16/parens/parser"
 	"github.com/spy16/parens/reflection"
 )
 
 // NewScope initializes a new scope with given parent scope. parent
 // can be nil.
-func NewScope(parent parser.Scope) *Scope {
-	return &Scope{
+func NewScope(parent Scope) Scope {
+	return &defaultScope{
 		parent: parent,
 		vals:   map[string]scopeEntry{},
 	}
 }
 
-// Scope manages lifetime of values. Scope can inherit values
-// from a parent as well.
-type Scope struct {
-	parent parser.Scope
+type defaultScope struct {
+	parent Scope
 	vals   map[string]scopeEntry
 }
 
@@ -29,9 +26,7 @@ type scopeEntry struct {
 	doc string
 }
 
-// Root traverses the entire hierarchy of scopes and returns the topmost
-// one (i.e., the one with no parent).
-func (sc *Scope) Root() parser.Scope {
+func (sc *defaultScope) Root() Scope {
 	if sc.parent == nil {
 		return sc
 	}
@@ -39,9 +34,7 @@ func (sc *Scope) Root() parser.Scope {
 	return sc.parent.Root()
 }
 
-// Bind will bind the value to the given name. If a value already
-// exists for the given name, it will be overwritten.
-func (sc *Scope) Bind(name string, v interface{}, doc ...string) error {
+func (sc *defaultScope) Bind(name string, v interface{}, doc ...string) error {
 	val := reflection.NewValue(v)
 	sc.vals[name] = scopeEntry{
 		val: val,
@@ -51,9 +44,7 @@ func (sc *Scope) Bind(name string, v interface{}, doc ...string) error {
 	return nil
 }
 
-// Doc returns doc string for the name. If name is not found, returns
-// empty string.
-func (sc *Scope) Doc(name string) string {
+func (sc *defaultScope) Doc(name string) string {
 	if entry := sc.entry(name); entry != nil {
 		return entry.doc
 	}
@@ -67,8 +58,7 @@ func (sc *Scope) Doc(name string) string {
 	return ""
 }
 
-// Get returns the actual Go value bound to the given name.
-func (sc *Scope) Get(name string) (interface{}, error) {
+func (sc *defaultScope) Get(name string) (interface{}, error) {
 	entry := sc.entry(name)
 	if entry == nil {
 		if sc.parent != nil {
@@ -80,7 +70,7 @@ func (sc *Scope) Get(name string) (interface{}, error) {
 	return entry.val.RVal.Interface(), nil
 }
 
-func (sc *Scope) String() string {
+func (sc *defaultScope) String() string {
 	str := []string{}
 	for name := range sc.vals {
 		str = append(str, fmt.Sprintf("%s", name))
@@ -88,7 +78,7 @@ func (sc *Scope) String() string {
 	return strings.Join(str, "\n")
 }
 
-func (sc *Scope) entry(name string) *scopeEntry {
+func (sc *defaultScope) entry(name string) *scopeEntry {
 	entry, found := sc.vals[name]
 	if found {
 		return &entry

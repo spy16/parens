@@ -102,7 +102,7 @@ Special constructs like `do`, `cond`, `if` etc. can be added using Macros.
 
 ```go
 // This is simple implementation of '(do expr*)' special-form from Clojure!
-func doMacro(scope *reflection.Scope, callName string, exps []parser.Expr) (interface{}, error) {
+func doMacro(scope *reflection.Scope, callName string, exps []parens.Expr) (interface{}, error) {
     var val interface{}
     var err error
     for _, exp := range exps {
@@ -116,7 +116,7 @@ func doMacro(scope *reflection.Scope, callName string, exps []parser.Expr) (inte
 }
 
 // register the macro func in the scope.
-scope.Bind("do", parser.MacroFunc(doMacro))
+scope.Bind("do", parens.MacroFunc(doMacro))
 
 // finally use it!
 src := `
@@ -156,23 +156,8 @@ See `v0.0.6` or lower for old benchmarks.
 
 ## TODO
 
-- [ ] Better way to map error returns from Go functios to LISP
-    - [ ] `Result<interface{}, error>` type of design in Rust ?
-- [ ] Better `parser` package
-    - [x] Support for macro functions
-    - [x] Support for vectors `[]`
-    - [ ] Better error reporting
-- [ ] Better `reflection` package
-    - [x] Support for variadic functions
-    - [x] Support for methods
-    - [ ] Type promotion/conversion
-        - [x] `intX` types to `int64` and `float64`
-        - [x] `floatX` types to `int64` and `float64`
-        - [x] any values to `interface{}` type
-        - [ ] `intX` and `floatX` types to `int8`, `int16`, `float32` and vice versa?
+- [ ] Better error reporting
 - [ ] Optimization
-  - [x] Performance Benchmark
-  - [x] optimization ?
 - [ ] `Go` code generation?
 
 

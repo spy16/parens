@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/spy16/parens"
-	"github.com/spy16/parens/parser"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -24,15 +23,15 @@ func BenchmarkParens_Execute(suite *testing.B) {
 		}
 	})
 
-	expr := parser.ListExpr{
-		List: []parser.Expr{
-			parser.SymbolExpr{
+	expr := parens.ListExpr{
+		List: []parens.Expr{
+			parens.SymbolExpr{
 				Symbol: "add",
 			},
-			parser.NumberExpr{
+			parens.NumberExpr{
 				Number: 1,
 			},
-			parser.NumberExpr{
+			parens.NumberExpr{
 				Number: 2,
 			},
 		},
@@ -52,7 +51,7 @@ func BenchmarkParens_FunctionCall(suite *testing.B) {
 		}
 	})
 
-	expr, err := parser.Parse(strings.NewReader("(add 1 2)"))
+	expr, err := parens.Parse(strings.NewReader("(add 1 2)"))
 	if err != nil {
 		suite.Fatalf("failed to parse expression: %s", err)
 	}
@@ -100,8 +99,8 @@ func TestExecute_ParseFailure(t *testing.T) {
 	assert.Nil(t, res)
 }
 
-func mockExpr(v interface{}, err error) parser.Expr {
-	return exprMock(func(scope parser.Scope) (interface{}, error) {
+func mockExpr(v interface{}, err error) parens.Expr {
+	return exprMock(func(scope parens.Scope) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
@@ -109,8 +108,8 @@ func mockExpr(v interface{}, err error) parser.Expr {
 	})
 }
 
-func mockParseFn(expr parser.Expr, err error) parens.ParseFn {
-	return func(name string, rd io.RuneScanner) (parser.Expr, error) {
+func mockParseFn(expr parens.Expr, err error) parens.ParseFn {
+	return func(name string, rd io.RuneScanner) (parens.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
@@ -118,8 +117,8 @@ func mockParseFn(expr parser.Expr, err error) parens.ParseFn {
 	}
 }
 
-type exprMock func(scope parser.Scope) (interface{}, error)
+type exprMock func(scope parens.Scope) (interface{}, error)
 
-func (sm exprMock) Eval(scope parser.Scope) (interface{}, error) {
+func (sm exprMock) Eval(scope parens.Scope) (interface{}, error) {
 	return sm(scope)
 }
