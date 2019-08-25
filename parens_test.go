@@ -25,10 +25,10 @@ func BenchmarkParens_Execute(suite *testing.B) {
 		[]parens.Expr{
 			parens.SymbolExpr("add"),
 			parens.NumberExpr{
-				Number: 1,
+				NumStr: "1",
 			},
 			parens.NumberExpr{
-				Number: 2,
+				NumStr: "2",
 			},
 		})
 
