@@ -1,11 +1,10 @@
-package parens_test
+package parens
 
 import (
 	"fmt"
 	"reflect"
 	"testing"
 
-	"github.com/spy16/parens"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -14,7 +13,7 @@ func TestScope_Bind(suite *testing.T) {
 	suite.Parallel()
 
 	suite.Run("SimpleBind", func(t *testing.T) {
-		scope := parens.NewScope(nil)
+		scope := NewScope(nil)
 		scope.Bind("version", "1.0.0")
 
 		val, err := scope.Get("version")
@@ -25,7 +24,7 @@ func TestScope_Bind(suite *testing.T) {
 	})
 
 	suite.Run("FunctionBind", func(t *testing.T) {
-		scope := parens.NewScope(nil)
+		scope := NewScope(nil)
 		scope.Bind("print", func(msg string) { fmt.Println(msg) })
 
 		val, err := scope.Get("print")
@@ -35,7 +34,7 @@ func TestScope_Bind(suite *testing.T) {
 	})
 
 	suite.Run("OverwritingBund", func(t *testing.T) {
-		scope := parens.NewScope(nil)
+		scope := NewScope(nil)
 		scope.Bind("print", func(msg string) { fmt.Println(msg) })
 		scope.Bind("print", "now-a-string")
 
@@ -51,7 +50,7 @@ func TestScope_Get(suite *testing.T) {
 	suite.Parallel()
 
 	suite.Run("UnboundName", func(t *testing.T) {
-		scope := parens.NewScope(nil)
+		scope := NewScope(nil)
 
 		val, err := scope.Get("some-unknown-name")
 		require.Error(t, err)
@@ -59,10 +58,10 @@ func TestScope_Get(suite *testing.T) {
 	})
 
 	suite.Run("BoundOnParent", func(t *testing.T) {
-		parent := parens.NewScope(nil)
+		parent := NewScope(nil)
 		parent.Bind("message", "hello world")
 
-		scope := parens.NewScope(parent)
+		scope := NewScope(parent)
 		val, err := scope.Get("message")
 		assert.NoError(t, err)
 		require.NotNil(t, val)
@@ -73,7 +72,7 @@ func TestScope_Get(suite *testing.T) {
 	suite.Run("Pointer", func(t *testing.T) {
 		actualValue := "hello"
 
-		scope := parens.NewScope(nil)
+		scope := NewScope(nil)
 		scope.Bind("value", &actualValue)
 
 		val, err := scope.Get("value")

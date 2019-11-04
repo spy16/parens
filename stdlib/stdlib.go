@@ -1,6 +1,6 @@
 package stdlib
 
-import "github.com/spy16/parens"
+import "github.com/lthibault/parens"
 
 // RegisterAll registers different built-in functions into the
 // given scope.
