@@ -25,7 +25,7 @@ func Execute(rd io.RuneScanner, env Scope) (interface{}, error) {
 // ExecuteOne reads runes enough to construct one s-exp and executes the s-exp
 // with given scope.
 func ExecuteOne(rd io.RuneScanner, env Scope) (interface{}, error) {
-	expr, err := Parse(rd)
+	expr, err := ParseOne(rd)
 	if err != nil {
 		return nil, err
 	}
