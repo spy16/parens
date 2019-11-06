@@ -1,4 +1,8 @@
-all: test	install
+all: tidy	test	install
+
+tidy:
+	@echo "Cleaning up go.mod..."
+	@go mod tidy -v
 
 install:
 	@echo "Installing parens to GOBIN..."

@@ -364,7 +364,7 @@ func ensurePrefix(rd io.RuneScanner, prefix rune) error {
 }
 
 func isSepratingChar(ru rune) bool {
-	return oneOf(ru, ' ', '\t', '\n', '\r', '(', ')', '[', ']', '{', '}', '"', '\'')
+	return oneOf(ru, ' ', '\t', '\n', '\r', '(', ')', '[', ']', '"', '\'')
 }
 
 func oneOf(ru rune, set ...rune) bool {
