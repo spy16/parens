@@ -7,14 +7,14 @@ import (
 )
 
 // ExecuteStr is a convenience wrapper for Execute.
-func ExecuteStr(src string, env Scope) (interface{}, error) {
+func ExecuteStr(src string, env Scope, ext ...Matcher) (interface{}, error) {
 	return Execute(strings.NewReader(src), env)
 }
 
 // Execute reads until EOF or an error from the RuneScanner and executes the
 // read s-expressions in the given scope.
-func Execute(rd io.RuneScanner, env Scope) (interface{}, error) {
-	expr, err := Parse(rd)
+func Execute(rd io.RuneScanner, env Scope, ext ...Matcher) (interface{}, error) {
+	expr, err := Parse(rd, ext...)
 	if err != nil {
 		return nil, err
 	}
@@ -24,8 +24,8 @@ func Execute(rd io.RuneScanner, env Scope) (interface{}, error) {
 
 // ExecuteOne reads runes enough to construct one s-exp and executes the s-exp
 // with given scope.
-func ExecuteOne(rd io.RuneScanner, env Scope) (interface{}, error) {
-	expr, err := ParseOne(rd)
+func ExecuteOne(rd io.RuneScanner, env Scope, ext ...Matcher) (interface{}, error) {
+	expr, err := ParseOne(rd, ext...)
 	if err != nil {
 		return nil, err
 	}

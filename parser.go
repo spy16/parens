@@ -10,19 +10,19 @@ import (
 )
 
 // ParseStr is a convenience wrapper for Parse.
-func ParseStr(src string) (Expr, error) {
-	return Parse(strings.NewReader(src))
+func ParseStr(src string, ext ...Matcher) (Expr, error) {
+	return Parse(strings.NewReader(src), ext...)
 }
 
 // Parse parses till the EOF and returns all s-exprs as a single ModuleExpr.
 // This should be used to build an entire module from a file or string etc.
-func Parse(sc io.RuneScanner) (Expr, error) {
+func Parse(sc io.RuneScanner, ext ...Matcher) (Expr, error) {
 	me := ModuleExpr{}
 
 	var expr Expr
 	var err error
 	for {
-		expr, err = ParseOne(sc)
+		expr, err = ParseOne(sc, ext...)
 		if err != nil {
 			if err == io.EOF {
 				break
@@ -39,11 +39,11 @@ func Parse(sc io.RuneScanner) (Expr, error) {
 // ParseOne consumes runes from the reader until a single s-expression is extracted.
 // Returns any other errors from reader. This should be used when a continuous parse
 // eval from a stream is necessary (e.g. TCP socket).
-func ParseOne(sc io.RuneScanner) (Expr, error) {
+func ParseOne(sc io.RuneScanner, ext ...Matcher) (Expr, error) {
 	var expr Expr
 	var err error
 	for {
-		expr, err = buildExpr(sc)
+		expr, err = buildExpr(sc, ext...)
 		if err != nil {
 			return nil, err
 		}
@@ -68,7 +68,7 @@ type Scope interface {
 	Root() Scope
 }
 
-func buildExpr(rd io.RuneScanner) (Expr, error) {
+func buildExpr(rd io.RuneScanner, ext ...Matcher) (Expr, error) {
 	ru, _, err := rd.ReadRune()
 	if err != nil {
 		return nil, err
@@ -84,10 +84,10 @@ func buildExpr(rd io.RuneScanner) (Expr, error) {
 		return buildStrExpr(rd)
 	case '(':
 		rd.UnreadRune()
-		return buildListExpr(rd)
+		return buildListExpr(rd, ext)
 	case '[':
 		rd.UnreadRune()
-		return buildVectorExpr(rd)
+		return buildVectorExpr(rd, ext)
 	case '\'':
 		rd.UnreadRune()
 		return buildQuoteExpr(rd)
@@ -109,7 +109,7 @@ func buildExpr(rd io.RuneScanner) (Expr, error) {
 	default:
 		if utf8.ValidRune(ru) {
 			rd.UnreadRune()
-			return buildSymbolOrNumberExpr(rd)
+			return buildSymbolOrNumberExpr(rd, ext)
 		}
 	}
 
@@ -117,7 +117,7 @@ func buildExpr(rd io.RuneScanner) (Expr, error) {
 
 }
 
-func buildListExpr(rd io.RuneScanner) (Expr, error) {
+func buildListExpr(rd io.RuneScanner, ext []Matcher) (Expr, error) {
 	if err := ensurePrefix(rd, '('); err != nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func buildListExpr(rd io.RuneScanner) (Expr, error) {
 
 		rd.UnreadRune()
 
-		expr, err := buildExpr(rd)
+		expr, err := buildExpr(rd, ext...)
 		if err != nil {
 			return nil, err
 		}
@@ -218,7 +218,7 @@ func buildQuoteExpr(rd io.RuneScanner) (Expr, error) {
 // - Support for hex (0x) and binary (0x) numbers
 // - Support for scientific notation (1.3e10)
 // - Clear differentiation between symbol and number
-func buildSymbolOrNumberExpr(rd io.RuneScanner) (Expr, error) {
+func buildSymbolOrNumberExpr(rd io.RuneScanner, exts multiMatcher) (Expr, error) {
 	seq := []rune{}
 	for {
 		ru, _, err := rd.ReadRune()
@@ -238,16 +238,15 @@ func buildSymbolOrNumberExpr(rd io.RuneScanner) (Expr, error) {
 	}
 
 	s := string(seq)
-	if numberRegex.MatchString(s) {
-		return NumberExpr{
-			NumStr: s,
-		}, nil
+	exts = append([]Matcher{strMatcher{}}, exts...)
+	if expr, ok := exts.Match(s); ok {
+		return expr, nil
 	}
 
 	return SymbolExpr(s), nil
 }
 
-func buildVectorExpr(rd io.RuneScanner) (Expr, error) {
+func buildVectorExpr(rd io.RuneScanner, ext []Matcher) (Expr, error) {
 	if err := ensurePrefix(rd, '['); err != nil {
 		return nil, err
 	}
@@ -264,7 +263,7 @@ func buildVectorExpr(rd io.RuneScanner) (Expr, error) {
 		}
 		rd.UnreadRune()
 
-		expr, err := buildExpr(rd)
+		expr, err := buildExpr(rd, ext...)
 		if err != nil {
 			return nil, err
 		}
@@ -322,7 +321,34 @@ func buildStrExpr(rd io.RuneScanner) (Expr, error) {
 	return StringExpr(val), nil
 }
 
+// Matcher can implement custom expressions
+type Matcher interface {
+	Match(string) (Expr, bool)
+}
+
+type multiMatcher []Matcher
+
+func (mm multiMatcher) Match(s string) (e Expr, ok bool) {
+	for _, m := range mm {
+		if e, ok = m.Match(s); ok {
+			break
+		}
+	}
+
+	return
+}
+
 var numberRegex = regexp.MustCompile("^(\\+|-)?\\d+(\\.\\d+)?$")
+
+type strMatcher struct{}
+
+func (strMatcher) Match(s string) (e Expr, ok bool) {
+	if ok = numberRegex.MatchString(s); ok {
+		e = NumberExpr{s}
+	}
+
+	return
+}
 
 func ensurePrefix(rd io.RuneScanner, prefix rune) error {
 	ru, _, err := rd.ReadRune()
