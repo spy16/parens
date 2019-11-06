@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/k0kubun/pp"
-	"github.com/lthibault/parens"
+	"github.com/spy16/parens"
 )
 
 var core = []mapEntry{
