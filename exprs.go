@@ -1,7 +1,8 @@
 package parens
 
 import (
-	"strconv"
+	"fmt"
+	"strings"
 )
 
 // MacroFunc represents the signature of the Go macro functions. Functions
@@ -9,126 +10,88 @@ import (
 // and the current scope.
 type MacroFunc func(scope Scope, exprs []Expr) (interface{}, error)
 
-// ModuleExpr represents a list of Exprs.
-type ModuleExpr []Expr
+// Float64 represents double precision floating point numbers represented
+// using float or scientific number formats.
+type Float64 float64
 
-// Eval executes each expression in the module and returns the last result.
-func (me ModuleExpr) Eval(scope Scope) (interface{}, error) {
-	var val interface{}
-	var err error
+// Eval returns the underlying double-precision float value.
+func (f64 Float64) Eval(scope Scope) (interface{}, error) {
+	return float64(f64), nil
+}
 
-	for _, expr := range me {
-		val, err = expr.Eval(scope)
-		if err != nil {
-			return nil, err
-		}
+func (f64 Float64) String() string { return fmt.Sprintf("%f", f64) }
+
+// Int64 represents integer values represented using decimal, octal, radix
+// and hexadecimal formats.
+type Int64 int64
+
+// Eval returns the underlying integer value.
+func (i64 Int64) Eval(scope Scope) (interface{}, error) {
+	return int64(i64), nil
+}
+
+func (i64 Int64) String() string { return fmt.Sprintf("%d", i64) }
+
+// String represents double-quoted string literals. String Form represents
+// the true string value obtained from the reader. Escape sequences are not
+// applicable at this level.
+type String string
+
+// Eval returns the unquoted string value.
+func (se String) Eval(scope Scope) (interface{}, error) { return string(se), nil }
+
+func (se String) String() string { return fmt.Sprintf("\"%s\"", string(se)) }
+
+// Character represents a character literal.  For example, \a, \b, \1, \∂ etc
+// are valid character literals. In addition, special literals like \newline,
+// \space etc are supported.
+type Character rune
+
+// Eval returns the character value.
+func (char Character) Eval(scope Scope) (interface{}, error) { return rune(char), nil }
+
+func (char Character) String() string { return fmt.Sprintf("\\%c", rune(char)) }
+
+// Keyword represents a keyword literal.
+type Keyword string
+
+// Eval returns the keyword value.
+func (kw Keyword) Eval(scope Scope) (interface{}, error) { return kw, nil }
+
+func (kw Keyword) String() string { return string(kw) }
+
+// Symbol represents a name given to a value in memory.
+type Symbol string
+
+// Eval returns the value bound for the symbol in the scope.
+func (sym Symbol) Eval(scope Scope) (interface{}, error) {
+	return scope.Get(string(sym))
+}
+
+func (sym Symbol) String() string { return string(sym) }
+
+// List represents an list of forms. Evaluating a list leads to a function
+// invocation.
+type List []Expr
+
+// Eval executes the list as a function invocation.
+func (lf List) Eval(scope Scope) (interface{}, error) {
+	if len(lf) == 0 {
+		return lf, nil
 	}
 
-	return val, nil
-}
-
-// NumberExpr represents number s-expression.
-type NumberExpr struct {
-	NumStr string
-}
-
-// Eval for a number returns itself.
-func (ne NumberExpr) Eval(scope Scope) (interface{}, error) {
-	num, err := strconv.ParseFloat(ne.NumStr, 64)
-	if err != nil {
-		return nil, err
-	}
-
-	return num, nil
-}
-
-// StringExpr represents single and double quoted strings.
-type StringExpr string
-
-// Eval returns unquoted version of the STRING token.
-func (se StringExpr) Eval(_ Scope) (interface{}, error) {
-	return string(se), nil
-}
-
-// QuoteExpr implements the quote-literal form.
-type QuoteExpr struct {
-	Expr Expr
-}
-
-// Eval returns the expression itself without evaluating it.
-func (qe QuoteExpr) Eval(scope Scope) (interface{}, error) {
-	return qe.Expr, nil
-}
-
-// UnquoteEval unquotes and evaluates the underlying expression.
-func (qe QuoteExpr) UnquoteEval(scope Scope) (interface{}, error) {
-	return qe.Expr.Eval(scope)
-}
-
-// CommentExpr is returned to represent a lisp-style comment.
-type CommentExpr string
-
-// Eval returns the comment string.
-func (ce CommentExpr) Eval(_ Scope) (interface{}, error) {
-	return string(ce), nil
-}
-
-// KeywordExpr represents a keyword literal.
-type KeywordExpr string
-
-// Eval returns the keyword itself.
-func (ke KeywordExpr) Eval(_ Scope) (interface{}, error) {
-	return string(ke), nil
-}
-
-// SymbolExpr represents a symbol.
-type SymbolExpr string
-
-// Eval returns the symbol name itself.
-func (se SymbolExpr) Eval(scope Scope) (interface{}, error) {
-	return scope.Get(string(se))
-}
-
-// VectorExpr represents a vector form.
-type VectorExpr []Expr
-
-// Eval creates a golang slice.
-func (ve VectorExpr) Eval(scope Scope) (interface{}, error) {
-	lst := []interface{}{}
-
-	for _, expr := range ve {
-		val, err := expr.Eval(scope)
-		if err != nil {
-			return nil, err
-		}
-		lst = append(lst, val)
-	}
-
-	return lst, nil
-}
-
-// ListExpr represents a list (i.e., a function call) expression.
-type ListExpr []Expr
-
-// Eval evaluates each s-exp in the list and then evaluates the list itself
-// as an s-exp.
-func (le ListExpr) Eval(scope Scope) (interface{}, error) {
-	if len(le) == 0 {
-		return le, nil
-	}
-
-	val, err := le[0].Eval(scope)
+	val, err := lf[0].Eval(scope)
 	if err != nil {
 		return nil, err
 	}
 
 	if macroFn, ok := val.(MacroFunc); ok {
-		return macroFn(scope, le[1:])
+		return macroFn(scope, lf[1:])
 	}
 
 	args := []interface{}{}
-	for i := 1; i < len(le); i++ {
-		arg, err := le[i].Eval(scope)
+	for i := 1; i < len(lf); i++ {
+		arg, err := lf[i].Eval(scope)
 		if err != nil {
 			return nil, err
 		}
@@ -136,4 +99,58 @@ func (le ListExpr) Eval(scope Scope) (interface{}, error) {
 	}
 
 	return reflectCall(val, args...)
+}
+
+func (lf List) String() string { return containerString(lf, "(", ")", " ") }
+
+// Vector represents a list of values. Unlike List type, evaluation of
+// vector does not lead to function invoke.
+type Vector []Expr
+
+// Eval evaluates each item in the vector and returns the result list.
+func (vf Vector) Eval(scope Scope) (interface{}, error) { return evalForms(scope, vf) }
+
+func (vf Vector) String() string { return containerString(vf, "[", "]", " ") }
+
+// Module represents a group of forms. Evaluating a module form returns the
+// result of evaluating the last form in the list.
+type Module []Expr
+
+// Eval evaluates all the forms and returns the result of the last evaluation.
+func (m Module) Eval(scope Scope) (interface{}, error) {
+	if len(m) == 0 {
+		return nil, nil
+	}
+
+	val, err := evalForms(scope, m)
+	if err != nil {
+		return nil, err
+	}
+
+	return val[len(val)-1], nil
+}
+
+func (m Module) String() string { return containerString(m, "", "", "\n") }
+
+func containerString(forms []Expr, begin, end, sep string) string {
+	parts := make([]string, len(forms))
+	for i, expr := range forms {
+		parts[i] = fmt.Sprintf("%v", expr)
+	}
+	return begin + strings.Join(parts, sep) + end
+}
+
+func evalForms(scope Scope, forms []Expr) ([]interface{}, error) {
+	var res []interface{}
+
+	for _, form := range forms {
+		val, err := form.Eval(scope)
+		if err != nil {
+			return nil, err
+		}
+
+		res = append(res, val)
+	}
+
+	return res, nil
 }

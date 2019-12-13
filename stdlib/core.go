@@ -28,6 +28,9 @@ var core = []mapEntry{
 	entry("do", parens.MacroFunc(Do),
 		"Usage: (do expr1 expr2 ...)",
 	),
+	entry("quote", parens.MacroFunc(Quote),
+		"Usage: (quote expr)",
+	),
 	entry("label", parens.MacroFunc(Label),
 		"Usage: (label <symbol> expr)",
 	),
@@ -65,6 +68,15 @@ var core = []mapEntry{
 
 	// core functions
 	entry("type", reflect.TypeOf),
+}
+
+// Quote prevents the expr from being executed until unquoted.
+func Quote(scope parens.Scope, exprs []parens.Expr) (interface{}, error) {
+	if len(exprs) != 1 {
+		return nil, fmt.Errorf("exactly 1 argument required")
+	}
+
+	return exprs[0], nil
 }
 
 // LoadFile returns function that reads and executes a lisp file.
@@ -122,7 +134,7 @@ func thread(first bool, scope parens.Scope, exprs []parens.Expr) (interface{}, e
 
 	var result interface{}
 	for i := 1; i < len(exprs); i++ {
-		lst, ok := exprs[i].(parens.ListExpr)
+		lst, ok := exprs[i].(parens.List)
 		if !ok {
 			return nil, fmt.Errorf("argument %d must be a function call, not '%s'", i, reflect.TypeOf(exprs[i]))
 		}
@@ -133,7 +145,7 @@ func thread(first bool, scope parens.Scope, exprs []parens.Expr) (interface{}, e
 		}
 		res := anyExpr{val: val}
 
-		nextCall := parens.ListExpr([]parens.Expr{lst[0]})
+		nextCall := parens.List([]parens.Expr{lst[0]})
 
 		if first {
 			nextCall = append(nextCall, res)
@@ -167,7 +179,7 @@ func Doc(scope parens.Scope, exprs []parens.Expr) (interface{}, error) {
 		return nil, fmt.Errorf("exactly 1 argument required, got %d", len(exprs))
 	}
 
-	sym, ok := exprs[0].(parens.SymbolExpr)
+	sym, ok := exprs[0].(parens.Symbol)
 	if !ok {
 		return nil, fmt.Errorf("argument must be a Symbol, not '%s'", reflect.TypeOf(exprs[0]))
 	}
@@ -196,7 +208,7 @@ func Defn(scope parens.Scope, exprs []parens.Expr) (interface{}, error) {
 		return nil, fmt.Errorf("3 or more arguments required, got %d", len(exprs))
 	}
 
-	sym, ok := exprs[0].(parens.SymbolExpr)
+	sym, ok := exprs[0].(parens.Symbol)
 	if !ok {
 		return nil, fmt.Errorf("first argument must be symbol, not '%s'", reflect.TypeOf(exprs[0]))
 	}
@@ -216,14 +228,14 @@ func Lambda(scope parens.Scope, exprs []parens.Expr) (interface{}, error) {
 		return nil, errors.New("at-least two arguments required")
 	}
 
-	paramList, ok := exprs[0].(parens.VectorExpr)
+	paramList, ok := exprs[0].(parens.Vector)
 	if !ok {
 		return nil, fmt.Errorf("first argument must be list of symbols, not '%s'", reflect.TypeOf(exprs[0]))
 	}
 
 	params := []string{}
 	for _, entry := range paramList {
-		sym, ok := entry.(parens.SymbolExpr)
+		sym, ok := entry.(parens.Symbol)
 		if !ok {
 			return nil, fmt.Errorf("param list must contain symbols, not '%s'", reflect.TypeOf(entry))
 		}
@@ -279,9 +291,9 @@ func Let(scope parens.Scope, exprs []parens.Expr) (interface{}, error) {
 // Tests can be any exressions that evaluate to non-nil and non-false
 // value.
 func Conditional(scope parens.Scope, exprs []parens.Expr) (interface{}, error) {
-	lists := []parens.ListExpr{}
+	lists := []parens.List{}
 	for _, exp := range exprs {
-		listExp, ok := exp.(parens.ListExpr)
+		listExp, ok := exp.(parens.List)
 
 		if !ok {
 			return nil, errors.New("all arguments must be lists")
@@ -338,7 +350,7 @@ func labelInScope(scope parens.Scope, exprs []parens.Expr) (interface{}, error) 
 	if len(exprs) != 2 {
 		return nil, fmt.Errorf("expecting symbol and a value")
 	}
-	symbol, ok := exprs[0].(parens.SymbolExpr)
+	symbol, ok := exprs[0].(parens.Symbol)
 	if !ok {
 		return nil, fmt.Errorf("argument 1 must be a symbol, not '%s'", reflect.TypeOf(exprs[0]).String())
 	}

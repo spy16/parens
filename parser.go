@@ -1,59 +1,79 @@
 package parens
 
 import (
+	"bufio"
+	"bytes"
+	"errors"
 	"fmt"
 	"io"
-	"regexp"
+	"math"
+	"net"
+	"os"
+	"reflect"
+	"strconv"
 	"strings"
 	"unicode"
-	"unicode/utf8"
 )
 
+var (
+	// ErrSkip can be returned by reader macro to indicate a no-op.
+	ErrSkip      = errors.New("skip expr")
+	errStringEOF = errors.New("EOF while reading string")
+	errCharEOF   = errors.New("EOF while reading character")
+)
+
+var (
+	escapeMap = map[rune]rune{
+		'"':  '"',
+		'n':  '\n',
+		'\\': '\\',
+		't':  '\t',
+		'a':  '\a',
+		'f':  '\a',
+		'r':  '\r',
+		'b':  '\b',
+		'v':  '\v',
+	}
+
+	charLiterals = map[string]rune{
+		"tab":       '\t',
+		"space":     ' ',
+		"newline":   '\n',
+		"return":    '\r',
+		"backspace": '\b',
+		"formfeed":  '\f',
+	}
+)
+
+// New returns a lisp reader instance which can read forms from r. Reader
+// behavior can be customized by using SetMacro to override or remove from
+// the default read table. File name will be inferred from the reader value
+// and type information.
+func New(rs io.Reader) *Reader {
+	rd := &Reader{
+		Stream: Stream{
+			File: inferFileName(rs),
+			rs:   bufio.NewReader(rs),
+		},
+		macros: defaultReadTable(),
+	}
+
+	return rd
+}
+
+// ReaderMacro implementations can be plugged into the Reader to extend, override
+// or customize behavior of the reader.
+type ReaderMacro func(rd *Reader, init rune) (Expr, error)
+
 // ParseStr is a convenience wrapper for Parse.
-func ParseStr(src string, ext ...Matcher) (Expr, error) {
-	return Parse(strings.NewReader(src), ext...)
+func ParseStr(src string) (Expr, error) {
+	return Parse(strings.NewReader(src))
 }
 
 // Parse parses till the EOF and returns all s-exprs as a single ModuleExpr.
 // This should be used to build an entire module from a file or string etc.
-func Parse(sc io.RuneScanner, ext ...Matcher) (Expr, error) {
-	me := ModuleExpr{}
-
-	var expr Expr
-	var err error
-	for {
-		expr, err = ParseOne(sc, ext...)
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return nil, err
-		}
-
-		me = append(me, expr)
-	}
-
-	return me, nil
-}
-
-// ParseOne consumes runes from the reader until a single s-expression is extracted.
-// Returns any other errors from reader. This should be used when a continuous parse
-// eval from a stream is necessary (e.g. TCP socket).
-func ParseOne(sc io.RuneScanner, ext ...Matcher) (Expr, error) {
-	var expr Expr
-	var err error
-	for {
-		expr, err = buildExpr(sc, ext...)
-		if err != nil {
-			return nil, err
-		}
-
-		// if expr is not nil, return it. otherwise, continue this loop
-		// (for example, a whitespace can lead to nil)
-		if expr != nil {
-			return expr, nil
-		}
-	}
+func Parse(r io.Reader) (Expr, error) {
+	return New(r).All()
 }
 
 // Expr represents an expression.
@@ -68,310 +88,486 @@ type Scope interface {
 	Root() Scope
 }
 
-func buildExpr(rd io.RuneScanner, ext ...Matcher) (Expr, error) {
-	ru, _, err := rd.ReadRune()
-	if err != nil {
-		return nil, err
-	}
+// Reader provides functions to parse characters from a stream into symbolic
+// expressions or forms.
+type Reader struct {
+	Stream
 
-	if unicode.IsControl(ru) {
-		return nil, nil
-	}
-
-	switch ru {
-	case '"':
-		rd.UnreadRune()
-		return buildStrExpr(rd)
-	case '(':
-		rd.UnreadRune()
-		return buildListExpr(rd, ext)
-	case '[':
-		rd.UnreadRune()
-		return buildVectorExpr(rd, ext)
-	case '\'':
-		rd.UnreadRune()
-		return buildQuoteExpr(rd)
-	case ':':
-		rd.UnreadRune()
-		return buildKeywordExpr(rd)
-	case ';':
-		rd.UnreadRune()
-		_, err := buildCommentExpr(rd)
-		if err != nil {
-			return nil, err
-		}
-		return nil, nil
-
-	case ' ', '\t', '\n':
-		return nil, nil
-	case ')', ']':
-		return nil, io.EOF
-	default:
-		if utf8.ValidRune(ru) {
-			rd.UnreadRune()
-			return buildSymbolOrNumberExpr(rd, ext)
-		}
-	}
-
-	return nil, fmt.Errorf("invalid character '%c'", ru)
-
+	Hook   ReaderMacro
+	macros map[rune]ReaderMacro
 }
 
-func buildListExpr(rd io.RuneScanner, ext []Matcher) (Expr, error) {
-	if err := ensurePrefix(rd, '('); err != nil {
-		return nil, err
-	}
+// All consumes characters from stream until EOF and returns a list of all the
+// forms parsed. Any no-op forms (e.g., comment) returned will not be included
+// in the result.
+func (rd *Reader) All() (Module, error) {
+	var forms []Expr
 
-	lst := []Expr{}
 	for {
-		ru, _, err := rd.ReadRune()
-		if err != nil {
-			return nil, err
-		}
-
-		if ru == ')' {
-			break
-		}
-
-		rd.UnreadRune()
-
-		expr, err := buildExpr(rd, ext...)
-		if err != nil {
-			return nil, err
-		}
-		if expr != nil {
-			lst = append(lst, expr)
-		}
-	}
-
-	return ListExpr(lst), nil
-}
-func buildKeywordExpr(rd io.RuneScanner) (Expr, error) {
-	if err := ensurePrefix(rd, ':'); err != nil {
-		return nil, err
-	}
-
-	kw := []rune{}
-	for {
-		ru, _, err := rd.ReadRune()
+		form, err := rd.One()
 		if err != nil {
 			if err == io.EOF {
 				break
 			}
+
 			return nil, err
 		}
 
-		if isSepratingChar(ru) {
-			rd.UnreadRune()
-			break
-		}
-
-		if oneOf(ru, '\\') {
-			return nil, fmt.Errorf("unexpected character '%c'", ru)
-		}
-
-		kw = append(kw, ru)
+		forms = append(forms, form)
 	}
 
-	return KeywordExpr(kw), nil
+	return forms, nil
 }
 
-func buildCommentExpr(rd io.RuneScanner) (Expr, error) {
-	if err := ensurePrefix(rd, ';'); err != nil {
-		return nil, err
-	}
-
-	comment := []rune{}
+// One consumes characters from underlying stream until a complete form is
+// parsed and returns the form while ignoring the no-op forms like comments.
+// Except EOF, all errors will be wrapped with ReaderError type along with
+// the positional information obtained using Info().
+func (rd *Reader) One() (Expr, error) {
 	for {
-		ru, _, err := rd.ReadRune()
+		form, err := rd.readOne()
 		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return nil, err
-		}
-
-		if ru == '\n' {
-			break
-		}
-
-		comment = append(comment, ru)
-	}
-
-	return CommentExpr(strings.TrimSpace(string(comment))), nil
-}
-
-func buildQuoteExpr(rd io.RuneScanner) (Expr, error) {
-	if err := ensurePrefix(rd, '\''); err != nil {
-		return nil, err
-	}
-
-	expr, err := buildExpr(rd)
-	if err != nil {
-		return nil, err
-	}
-
-	return QuoteExpr{Expr: expr}, nil
-}
-
-// TODO:
-// - Support for hex (0x) and binary (0x) numbers
-// - Support for scientific notation (1.3e10)
-// - Clear differentiation between symbol and number
-func buildSymbolOrNumberExpr(rd io.RuneScanner, exts multiMatcher) (Expr, error) {
-	seq := []rune{}
-	for {
-		ru, _, err := rd.ReadRune()
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return nil, err
-		}
-
-		if isSepratingChar(ru) {
-			rd.UnreadRune()
-			break
-		}
-
-		seq = append(seq, ru)
-	}
-
-	s := string(seq)
-	exts = append([]Matcher{strMatcher{}}, exts...)
-	if expr, ok := exts.Match(s); ok {
-		return expr, nil
-	}
-
-	return SymbolExpr(s), nil
-}
-
-func buildVectorExpr(rd io.RuneScanner, ext []Matcher) (Expr, error) {
-	if err := ensurePrefix(rd, '['); err != nil {
-		return nil, err
-	}
-
-	vals := []Expr{}
-	for {
-		ru, _, err := rd.ReadRune()
-		if err != nil {
-			return nil, err
-		}
-
-		if ru == ']' {
-			break
-		}
-		rd.UnreadRune()
-
-		expr, err := buildExpr(rd, ext...)
-		if err != nil {
-			return nil, err
-		}
-
-		if expr != nil {
-			vals = append(vals, expr)
-		}
-	}
-
-	return VectorExpr(vals), nil
-}
-
-func buildStrExpr(rd io.RuneScanner) (Expr, error) {
-	if err := ensurePrefix(rd, '"'); err != nil {
-		return nil, err
-	}
-
-	val := []rune{}
-
-	for {
-		ru, _, err := rd.ReadRune()
-		if err != nil {
-			return nil, err
-		}
-
-		lastI := len(val) - 1
-		if len(val) >= 1 && val[lastI] == '\\' {
-			var esc byte
-			switch ru {
-			case 'n':
-				esc = '\n'
-			case 't':
-				esc = '\t'
-			case 'r':
-				esc = '\r'
-			case '"':
-				esc = '"'
-			}
-
-			if esc != 0 {
-				val[lastI] = rune(esc)
+			if err == ErrSkip {
 				continue
 			}
 
-		}
-		if oneOf(ru, 't', 'n', '"', 'r') {
-		}
-		if ru == '"' {
-			break
+			return nil, rd.annotateErr(err)
 		}
 
-		val = append(val, ru)
+		return form, nil
+	}
+}
+
+// IsTerminal returns true if the rune should terminate a form. ReaderMacro
+// trigger runes defined in the read table and all space characters including
+// "," are considered terminal.
+func (rd *Reader) IsTerminal(r rune) bool {
+	_, found := rd.macros[r]
+	return found || isSpace(r)
+}
+
+// SetMacro sets the given reader macro as the handler for init rune in the
+// read table. Overwrites if a macro is already present. If the macro value
+// given is nil, entry for the init rune will be removed from the read table.
+func (rd *Reader) SetMacro(init rune, macro ReaderMacro) {
+	if macro == nil {
+		delete(rd.macros, init)
+		return
 	}
 
-	return StringExpr(val), nil
+	rd.macros[init] = macro
 }
 
-// Matcher can implement custom expressions
-type Matcher interface {
-	Match(string) (Expr, bool)
-}
-
-type multiMatcher []Matcher
-
-func (mm multiMatcher) Match(s string) (e Expr, ok bool) {
-	for _, m := range mm {
-		if e, ok = m.Match(s); ok {
-			break
-		}
+// readOne is same as One() but always returns un-annotated errors.
+func (rd *Reader) readOne() (Expr, error) {
+	if err := rd.SkipSpaces(); err != nil {
+		return nil, err
 	}
 
-	return
-}
-
-var numberRegex = regexp.MustCompile("^(\\+|-)?\\d+(\\.\\d+)?$")
-
-type strMatcher struct{}
-
-func (strMatcher) Match(s string) (e Expr, ok bool) {
-	if ok = numberRegex.MatchString(s); ok {
-		e = NumberExpr{s}
-	}
-
-	return
-}
-
-func ensurePrefix(rd io.RuneScanner, prefix rune) error {
-	ru, _, err := rd.ReadRune()
+	r, err := rd.NextRune()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if ru != prefix {
-		return fmt.Errorf("expected '%c' at the beginning, found '%c'", prefix, ru)
-	}
+	if unicode.IsNumber(r) {
+		return readNumber(rd, r)
+	} else if r == '+' || r == '-' {
+		r2, err := rd.NextRune()
+		if err != nil && err != io.EOF {
+			return nil, err
+		}
 
-	return nil
-}
-
-func isSepratingChar(ru rune) bool {
-	return oneOf(ru, ' ', '\t', '\n', '\r', '(', ')', '[', ']', '"', '\'')
-}
-
-func oneOf(ru rune, set ...rune) bool {
-	for _, rs := range set {
-		if ru == rs {
-			return true
+		if err != io.EOF {
+			rd.Unread(r2)
+			if unicode.IsNumber(r2) {
+				return readNumber(rd, r)
+			}
 		}
 	}
-	return false
+
+	macro, found := rd.macros[r]
+	if found {
+		return macro(rd, r)
+	}
+
+	if rd.Hook != nil {
+		f, err := rd.Hook(rd, r)
+		if err != ErrSkip {
+			return f, err
+		}
+	}
+
+	return readSymbol(rd, r)
+}
+
+func (rd *Reader) annotateErr(e error) error {
+	if e == io.EOF || e == ErrSkip {
+		return e
+	}
+
+	file, line, col := rd.Info()
+	return ReaderError{
+		Cause:  e,
+		File:   file,
+		Line:   line,
+		Column: col,
+	}
+}
+
+func readNumber(rd *Reader, init rune) (Expr, error) {
+	numStr, err := readToken(rd, init)
+	if err != nil {
+		return nil, err
+	}
+
+	decimalPoint := strings.ContainsRune(numStr, '.')
+	isRadix := strings.ContainsRune(numStr, 'r')
+	isScientific := strings.ContainsRune(numStr, 'e')
+
+	switch {
+	case isRadix && (decimalPoint || isScientific):
+		return nil, fmt.Errorf("illegal number format: '%s'", numStr)
+
+	case isScientific:
+		return parseScientific(numStr)
+
+	case decimalPoint:
+		v, err := strconv.ParseFloat(numStr, 64)
+		if err != nil {
+			return nil, fmt.Errorf("illegal number format: '%s'", numStr)
+		}
+		return Float64(v), nil
+
+	case isRadix:
+		return parseRadix(numStr)
+
+	default:
+		v, err := strconv.ParseInt(numStr, 0, 64)
+		if err != nil {
+			return nil, fmt.Errorf("illegal number format '%s'", numStr)
+		}
+
+		return Int64(v), nil
+	}
+}
+
+func readSymbol(rd *Reader, init rune) (Expr, error) {
+	s, err := readToken(rd, init)
+	if err != nil {
+		return nil, err
+	}
+
+	return Symbol(s), nil
+}
+
+func readKeyword(rd *Reader, init rune) (Expr, error) {
+	token, err := readToken(rd, init)
+	if err != nil {
+		return nil, err
+	}
+
+	return Keyword(token), nil
+}
+
+func readCharacter(rd *Reader, _ rune) (Expr, error) {
+	r, err := rd.NextRune()
+	if err != nil {
+		return nil, errCharEOF
+	}
+
+	token, err := readToken(rd, r)
+	if err != nil {
+		return nil, err
+	}
+	runes := []rune(token)
+
+	if len(runes) == 1 {
+		return Character(runes[0]), nil
+	}
+
+	v, found := charLiterals[token]
+	if found {
+		return Character(v), nil
+	}
+
+	if token[0] == 'u' {
+		return readUnicodeChar(token[1:], 16)
+	}
+
+	return nil, fmt.Errorf("unsupported character: '\\%s'", token)
+}
+
+func readUnicodeChar(token string, base int) (Character, error) {
+	num, err := strconv.ParseInt(token, base, 64)
+	if err != nil {
+		return -1, fmt.Errorf("invalid unicode character: '\\%s'", token)
+	}
+
+	if num < 0 || num >= unicode.MaxRune {
+		return -1, fmt.Errorf("invalid unicode character: '\\%s'", token)
+	}
+
+	return Character(num), nil
+}
+
+func readString(rd *Reader, _ rune) (Expr, error) {
+	var b strings.Builder
+
+	for {
+		r, err := rd.NextRune()
+		if err != nil {
+			if err == io.EOF {
+				return nil, errStringEOF
+			}
+
+			return nil, err
+		}
+
+		if r == '\\' {
+			r2, err := rd.NextRune()
+			if err != nil {
+				if err == io.EOF {
+					return nil, errStringEOF
+				}
+
+				return nil, err
+			}
+
+			// TODO: Support for Unicode escape \uNN format.
+
+			escaped, err := getEscape(r2)
+			if err != nil {
+				return nil, err
+			}
+			r = escaped
+		} else if r == '"' {
+			break
+		}
+
+		b.WriteRune(r)
+	}
+
+	return String(b.String()), nil
+}
+
+func readList(rd *Reader, _ rune) (Expr, error) {
+	forms, err := readContainer(rd, '(', ')', "list")
+	if err != nil {
+		return nil, err
+	}
+
+	return List(forms), nil
+}
+
+func readVector(rd *Reader, _ rune) (Expr, error) {
+	forms, err := readContainer(rd, '[', ']', "vector")
+	if err != nil {
+		return nil, err
+	}
+
+	return Vector(forms), nil
+}
+
+func readComment(rd *Reader, _ rune) (Expr, error) {
+	for {
+		r, err := rd.NextRune()
+		if err != nil {
+			return nil, err
+		}
+
+		if r == '\n' {
+			break
+		}
+	}
+
+	return nil, ErrSkip
+}
+
+func quoteFormReader(expandFunc string) ReaderMacro {
+	return func(rd *Reader, _ rune) (Expr, error) {
+		expr, err := rd.One()
+		if err != nil {
+			if err == io.EOF {
+				return nil, errors.New("EOF while reading quote form")
+			} else if err == ErrSkip {
+				return nil, errors.New("no-op form while reading quote form")
+			}
+			return nil, err
+		}
+
+		return List{
+			Symbol(expandFunc),
+			expr,
+		}, nil
+	}
+}
+
+func unmatchedDelimiter(_ *Reader, initRune rune) (Expr, error) {
+	return nil, fmt.Errorf("unmatched delimiter '%c'", initRune)
+}
+
+func readToken(rd *Reader, init rune) (string, error) {
+	var b strings.Builder
+	if init != -1 {
+		b.WriteRune(init)
+	}
+
+	for {
+		r, err := rd.NextRune()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return "", err
+		}
+
+		if rd.IsTerminal(r) {
+			rd.Unread(r)
+			break
+		}
+
+		b.WriteRune(r)
+	}
+
+	return b.String(), nil
+}
+
+func readContainer(rd *Reader, _ rune, end rune, formType string) ([]Expr, error) {
+	var forms []Expr
+
+	for {
+		if err := rd.SkipSpaces(); err != nil {
+			if err == io.EOF {
+				return nil, fmt.Errorf("EOF while reading %s", formType)
+			}
+			return nil, err
+		}
+
+		r, err := rd.NextRune()
+		if err != nil {
+			if err == io.EOF {
+				return nil, fmt.Errorf("EOF while reading %s", formType)
+			}
+			return nil, err
+		}
+
+		if r == end {
+			break
+		}
+		rd.Unread(r)
+
+		expr, err := rd.readOne()
+		if err != nil {
+			if err == ErrSkip {
+				continue
+			}
+			return nil, err
+		}
+		forms = append(forms, expr)
+	}
+
+	return forms, nil
+}
+
+func parseRadix(numStr string) (Int64, error) {
+	parts := strings.Split(numStr, "r")
+	if len(parts) != 2 {
+		return 0, fmt.Errorf("illegal radix notation '%s'", numStr)
+	}
+
+	base, err := strconv.ParseInt(parts[0], 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("illegal radix notation '%s'", numStr)
+	}
+
+	repr := parts[1]
+	if base < 0 {
+		base = -1 * base
+		repr = "-" + repr
+	}
+
+	v, err := strconv.ParseInt(repr, int(base), 64)
+	if err != nil {
+		return 0, fmt.Errorf("illegal radix notation '%s'", numStr)
+	}
+
+	return Int64(v), nil
+}
+
+func parseScientific(numStr string) (Float64, error) {
+	parts := strings.Split(numStr, "e")
+	if len(parts) != 2 {
+		return 0, fmt.Errorf("illegal scientific notation '%s'", numStr)
+	}
+
+	base, err := strconv.ParseFloat(parts[0], 64)
+	if err != nil {
+		return 0, fmt.Errorf("illegal scientific notation '%s'", numStr)
+	}
+
+	pow, err := strconv.ParseInt(parts[1], 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("illegal scientific notation '%s'", numStr)
+	}
+
+	return Float64(base * math.Pow(10, float64(pow))), nil
+}
+
+func getEscape(r rune) (rune, error) {
+	escaped, found := escapeMap[r]
+	if !found {
+		return -1, fmt.Errorf("illegal escape sequence '\\%c'", r)
+	}
+
+	return escaped, nil
+}
+
+func inferFileName(rs io.Reader) string {
+	switch r := rs.(type) {
+	case *os.File:
+		return r.Name()
+
+	case *strings.Reader:
+		return "<string>"
+
+	case *bytes.Reader:
+		return "<bytes>"
+
+	case net.Conn:
+		return fmt.Sprintf("<con:%s>", r.LocalAddr())
+
+	default:
+		return fmt.Sprintf("<%s>", reflect.TypeOf(rs))
+	}
+}
+
+func defaultReadTable() map[rune]ReaderMacro {
+	return map[rune]ReaderMacro{
+		'"':  readString,
+		';':  readComment,
+		':':  readKeyword,
+		'\\': readCharacter,
+		'\'': quoteFormReader("quote"),
+		'~':  quoteFormReader("unquote"),
+		'(':  readList,
+		')':  unmatchedDelimiter,
+		'[':  readVector,
+		']':  unmatchedDelimiter,
+	}
+}
+
+// ReaderError wraps the parsing error with file and positional information.
+type ReaderError struct {
+	Cause  error
+	File   string
+	Line   int
+	Column int
+}
+
+func (err ReaderError) Error() string {
+	if e, ok := err.Cause.(ReaderError); ok {
+		return e.Error()
+	}
+
+	return fmt.Sprintf("syntax error in '%s' (Line %d Col %d): %v", err.File, err.Line, err.Column, err.Cause)
 }

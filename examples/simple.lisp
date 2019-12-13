@@ -4,7 +4,8 @@
 
 ; look under the hood
 (inspect hello)
-(println (type +))
+(println
+  (type +))
 
 ; calling variadic Go functions
 (println "Hello" "from" "Parens!")
@@ -15,7 +16,7 @@
 ; let starts a new scope
 (let
   (label π 3)
-  (printf "integer part of pi is %f\n" π))
+  (printf "integer part of pi is %d\n" π))
 
 ; value of π should now be reset to original
 (printf "but real value of pi is %f\n" π)
@@ -24,21 +25,38 @@
 ; parens supports UTF-8
 (label ∂ 0)
 (label ∑ +)
-(label ≠ (lambda [a b] (not (== a b))))
+(label ≠
+       (lambda [a b]
+         (not
+           (== a b))))
 
-(println "1 + 2 =" (∑ 1 2))
-(println "false and nil are not same =" (≠ false nil))
+(println "1 + 2 ="
+         (∑ 1 2))
+(println "false and nil are not same ="
+         (≠ false nil))
 
-(label sign (lambda [in] (cond ((> in 0) "positive") ((< in 0) "negative") (true "zero"))))
+(label sign
+       (lambda [in]
+         (cond
+           ((> in 0) "positive")
+           ((< in 0) "negative")
+           (true "zero"))))
 
 ; defining a lambda
-(label square (lambda [a] (* a a)))
+(label square
+       (lambda [a]
+         (* a a)))
 
 ; calling a lambda, obviously
-(printf "square of 2 is = %f\n" (square 2))
+(printf "square of 2 is = %f\n"
+        (square 2))
 
 ; we need to do some math obviously
-(printf "complex math answer %f\n" (* 1 (- 2 (+ 1 (/ 3 3)))))
+(printf "complex math answer %f\n"
+        (* 1
+           (- 2
+              (+ 1
+                 (/ 3 3)))))
 
 ; time for real stuff.. fibonacci!
 (defn fib [n]
@@ -47,6 +65,5 @@
         (true (+ (fib (- n 1)) (fib (- n 2))))))
 
 ; what is the 10th number in the fibonacci sequence
-(printf "10th number in the fibonacci sequence = %f\n" (fib 10))
-
-
+(printf "10th number in the fibonacci sequence = %f\n"
+        (fib 10))
