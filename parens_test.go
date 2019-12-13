@@ -20,15 +20,11 @@ func BenchmarkParens_Execute(suite *testing.B) {
 		}
 	})
 
-	expr := ListExpr(
+	expr := List(
 		[]Expr{
-			SymbolExpr("add"),
-			NumberExpr{
-				NumStr: "1",
-			},
-			NumberExpr{
-				NumStr: "2",
-			},
+			Symbol("add"),
+			Int64(1),
+			Int64(2),
 		})
 
 	suite.Run("ExecuteExpr", func(b *testing.B) {
@@ -63,16 +59,16 @@ func BenchmarkParens_FunctionCall(suite *testing.B) {
 func TestExecute_Success(t *testing.T) {
 	scope := NewScope(nil)
 
-	res, err := ExecuteOne(strings.NewReader("10"), scope)
+	res, err := Execute(strings.NewReader("10"), scope)
 	assert.NoError(t, err)
 	require.NotNil(t, res)
-	assert.Equal(t, 10.0, res)
+	assert.Equal(t, int64(10), res)
 }
 
 func TestExecute_EvalFailure(t *testing.T) {
 	scope := NewScope(nil)
 
-	res, err := ExecuteOne(strings.NewReader("(hello)"), scope)
+	res, err := Execute(strings.NewReader("(hello)"), scope)
 	require.Error(t, err)
 	assert.Nil(t, res)
 }

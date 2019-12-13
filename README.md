@@ -5,13 +5,23 @@
 
 Parens is a LISP-like scripting layer for `Go` (or `Golang`).
 
-See [benchmarks](#benchmarks).
+## Features
+
+* Highly Customizable reader/parser through a read table (Inspired by Clojure)
+* Built-in data types: string, number, character, keyword, symbol, list, vector
+* Multiple number formats supported: decimal, octal, hexadecimal, radix and scientific notations.
+* Full unicode support. Symbols can include unicode characters (Example: `find-δ`, `π` etc.)
+* Character Literals with support for:
+  1. simple literals  (e.g., `\a` for `a`)
+  2. special literals (e.g., `\newline`, `\tab` etc.)
+  3. unicode literals (e.g., `\u00A5` for `¥` etc.)
+* A simple `stdlib` which acts as reference for extending and provides some simple useful functions and macros.
 
 ## Installation
 
-To embed parens in your application import `github.com/spy16/parens`.
+To embed Parens in your application import `github.com/spy16/parens`.
 
-For stand-alone usage, install the parens binary using:
+For stand-alone usage, install the Parens binary using:
 
 ```bash
 go get -u -v github.com/spy16/parens/cmd/parens
@@ -23,14 +33,13 @@ Then you can
 2. Run a lisp file using `parens <filename>` command.
 3. Execute a LISP string using `parens -e "(+ 1 2)"`
 
-
 ## Usage
 
 Take a look at `cmd/parens/main.go` for a good example.
 
 Check out `examples/` for supported constructs.
 
-## Goals:
+## Goals
 
 ### 1. Simple
 
@@ -62,12 +71,11 @@ The type of `scope` argument in any `parens` function is the following interface
 ```go
 // Scope is responsible for managing bindings.
 type Scope interface {
-	Get(name string) (interface{}, error)
-	Bind(name string, v interface{}, doc ...string) error
-	Root() Scope
+    Get(name string) (interface{}, error)
+    Bind(name string, v interface{}, doc ...string) error
+    Root() Scope
 }
 ```
-
 
 ### 3. Interoperable
 
@@ -88,7 +96,6 @@ scope.Bind("sin", math.Sin)
 parens.ExecuteStr("(println banner)", scope)
 parens.ExecuteStr(`(printf "value of π is = %f" π)`, scope)
 ```
-
 
 ### 4. Extensible Semantics
 
@@ -125,35 +132,17 @@ val, _ := parens.ExecuteStr(src, scope)
 
 See `stdlib/macros.go` for some built-in macros.
 
-## Parens is *NOT*:
+## Parens is *NOT*
 
 1. An implementaion of a particular LISP dialect (like scheme, common-lisp etc.)
 2. A new dialect of LISP
 
-
-## Benchmarks
-
-| Name                                             | Runs       | Time       | Memory   | Allocations  |
-| ------------------------------------------------ | ---------- | ---------- | -------- | ------------ |
-| BenchmarkParens_Execute/Execute-8                | 1000000    | 1569 ns/op | 448 B/op | 21 allocs/op |
-| BenchmarkParens_Execute/ExecuteExpr-8            | 5000000    | 329 ns/op  | 112 B/op | 5 allocs/op  |
-| BenchmarkParens_FunctionCall/DirectCall-8        | 2000000000 | 0.29 ns/op | 0 B/op   | 0 allocs/op  |
-| BenchmarkParens_FunctionCall/CallThroughParens-8 | 2000000    | 827 ns/op  | 224 B/op | 9 allocs/op  |
-| BenchmarkNonVariadicCall/Normal-8                | 2000000000 | 0.28 ns/op | 0 B/op   | 0 allocs/op  |
-| BenchmarkNonVariadicCall/Reflection-8            | 5000000    | 370 ns/op  | 104 B/op | 4 allocs/op  |
-| BenchmarkNonVariadicCall/WithTypeConversion-8    | 5000000    | 367 ns/op  | 104 B/op | 4 allocs/op  |
-| BenchmarkVariadicCall/Normal-8                   | 500000000  | 3.22 ns/op | 0 B/op   | 0 allocs/op  |
-| BenchmarkVariadicCall/Reflection-8               | 5000000    | 366 ns/op  | 104 B/op | 4 allocs/op  |
-| BenchmarkVariadicCall/WithTypeConversion-8       | 5000000    | 347 ns/op  | 104 B/op | 4 allocs/op  |
-
-See `v0.0.6` or lower for old benchmarks.
-
 ## TODO
 
-- [ ] Better error reporting
-- [ ] Optimization
-- [ ] `Go` code generation?
-
+* [ ] Better error reporting
+* [ ] Optimization
+* [ ] `Go` code generation?
 
 ## License
+
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fspy16%2Fparens.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fspy16%2Fparens?ref=badge_large)
