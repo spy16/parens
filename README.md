@@ -7,18 +7,6 @@ Parens is a LISP-like scripting layer for `Go` (or `Golang`).
 
 See [benchmarks](#benchmarks).
 
-## Features
-
-* Highly Customizable reader/parser through a read table (Inspired by Clojure)
-* Built-in data types: string, number, character, keyword, symbol, list, vector
-* Multiple number formats supported: decimal, octal, hexadecimal, radix and scientific notations.
-* Full unicode support. Symbols can include unicode characters (Example: `find-δ`, `π` etc.)
-* Character Literals with support for:
-  1. simple literals  (e.g., `\a` for `a`)
-  2. special literals (e.g., `\newline`, `\tab` etc.)
-  3. unicode literals (e.g., `\u00A5` for `¥` etc.)
-* A simple `stdlib` which acts as reference for extending and provides some simple useful functions and macros. 
-
 ## Installation
 
 To embed parens in your application import `github.com/spy16/parens`.
