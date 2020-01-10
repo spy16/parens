@@ -260,8 +260,13 @@ func readSymbol(rd *Reader, init rune) (Expr, error) {
 	return Symbol(s), nil
 }
 
-func readKeyword(rd *Reader, init rune) (Expr, error) {
-	token, err := readToken(rd, init)
+func readKeyword(rd *Reader, _ rune) (Expr, error) {
+	r, err := rd.NextRune()
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := readToken(rd, r)
 	if err != nil {
 		return nil, err
 	}
