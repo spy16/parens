@@ -564,6 +564,11 @@ type ReaderError struct {
 	Column int
 }
 
+// Unwrap returns the error's cause
+func (err ReaderError) Unwrap() error {
+	return err.Cause
+}
+
 func (err ReaderError) Error() string {
 	if e, ok := err.Cause.(ReaderError); ok {
 		return e.Error()
