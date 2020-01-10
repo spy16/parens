@@ -16,7 +16,7 @@ type Float64 float64
 
 // Eval returns the underlying double-precision float value.
 func (f64 Float64) Eval(scope Scope) (interface{}, error) {
-	return float64(f64), nil
+	return f64, nil
 }
 
 func (f64 Float64) String() string { return fmt.Sprintf("%f", f64) }
@@ -27,7 +27,7 @@ type Int64 int64
 
 // Eval returns the underlying integer value.
 func (i64 Int64) Eval(scope Scope) (interface{}, error) {
-	return int64(i64), nil
+	return i64, nil
 }
 
 func (i64 Int64) String() string { return fmt.Sprintf("%d", i64) }
@@ -38,7 +38,7 @@ func (i64 Int64) String() string { return fmt.Sprintf("%d", i64) }
 type String string
 
 // Eval returns the unquoted string value.
-func (se String) Eval(scope Scope) (interface{}, error) { return String(se), nil }
+func (se String) Eval(scope Scope) (interface{}, error) { return se, nil }
 
 func (se String) String() string { return fmt.Sprintf("\"%s\"", string(se)) }
 
@@ -48,7 +48,7 @@ func (se String) String() string { return fmt.Sprintf("\"%s\"", string(se)) }
 type Character rune
 
 // Eval returns the character value.
-func (char Character) Eval(scope Scope) (interface{}, error) { return rune(char), nil }
+func (char Character) Eval(scope Scope) (interface{}, error) { return char, nil }
 
 func (char Character) String() string { return fmt.Sprintf("\\%c", rune(char)) }
 
@@ -58,7 +58,7 @@ type Keyword string
 // Eval returns the keyword value.
 func (kw Keyword) Eval(scope Scope) (interface{}, error) { return kw, nil }
 
-func (kw Keyword) String() string { return string(kw) }
+func (kw Keyword) String() string { return fmt.Sprintf(":%s", string(kw)) }
 
 // Symbol represents a name given to a value in memory.
 type Symbol string
