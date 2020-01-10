@@ -38,7 +38,7 @@ func (i64 Int64) String() string { return fmt.Sprintf("%d", i64) }
 type String string
 
 // Eval returns the unquoted string value.
-func (se String) Eval(scope Scope) (interface{}, error) { return string(se), nil }
+func (se String) Eval(scope Scope) (interface{}, error) { return String(se), nil }
 
 func (se String) String() string { return fmt.Sprintf("\"%s\"", string(se)) }
 
