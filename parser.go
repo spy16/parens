@@ -3,7 +3,6 @@ package parens
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -13,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/pkg/errors"
 )
 
 var (
@@ -234,7 +235,8 @@ func readNumber(rd *Reader, init rune) (Expr, error) {
 	case decimalPoint:
 		v, err := strconv.ParseFloat(numStr, 64)
 		if err != nil {
-			return nil, fmt.Errorf("illegal number format: '%s'", numStr)
+			return nil, errors.Wrap(err, "illegal number format")
+			// return nil, fmt.Errorf("illegal number format: '%s'", numStr)
 		}
 		return Float64(v), nil
 
@@ -244,7 +246,8 @@ func readNumber(rd *Reader, init rune) (Expr, error) {
 	default:
 		v, err := strconv.ParseInt(numStr, 0, 64)
 		if err != nil {
-			return nil, fmt.Errorf("illegal number format '%s'", numStr)
+			return nil, errors.Wrap(err, "illegal number format")
+			// return nil, fmt.Errorf("illegal number format '%s'", numStr)
 		}
 
 		return Int64(v), nil
