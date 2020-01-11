@@ -2,12 +2,13 @@ package parens_test
 
 import (
 	"bytes"
-	"github.com/spy16/parens"
 	"io"
 	"os"
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/spy16/parens"
 )
 
 func TestNew(t *testing.T) {
@@ -117,7 +118,7 @@ func TestReader_All(t *testing.T) {
 				parens.Int64(8),
 				parens.Int64(10),
 				parens.Character('a'),
-				parens.Keyword(":hello"),
+				parens.Keyword("hello"),
 				parens.List{
 					parens.Symbol("quote"),
 					parens.Symbol("hello"),
@@ -127,7 +128,7 @@ func TestReader_All(t *testing.T) {
 		{
 			name: "WithComment",
 			src:  `:valid-keyword ; comment should return errSkip`,
-			want: parens.Module{parens.Keyword(":valid-keyword")},
+			want: parens.Module{parens.Keyword("valid-keyword")},
 		},
 		{
 			name:    "UnterminatedString",
@@ -137,7 +138,7 @@ func TestReader_All(t *testing.T) {
 		{
 			name: "CommentFollowedByForm",
 			src:  `; comment should return errSkip` + "\n" + `:valid-keyword`,
-			want: parens.Module{parens.Keyword(":valid-keyword")},
+			want: parens.Module{parens.Keyword("valid-keyword")},
 		},
 		{
 			name:    "UnterminatedList",
@@ -372,27 +373,27 @@ func TestReader_One_Keyword(t *testing.T) {
 		{
 			name: "SimpleASCII",
 			src:  `:test`,
-			want: parens.Keyword(":test"),
+			want: parens.Keyword("test"),
 		},
 		{
 			name: "LeadingTrailingSpaces",
 			src:  "          :test          ",
-			want: parens.Keyword(":test"),
+			want: parens.Keyword("test"),
 		},
 		{
 			name: "SimpleUnicode",
 			src:  `:∂`,
-			want: parens.Keyword(":∂"),
+			want: parens.Keyword("∂"),
 		},
 		{
 			name: "WithSpecialChars",
 			src:  `:this-is-valid?`,
-			want: parens.Keyword(":this-is-valid?"),
+			want: parens.Keyword("this-is-valid?"),
 		},
 		{
 			name: "FollowedByMacroChar",
 			src:  `:this-is-valid'hello`,
-			want: parens.Keyword(":this-is-valid"),
+			want: parens.Keyword("this-is-valid"),
 		},
 	})
 }
