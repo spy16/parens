@@ -1,16 +1,17 @@
 package parens_test
 
 import (
-	"github.com/spy16/parens"
 	"reflect"
 	"testing"
+
+	"github.com/spy16/parens"
 )
 
 func TestInt64_Eval(t *testing.T) {
 	testFormEval(t, evalTestCase{
 		form:     parens.Int64(10),
 		getScope: nil,
-		want:     int64(10),
+		want:     parens.Int64(10),
 	})
 }
 
@@ -18,7 +19,7 @@ func TestFloat64_Eval(t *testing.T) {
 	testFormEval(t, evalTestCase{
 		form:     parens.Float64(10),
 		getScope: nil,
-		want:     float64(10),
+		want:     parens.Float64(10),
 	})
 }
 
@@ -34,7 +35,7 @@ func TestCharacter_Eval(t *testing.T) {
 	testFormEval(t, evalTestCase{
 		form:     parens.Character('A'),
 		getScope: nil,
-		want:     'A',
+		want:     parens.Character('A'),
 	})
 }
 
@@ -42,7 +43,7 @@ func TestString_Eval(t *testing.T) {
 	testFormEval(t, evalTestCase{
 		form:     parens.String("hello"),
 		getScope: nil,
-		want:     "hello",
+		want:     parens.String("hello"),
 	})
 }
 
@@ -81,7 +82,7 @@ func TestVector_Eval(t *testing.T) {
 			},
 			getScope: nil,
 			want: []interface{}{
-				float64(1.3),
+				parens.Float64(1.3),
 			},
 		},
 		{
@@ -96,7 +97,7 @@ func TestVector_Eval(t *testing.T) {
 				return scope
 			},
 			want: []interface{}{
-				float64(1.3),
+				parens.Float64(1.3),
 				parens.Float64(3.14),
 			},
 		},
@@ -124,7 +125,7 @@ func TestModule_Eval(t *testing.T) {
 				parens.Float64(1.3),
 			},
 			getScope: nil,
-			want:     float64(1.3),
+			want:     parens.Float64(1.3),
 		},
 	})
 }
