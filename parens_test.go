@@ -62,7 +62,7 @@ func TestExecute_Success(t *testing.T) {
 	res, err := Execute(strings.NewReader("10"), scope)
 	assert.NoError(t, err)
 	require.NotNil(t, res)
-	assert.Equal(t, int64(10), res)
+	assert.Equal(t, Int64(10), res)
 }
 
 func TestExecute_EvalFailure(t *testing.T) {
