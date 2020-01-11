@@ -264,12 +264,7 @@ func readSymbol(rd *Reader, init rune) (Expr, error) {
 }
 
 func readKeyword(rd *Reader, _ rune) (Expr, error) {
-	r, err := rd.NextRune()
-	if err != nil {
-		return nil, err
-	}
-
-	token, err := readToken(rd, r)
+	token, err := readToken(rd, -1)
 	if err != nil {
 		return nil, err
 	}
