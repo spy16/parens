@@ -235,7 +235,7 @@ func readNumber(rd *Reader, init rune) (Expr, error) {
 	case decimalPoint:
 		v, err := strconv.ParseFloat(numStr, 64)
 		if err != nil {
-			return nil, errors.Wrap(err, "illegal number format")
+			return nil, errors.Wrapf(err, "illegal number format %s", numStr)
 			// return nil, fmt.Errorf("illegal number format: '%s'", numStr)
 		}
 		return Float64(v), nil
@@ -246,7 +246,7 @@ func readNumber(rd *Reader, init rune) (Expr, error) {
 	default:
 		v, err := strconv.ParseInt(numStr, 0, 64)
 		if err != nil {
-			return nil, errors.Wrap(err, "illegal number format")
+			return nil, errors.Wrapf(err, "illegal number format %s", numStr)
 			// return nil, fmt.Errorf("illegal number format '%s'", numStr)
 		}
 
