@@ -3,6 +3,8 @@
 [![GoDoc](https://godoc.org/github.com/spy16/parens?status.svg)](https://godoc.org/github.com/spy16/parens) [![Go Report Card](https://goreportcard.com/badge/github.com/spy16/parens)](https://goreportcard.com/report/github.com/spy16/parens)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fspy16%2Fparens.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fspy16%2Fparens?ref=badge_shield)
 
+_**Parens is deprecated and the repository will be archived soon. Please take a look at [Sabre](https://github.com/spy16/sabre), a much more flexible and powerful LISP engine. [Sabre](https://github.com/spy16/sabre) is simple, more flexible and offers easy interoperability with Go.**_
+
 Parens is a LISP-like scripting layer for `Go` (or `Golang`).
 
 ## Features
