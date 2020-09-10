@@ -1,13 +1,17 @@
 package main
 
 import (
-	"fmt"
+	"context"
 
 	"github.com/spy16/parens"
+	"github.com/spy16/parens/repl"
 )
 
+const banner = "Welcome to Parens!"
+
 func main() {
-	var ev parens.Evaluator
-	ctx := parens.NewContext()
-	fmt.Println(ev.Eval(ctx, "hello"))
+	repl.New(parens.NewContext(),
+		repl.WithBanner(banner),
+		repl.WithPrompts(">>>", "  |"),
+	).Loop(context.Background())
 }

@@ -54,6 +54,22 @@ func (ev Evaluator) Eval(ctx Context, form value.Any) (value.Any, error) {
 	return expr.Eval(ctx, ev)
 }
 
+// EvalAll evaluates each value in the list against the given env and returns a list
+// of resultant value.
+func (ev Evaluator) EvalAll(ctx Context, vals []value.Any) (res []value.Any, err error) {
+	res = make([]value.Any, 0, len(vals))
+
+	for _, form := range vals {
+		if form, err = ev.Eval(ctx, form); err != nil {
+			break
+		}
+
+		res = append(res, form)
+	}
+
+	return
+}
+
 func (ev Evaluator) expandAnalyze(form value.Any) (Expr, error) {
 	if expr, ok := form.(Expr); ok {
 		// Already an Expr, nothing to do.
