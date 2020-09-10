@@ -37,6 +37,7 @@ type Seq interface {
 	Conj(items ...Any) (Seq, error)
 }
 
+// Seqable can provide a sequence of its values.
 type Seqable interface {
 	Seq() (Seq, error)
 }

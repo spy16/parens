@@ -32,15 +32,21 @@ func NewContext() Context {
 	return newContext([]StackFrame{{Name: globalFrame}})
 }
 
+// PositionProvider represents the positional information about a value read by reader.
+type PositionProvider interface {
+	Path() string
+	Line() int
+	Column() int
+	String() string
+}
+
 // StackFrame .
 type StackFrame struct {
 	Name string
 	Args []value.Any
 	vars map[string]value.Any
 
-	// positional information
-	File      string
-	Line, Col int
+	PositionProvider
 }
 
 // GetVar from the stack frame
