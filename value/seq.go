@@ -26,9 +26,6 @@ func Cons(v Any, seq Seq) Seq {
 	}
 }
 
-// Any represents any value.
-type Any interface{}
-
 // Seq represents a sequence of values.
 type Seq interface {
 	Count() (int, error)
