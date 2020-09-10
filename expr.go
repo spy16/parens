@@ -31,13 +31,13 @@ var (
 type ConstExpr struct{ Const value.Any }
 
 // Eval the expression
-func (ce ConstExpr) Eval(*Evaluator) (value.Any, error) { return ce.Const, nil }
+func (ce ConstExpr) Eval(Context, *Evaluator) (value.Any, error) { return ce.Const, nil }
 
 // QuoteExpr expression represents a quoted form and
 type QuoteExpr struct{ Form value.Any }
 
 // Eval the expression
-func (qe QuoteExpr) Eval(*Evaluator) (value.Any, error) {
+func (qe QuoteExpr) Eval(Context, *Evaluator) (value.Any, error) {
 	// TODO: re-use this for syntax-quote and unquote?
 	return qe.Form, nil
 }
@@ -49,12 +49,13 @@ type DefExpr struct {
 }
 
 // Eval the expression
-func (de DefExpr) Eval(ev *Evaluator) (value.Any, error) {
+func (de DefExpr) Eval(ctx Context, ev *Evaluator) (value.Any, error) {
 	de.Name = strings.TrimSpace(de.Name)
 	if de.Name == "" {
 		return nil, fmt.Errorf("%w: '%s'", ErrInvalidBindName, de.Name)
 	}
-	ev.stack[0].set(de.Name, de.Value)
+
+	ctx.SetGlobal(de.Name, de.Value)
 	return &value.Symbol{Value: de.Name}, nil
 }
 
@@ -62,27 +63,27 @@ func (de DefExpr) Eval(ev *Evaluator) (value.Any, error) {
 type IfExpr struct{ Test, Then, Else value.Any }
 
 // Eval the expression
-func (ife IfExpr) Eval(ev *Evaluator) (value.Any, error) {
-	test, err := ev.Eval(ife.Test)
+func (ife IfExpr) Eval(ctx Context, ev *Evaluator) (value.Any, error) {
+	test, err := ev.Eval(ctx, ife.Test)
 	if err != nil {
 		return nil, err
 	}
 	if value.IsTruthy(test) {
-		return ev.Eval(ife.Then)
+		return ev.Eval(ctx, ife.Then)
 	}
-	return ev.Eval(ife.Else)
+	return ev.Eval(ctx, ife.Else)
 }
 
 // DoExpr represents the (do expr*) form.
 type DoExpr struct{ Forms []value.Any }
 
 // Eval the expression
-func (de DoExpr) Eval(ev *Evaluator) (value.Any, error) {
+func (de DoExpr) Eval(ctx Context, ev *Evaluator) (value.Any, error) {
 	var res value.Any
 	var err error
 
 	for _, form := range de.Forms {
-		res, err = ev.Eval(form)
+		res, err = ev.Eval(ctx, form)
 		if err != nil {
 			return nil, err
 		}
@@ -102,8 +103,8 @@ type InvokeExpr struct {
 }
 
 // Eval the expression
-func (ie InvokeExpr) Eval(ev *Evaluator) (value.Any, error) {
-	val, err := ie.Target.Eval(ev)
+func (ie InvokeExpr) Eval(ctx Context, ev *Evaluator) (value.Any, error) {
+	val, err := ie.Target.Eval(ctx, ev)
 	if err != nil {
 		return nil, err
 	}
@@ -115,15 +116,15 @@ func (ie InvokeExpr) Eval(ev *Evaluator) (value.Any, error) {
 
 	var args []value.Any
 	for _, ae := range ie.Args {
-		v, err := ae.Eval(ev)
+		v, err := ae.Eval(ctx, ev)
 		if err != nil {
 			return nil, err
 		}
 		args = append(args, v)
 	}
 
-	ev.push(stackFrame{name: ie.Name, args: args})
-	defer ev.pop()
+	ctx.Push(StackFrame{Name: ie.Name, Args: args})
+	defer ctx.Pop()
 
 	return fn.Invoke(ev, args...)
 }

@@ -3,10 +3,10 @@ package parens
 // Option can be used with New() to customize initialization of VM.
 type Option func(ev *Evaluator)
 
-// WithMaxDepth sets the maximum stack depth allowed for invocations.
-func WithMaxDepth(depth int) Option {
-	return func(ev *Evaluator) { ev.maxDepth = depth }
-}
+// // WithMaxDepth sets the maximum stack depth allowed for invocations.
+// func WithMaxDepth(depth int) Option {
+// 	return func(ev *Evaluator) { ev.maxDepth = depth }
+// }
 
 // WithExpander sets the macro Expander to be used by the VM. If nil, a builtin
 // Expander will be used.
