@@ -16,6 +16,7 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/spy16/parens"
 	"github.com/spy16/parens/value"
 )
 
@@ -383,7 +384,11 @@ func (rd *Reader) annotateErr(err error) error {
 		return err
 	}
 
-	return SyntaxError{Cause: err}
+	if _, ok := err.(parens.Error); ok {
+		return err
+	}
+
+	return parens.NewSyntaxError(err)
 }
 
 func readUnicodeChar(token string, base int) (value.Char, error) {

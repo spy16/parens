@@ -95,7 +95,7 @@ func (repl *REPL) readEvalPrint() error {
 	forms, err := repl.read()
 	if err != nil {
 		switch err.(type) {
-		case reader.SyntaxError:
+		case parens.Error:
 			_ = repl.print(err)
 		default:
 			return err

@@ -51,7 +51,7 @@ func TestReader_SetMacro(t *testing.T) {
 		rd := New(strings.NewReader("~hello"))
 		rd.SetMacro('~', false, nil) // remove unquote operator
 
-		want := value.Symbol{Value: "~hello"}
+		want := &value.Symbol{Value: "~hello"}
 
 		got, err := rd.One()
 		if err != nil {
@@ -67,10 +67,10 @@ func TestReader_SetMacro(t *testing.T) {
 		rd := New(strings.NewReader("#$123"))
 		// `#$` returns string "USD"
 		rd.SetMacro('$', true, func(rd *Reader, init rune) (value.Any, error) {
-			return value.String{Value: "USD"}, nil
+			return &value.String{Value: "USD"}, nil
 		}) // remove unquote operator
 
-		want := value.String{Value: "USD"}
+		want := &value.String{Value: "USD"}
 
 		got, err := rd.One()
 		if err != nil {
@@ -101,10 +101,10 @@ func TestReader_SetMacro(t *testing.T) {
 				ru = append(ru, r)
 			}
 
-			return value.String{Value: string(ru)}, nil
+			return &value.String{Value: string(ru)}, nil
 		}) // override unquote operator
 
-		want := value.String{Value: "hello"}
+		want := &value.String{Value: "hello"}
 
 		got, err := rd.One()
 		if err != nil {
@@ -129,7 +129,7 @@ func TestReader_All(t *testing.T) {
 			src:  `123 "Hello\tWorld" 12.34 -0xF +010 true nil 0b1010 \a :hello`,
 			want: []value.Any{
 				value.Int64(123),
-				value.String{Value: "Hello World"},
+				&value.String{Value: "Hello World"},
 				value.Float64(12.34),
 				value.Int64(-15),
 				value.Int64(8),
@@ -137,13 +137,13 @@ func TestReader_All(t *testing.T) {
 				value.Nil{},
 				value.Int64(10),
 				value.Char('a'),
-				value.Keyword{Value: "hello"},
+				&value.Keyword{Value: "hello"},
 			},
 		},
 		{
 			name: "WithComment",
 			src:  `:valid-keyword ; comment should return errSkip`,
-			want: []value.Any{value.Keyword{Value: "valid-keyword"}},
+			want: []value.Any{&value.Keyword{Value: "valid-keyword"}},
 		},
 		{
 			name:    "UnterminatedString",
@@ -153,7 +153,7 @@ func TestReader_All(t *testing.T) {
 		{
 			name: "CommentFollowedByForm",
 			src:  `; comment should return errSkip` + "\n" + `:valid-keyword`,
-			want: []value.Any{value.Keyword{Value: "valid-keyword"}},
+			want: []value.Any{&value.Keyword{Value: "valid-keyword"}},
 		},
 		{
 			name:    "UnterminatedList",
@@ -211,10 +211,10 @@ func TestReader_One(t *testing.T) {
 		{
 			name: "UnQuote",
 			src:  "~(x 3)",
-			want: value.NewSeq(
-				value.Symbol{Value: "unquote"},
-				value.NewSeq(
-					value.Symbol{Value: "x"},
+			want: mustSeq(
+				&value.Symbol{Value: "unquote"},
+				mustSeq(
+					&value.Symbol{Value: "x"},
 					value.Int64(3),
 				),
 			),
@@ -383,17 +383,17 @@ func TestReader_One_String(t *testing.T) {
 		{
 			name: "SimpleString",
 			src:  `"hello"`,
-			want: value.String{Value: "hello"},
+			want: &value.String{Value: "hello"},
 		},
 		{
 			name: "EscapeQuote",
 			src:  `"double quote is \""`,
-			want: value.String{Value: `double quote is "`},
+			want: &value.String{Value: `double quote is "`},
 		},
 		{
 			name: "EscapeSlash",
 			src:  `"hello\\world"`,
-			want: value.String{Value: `hello\world`},
+			want: &value.String{Value: `hello\world`},
 		},
 		{
 			name:    "UnexpectedEOF",
@@ -418,27 +418,27 @@ func TestReader_One_Keyword(t *testing.T) {
 		{
 			name: "SimpleASCII",
 			src:  `:test`,
-			want: value.Keyword{Value: "test"},
+			want: &value.Keyword{Value: "test"},
 		},
 		{
 			name: "LeadingTrailingSpaces",
 			src:  "          :test          ",
-			want: value.Keyword{Value: "test"},
+			want: &value.Keyword{Value: "test"},
 		},
 		{
 			name: "SimpleUnicode",
 			src:  `:∂`,
-			want: value.Keyword{Value: "∂"},
+			want: &value.Keyword{Value: "∂"},
 		},
 		{
 			name: "WithSpecialChars",
 			src:  `:this-is-valid?`,
-			want: value.Keyword{Value: "this-is-valid?"},
+			want: &value.Keyword{Value: "this-is-valid?"},
 		},
 		{
 			name: "FollowedByMacroChar",
 			src:  `:this-is-valid'hello`,
-			want: value.Keyword{Value: "this-is-valid"},
+			want: &value.Keyword{Value: "this-is-valid"},
 		},
 	})
 }
@@ -503,17 +503,17 @@ func TestReader_One_Symbol(t *testing.T) {
 		{
 			name: "SimpleASCII",
 			src:  `hello`,
-			want: value.Symbol{Value: "hello"},
+			want: &value.Symbol{Value: "hello"},
 		},
 		{
 			name: "Unicode",
 			src:  `find-∂`,
-			want: value.Symbol{Value: "find-∂"},
+			want: &value.Symbol{Value: "find-∂"},
 		},
 		{
 			name: "SingleChar",
 			src:  `+`,
-			want: value.Symbol{Value: "+"},
+			want: &value.Symbol{Value: "+"},
 		},
 	})
 }
@@ -523,18 +523,18 @@ func TestReader_One_List(t *testing.T) {
 		{
 			name: "EmptyList",
 			src:  `()`,
-			want: value.NewSeq(),
+			want: mustSeq(),
 		},
 		{
 			name: "ListWithOneEntry",
 			src:  `(help)`,
-			want: value.NewSeq(value.Symbol{Value: "help"}),
+			want: mustSeq(&value.Symbol{Value: "help"}),
 		},
 		{
 			name: "ListWithMultipleEntry",
 			src:  `(+ 0xF 3.1413)`,
-			want: value.NewSeq(
-				value.Symbol{Value: "+"},
+			want: mustSeq(
+				&value.Symbol{Value: "+"},
 				value.Int64(15),
 				value.Float64(3.1413),
 			),
@@ -542,8 +542,8 @@ func TestReader_One_List(t *testing.T) {
 		{
 			name: "ListWithCommaSeparator",
 			src:  `(+,0xF,3.1413)`,
-			want: value.NewSeq(
-				value.Symbol{Value: "+"},
+			want: mustSeq(
+				&value.Symbol{Value: "+"},
 				value.Int64(15),
 				value.Float64(3.1413),
 			),
@@ -554,8 +554,8 @@ func TestReader_One_List(t *testing.T) {
                       0xF
                       3.1413
 					)`,
-			want: value.NewSeq(
-				value.Symbol{Value: "+"},
+			want: mustSeq(
+				&value.Symbol{Value: "+"},
 				value.Int64(15),
 				value.Float64(3.1413),
 			),
@@ -566,8 +566,8 @@ func TestReader_One_List(t *testing.T) {
                       0xF    ; hex representation of 15
                       3.1413 ; value of math constant pi
                   )`,
-			want: value.NewSeq(
-				value.Symbol{Value: "+"},
+			want: mustSeq(
+				&value.Symbol{Value: "+"},
 				value.Int64(15),
 				value.Float64(3.1413),
 			),
@@ -602,4 +602,13 @@ func executeReaderTests(t *testing.T, tests []readerTestCase) {
 			}
 		})
 	}
+}
+
+func mustSeq(vs ...value.Any) value.Seq {
+	seq, err := value.NewList(vs)
+	if err != nil {
+		panic(err)
+	}
+
+	return seq
 }

@@ -3,7 +3,6 @@ package parens
 import (
 	"errors"
 	"fmt"
-	"reflect"
 	"strings"
 
 	"github.com/spy16/parens/value"
@@ -111,7 +110,7 @@ func (ie InvokeExpr) Eval(ctx Context, ev Evaluator) (value.Any, error) {
 
 	fn, ok := val.(Invokable)
 	if !ok {
-		return nil, fmt.Errorf("%w: %s", ErrNotInvokable, reflect.TypeOf(val))
+		return nil, NewTypeError(val, ErrNotInvokable)
 	}
 
 	var args []value.Any
