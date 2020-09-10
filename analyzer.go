@@ -35,50 +35,54 @@ func (ba BasicAnalyzer) Analyze(ev Evaluator, form value.Any) (Expr, error) {
 }
 
 func (ba BasicAnalyzer) analyzeSeq(ev Evaluator, seq value.Seq) (Expr, error) {
+	/*
+		First we analyze the call target.  This is the first item in the sequence.
+	*/
 	first, err := seq.First()
 	if err != nil {
 		return nil, err
 	}
 
-	// handle special form analysis.
+	/*
+		The call target may be a special form.  In this case, we need to get the
+		corresponding parser function, which will take care of parsing/analyzing the
+		tail.
+	*/
 	if sym, ok := first.(*value.Symbol); ok {
-		parse, found := ba.specials[sym.Value]
-		if found {
+		if parse, found := ba.specials[sym.Value]; found {
 			next, err := seq.Next()
 			if err != nil {
 				return nil, err
 			}
+
 			return parse(ev, next)
 		}
 	}
 
-	target, err := ba.Analyze(ev, first)
-	if err != nil {
-		return nil, err
-	}
-
+	/*
+		If we get here, the call target is a standard invokable (usually a function or
+		a macro), so we are responsible for analyzing the call target and its arguments.
+	*/
+	var target Expr
 	var args []Expr
-	for seq != nil {
-		seq, err = seq.Next()
-		if err != nil {
-			return nil, err
+	err = value.ForEach(seq, func(item value.Any) (done bool, err error) {
+		if target == nil {
+			if target, err = ba.Analyze(ev, first); err != nil {
+				return
+			}
 		}
 
-		f, err := seq.First()
-		if err != nil {
-			return nil, err
+		var arg Expr
+		if arg, err = ba.Analyze(ev, item); err == nil {
+			args = append(args, arg)
 		}
 
-		arg, err := ba.Analyze(ev, f)
-		if err != nil {
-			return nil, err
-		}
-		args = append(args, arg)
-	}
+		return
+	})
 
 	return InvokeExpr{
 		Name:   fmt.Sprintf("%s", target),
 		Target: target,
 		Args:   args,
-	}, nil
+	}, err
 }
