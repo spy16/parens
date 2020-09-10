@@ -6,28 +6,45 @@ var (
 )
 
 // NewSeq returns a new sequence containing given values.
-func NewSeq(items ...Any) Seq {
+func NewSeq(items ...Any) (lst Seq, err error) {
 	if len(items) == 0 {
-		return Seq((*LinkedList)(nil))
+		lst = Seq((*LinkedList)(nil))
+		return
 	}
-	lst := Seq(&LinkedList{})
+
+	lst = Seq(&LinkedList{})
 	for i := len(items) - 1; i >= 0; i-- {
-		lst = Cons(items[i], lst)
+		if lst, err = Cons(items[i], lst); err != nil {
+			break
+		}
 	}
-	return lst
+
+	return lst, err
 }
 
 // Cons returns a new seq with `v` added as the first and `seq` as the rest. Seq
 // can be nil as well.
-func Cons(v Any, seq Seq) Seq {
-	return &LinkedList{
+func Cons(v Any, seq Seq) (Seq, error) {
+	newSeq := &LinkedList{
 		first: v,
 		rest:  seq,
+		count: 1,
 	}
+
+	if seq != nil {
+		cnt, err := seq.Count()
+		if err != nil {
+			return nil, err
+		}
+		newSeq.count = cnt + 1
+	}
+
+	return newSeq, nil
 }
 
 // Seq represents a sequence of values.
 type Seq interface {
+	SExpr() (string, error)
 	Count() (int, error)
 	First() (Any, error)
 	Next() (Seq, error)
@@ -41,13 +58,22 @@ type Seqable interface {
 
 // LinkedList implements an immutable Seq using linked-list data structure.
 type LinkedList struct {
+	count int
 	first Any
 	rest  Seq
 }
 
+// SExpr returns a valid s-expression for LinkedList.
+func (ll *LinkedList) SExpr() (string, error) {
+	if ll == nil {
+		return "()", nil
+	}
+
+	return SeqString(ll, "(", ")", " ")
+}
+
 // Conj returns a new list with all the items added at the head of the list.
-func (ll *LinkedList) Conj(items ...Any) (Seq, error) {
-	var res Seq
+func (ll *LinkedList) Conj(items ...Any) (res Seq, err error) {
 	if ll == nil {
 		res = &LinkedList{}
 	} else {
@@ -55,9 +81,12 @@ func (ll *LinkedList) Conj(items ...Any) (Seq, error) {
 	}
 
 	for _, item := range items {
-		res = Cons(item, res)
+		if res, err = Cons(item, res); err != nil {
+			break
+		}
 	}
-	return res, nil
+
+	return
 }
 
 // First returns the head or first item of the list.
@@ -82,18 +111,5 @@ func (ll *LinkedList) Count() (int, error) {
 		return 0, nil
 	}
 
-	count := 0
-	if ll.first != nil {
-		count++
-	}
-
-	if ll.rest != nil {
-		seqLen, err := ll.rest.Count()
-		if err != nil {
-			return 0, err
-		}
-		count += seqLen
-	}
-
-	return count, nil
+	return ll.count, nil
 }

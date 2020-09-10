@@ -125,7 +125,7 @@ func readSymbol(rd *Reader, init rune) (value.Any, error) {
 		return nil, err
 	}
 
-	return value.Symbol{Value: s}, nil
+	return &value.Symbol{Value: s}, nil
 }
 
 func readString(rd *Reader, _ rune) (value.Any, error) {
@@ -165,7 +165,7 @@ func readString(rd *Reader, _ rune) (value.Any, error) {
 		b.WriteRune(r)
 	}
 
-	return value.String{Value: b.String()}, nil
+	return &value.String{Value: b.String()}, nil
 }
 
 func readComment(rd *Reader, _ rune) (value.Any, error) {
@@ -189,7 +189,7 @@ func readKeyword(rd *Reader, init rune) (value.Any, error) {
 		return nil, err
 	}
 
-	return value.Keyword{Value: token}, nil
+	return &value.Keyword{Value: token}, nil
 }
 
 func readCharacter(rd *Reader, _ rune) (value.Any, error) {
@@ -224,12 +224,14 @@ func readList(rd *Reader, _ rune) (value.Any, error) {
 	const listEnd = ')'
 
 	forms := make([]value.Any, 0, 32) // pre-allocate to improve performance on small lists
-	err := rd.Container(listEnd, "list", func(val value.Any) error {
+	if err := rd.Container(listEnd, "list", func(val value.Any) error {
 		forms = append(forms, val)
 		return nil
-	})
+	}); err != nil {
+		return nil, err
+	}
 
-	return value.NewSeq(forms...), err
+	return value.NewSeq(forms...)
 }
 
 func quoteFormReader(expandFunc string) Macro {
@@ -248,8 +250,8 @@ func quoteFormReader(expandFunc string) Macro {
 		}
 
 		return value.NewSeq(
-			value.Symbol{Value: expandFunc},
+			&value.Symbol{Value: expandFunc},
 			expr,
-		), nil
+		)
 	}
 }

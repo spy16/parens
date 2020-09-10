@@ -56,7 +56,7 @@ type REPL struct {
 	prompt      string
 	multiPrompt string
 
-	printer func(io.Writer, interface{}) error
+	printer Printer
 }
 
 // Input implementation is used by REPL to read user-input. See WithInput()
@@ -122,7 +122,7 @@ func (repl *REPL) Write(b []byte) (int, error) {
 }
 
 func (repl *REPL) print(v interface{}) error {
-	return repl.printer(repl.output, v)
+	return repl.printer.Fprintln(repl.output, v)
 }
 
 func (repl *REPL) read() ([]value.Any, error) {
