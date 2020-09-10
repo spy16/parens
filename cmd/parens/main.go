@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
+	var ev parens.Evaluator
 	ctx := parens.NewContext()
-	ev := parens.New()
 	fmt.Println(ev.Eval(ctx, "hello"))
 }

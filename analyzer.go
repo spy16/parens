@@ -6,29 +6,27 @@ import (
 	"github.com/spy16/parens/value"
 )
 
+var _ Analyzer = (*BasicAnalyzer)(nil)
+
 // ParseSpecial validates a special form invocation, parse the form and
 // returns an expression that can be evaluated for result.
-type ParseSpecial func(ev *Evaluator, args value.Seq) (Expr, error)
+type ParseSpecial func(ev Evaluator, args value.Seq) (Expr, error)
 
-type builtinAnalyzer struct {
-	ev       *Evaluator
-	extender Analyzer
+// BasicAnalyzer can parse (optional) special forms.
+type BasicAnalyzer struct {
 	specials map[string]ParseSpecial
 }
 
-func (ba *builtinAnalyzer) Analyze(form value.Any) (Expr, error) {
+// Analyze the form.
+func (ba BasicAnalyzer) Analyze(ev Evaluator, form value.Any) (Expr, error) {
 	if seq, isSeq := form.(value.Seq); isSeq {
-		return ba.analyzeSeq(seq)
+		return ba.analyzeSeq(ev, seq)
 	}
 
-	if ba.extender != nil {
-		return ba.extender.Analyze(form)
-	}
-
-	return &ConstExpr{Const: form}, nil
+	return ConstExpr{Const: form}, nil
 }
 
-func (ba *builtinAnalyzer) analyzeSeq(seq value.Seq) (Expr, error) {
+func (ba BasicAnalyzer) analyzeSeq(ev Evaluator, seq value.Seq) (Expr, error) {
 	first, err := seq.First()
 	if err != nil {
 		return nil, err
@@ -42,11 +40,11 @@ func (ba *builtinAnalyzer) analyzeSeq(seq value.Seq) (Expr, error) {
 			if err != nil {
 				return nil, err
 			}
-			return parse(ba.ev, next)
+			return parse(ev, next)
 		}
 	}
 
-	target, err := ba.Analyze(first)
+	target, err := ba.Analyze(ev, first)
 	if err != nil {
 		return nil, err
 	}
@@ -63,14 +61,14 @@ func (ba *builtinAnalyzer) analyzeSeq(seq value.Seq) (Expr, error) {
 			return nil, err
 		}
 
-		arg, err := ba.Analyze(f)
+		arg, err := ba.Analyze(ev, f)
 		if err != nil {
 			return nil, err
 		}
 		args = append(args, arg)
 	}
 
-	return &InvokeExpr{
+	return InvokeExpr{
 		Name:   fmt.Sprintf("%s", target),
 		Target: target,
 		Args:   args,

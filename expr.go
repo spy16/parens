@@ -31,13 +31,13 @@ var (
 type ConstExpr struct{ Const value.Any }
 
 // Eval the expression
-func (ce ConstExpr) Eval(Context, *Evaluator) (value.Any, error) { return ce.Const, nil }
+func (ce ConstExpr) Eval(Context, Evaluator) (value.Any, error) { return ce.Const, nil }
 
 // QuoteExpr expression represents a quoted form and
 type QuoteExpr struct{ Form value.Any }
 
 // Eval the expression
-func (qe QuoteExpr) Eval(Context, *Evaluator) (value.Any, error) {
+func (qe QuoteExpr) Eval(Context, Evaluator) (value.Any, error) {
 	// TODO: re-use this for syntax-quote and unquote?
 	return qe.Form, nil
 }
@@ -49,7 +49,7 @@ type DefExpr struct {
 }
 
 // Eval the expression
-func (de DefExpr) Eval(ctx Context, ev *Evaluator) (value.Any, error) {
+func (de DefExpr) Eval(ctx Context, ev Evaluator) (value.Any, error) {
 	de.Name = strings.TrimSpace(de.Name)
 	if de.Name == "" {
 		return nil, fmt.Errorf("%w: '%s'", ErrInvalidBindName, de.Name)
@@ -63,7 +63,7 @@ func (de DefExpr) Eval(ctx Context, ev *Evaluator) (value.Any, error) {
 type IfExpr struct{ Test, Then, Else value.Any }
 
 // Eval the expression
-func (ife IfExpr) Eval(ctx Context, ev *Evaluator) (value.Any, error) {
+func (ife IfExpr) Eval(ctx Context, ev Evaluator) (value.Any, error) {
 	test, err := ev.Eval(ctx, ife.Test)
 	if err != nil {
 		return nil, err
@@ -78,7 +78,7 @@ func (ife IfExpr) Eval(ctx Context, ev *Evaluator) (value.Any, error) {
 type DoExpr struct{ Forms []value.Any }
 
 // Eval the expression
-func (de DoExpr) Eval(ctx Context, ev *Evaluator) (value.Any, error) {
+func (de DoExpr) Eval(ctx Context, ev Evaluator) (value.Any, error) {
 	var res value.Any
 	var err error
 
@@ -103,7 +103,7 @@ type InvokeExpr struct {
 }
 
 // Eval the expression
-func (ie InvokeExpr) Eval(ctx Context, ev *Evaluator) (value.Any, error) {
+func (ie InvokeExpr) Eval(ctx Context, ev Evaluator) (value.Any, error) {
 	val, err := ie.Target.Eval(ctx, ev)
 	if err != nil {
 		return nil, err
