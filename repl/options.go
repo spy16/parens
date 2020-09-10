@@ -110,6 +110,16 @@ func WithPrinter(p Printer) Option {
 
 // WithAnalyzer sets the analyzer for REPL's internal Evaluator
 func WithAnalyzer(a parens.Analyzer) Option {
+	if a == nil {
+		a = parens.BasicAnalyzer{
+			SpecialForms: map[string]parens.ParseSpecial{
+				"go": parens.ParseGo,
+				// "defn": parens.ParseDefn,
+				// ...
+			},
+		}
+	}
+
 	return func(repl *REPL) {
 		repl.ev.Analyzer = a
 	}
@@ -128,6 +138,7 @@ func withDefaults(opts []Option) []Option {
 		WithOutput(nil),
 		WithReaderFactory(nil),
 		WithPrinter(nil),
+		WithAnalyzer(nil),
 	}, opts...)
 }
 

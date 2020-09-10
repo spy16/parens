@@ -64,8 +64,7 @@ func (frame *StackFrame) SetVar(name string, val value.Any) {
 }
 
 type basicContext struct {
-	stack    []StackFrame
-	maxDepth int
+	stack []StackFrame
 }
 
 // TODO(enhancement): max stack depth?
@@ -88,7 +87,7 @@ func (ctx *basicContext) Pop() (f StackFrame) {
 	return
 }
 
-func (ctx basicContext) SetGlobal(name string, val value.Any) {
+func (ctx *basicContext) SetGlobal(name string, val value.Any) {
 	ctx.stack[0].SetVar(name, val)
 }
 
@@ -107,8 +106,8 @@ func (ctx *basicContext) Resolve(name string) (value.Any, error) {
 	return nil, ErrNotFound
 }
 
-func (ctx basicContext) NewChild() Context {
+func (ctx *basicContext) NewChild() Context {
 	stack := make([]StackFrame, len(ctx.stack))
 	copy(stack, ctx.stack)
-	return &basicContext{stack: stack}
+	return newContext(stack)
 }

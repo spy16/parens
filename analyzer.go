@@ -14,7 +14,7 @@ type ParseSpecial func(ev Evaluator, args value.Seq) (Expr, error)
 
 // BasicAnalyzer can parse (optional) special forms.
 type BasicAnalyzer struct {
-	specials map[string]ParseSpecial
+	SpecialForms map[string]ParseSpecial
 }
 
 // Analyze the form.
@@ -49,7 +49,7 @@ func (ba BasicAnalyzer) analyzeSeq(ev Evaluator, seq value.Seq) (Expr, error) {
 		tail.
 	*/
 	if sym, ok := first.(*value.Symbol); ok {
-		if parse, found := ba.specials[sym.Value]; found {
+		if parse, found := ba.SpecialForms[sym.Value]; found {
 			next, err := seq.Next()
 			if err != nil {
 				return nil, err

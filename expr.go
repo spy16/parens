@@ -128,13 +128,13 @@ func (ie InvokeExpr) Eval(ctx Context, ev Evaluator) (value.Any, error) {
 	return fn.Invoke(ev, args...)
 }
 
-// GoExpr evaluates a set of forms in a separate goroutine.
+// GoExpr evaluates an expression in a separate goroutine.
 type GoExpr struct {
-	Fn value.Seq
+	Value value.Any
 }
 
 // Eval the expression.
 func (ge GoExpr) Eval(ctx Context, ev Evaluator) (value.Any, error) {
-	go ev.Eval(ctx.NewChild(), ge.Fn)
+	go ev.Eval(ctx.NewChild(), ge.Value)
 	return nil, nil
 }
