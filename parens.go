@@ -41,14 +41,14 @@ type Expander interface {
 // expression and evaluates the resulting expression.
 func (ev Evaluator) Eval(ctx Context, form value.Any) (value.Any, error) {
 	if form == nil {
-		return value.Nil{}, nil
+		return nil, nil
 	}
 
 	expr, err := ev.expandAnalyze(form)
 	if err != nil {
 		return nil, err
 	} else if expr == nil {
-		return value.Nil{}, nil
+		return nil, nil
 	}
 
 	return expr.Eval(ctx, ev)

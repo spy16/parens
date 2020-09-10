@@ -19,6 +19,13 @@ type BasicAnalyzer struct {
 
 // Analyze the form.
 func (ba BasicAnalyzer) Analyze(ev Evaluator, form value.Any) (Expr, error) {
+	// switch f := form.(type) {
+	// case value.Seq:
+	// 	return ba.analyzeSeq(ev, f)
+	// default:
+	// 	return ConstExpr{Const: form}, nil
+	// }
+
 	if seq, isSeq := form.(value.Seq); isSeq {
 		return ba.analyzeSeq(ev, seq)
 	}

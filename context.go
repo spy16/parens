@@ -22,12 +22,14 @@ type Context interface {
 
 	SetGlobal(name string, val value.Any)
 	Resolve(name string) (value.Any, error)
+
+	NewChild() Context
 }
 
 // NewContext returns a global context using the default Context implementation.
 // The returned Context IS NOT safe for concurrent use without external synchronization.
 func NewContext() Context {
-	return newContext()
+	return newContext([]StackFrame{{Name: globalFrame}})
 }
 
 // StackFrame .
@@ -61,9 +63,9 @@ type basicContext struct {
 }
 
 // TODO(enhancement): max stack depth?
-func newContext() *basicContext {
+func newContext(stack []StackFrame) *basicContext {
 	return &basicContext{
-		stack: []StackFrame{{Name: globalFrame}},
+		stack: stack,
 	}
 }
 
@@ -97,4 +99,10 @@ func (ctx *basicContext) Resolve(name string) (value.Any, error) {
 	}
 
 	return nil, ErrNotFound
+}
+
+func (ctx basicContext) NewChild() Context {
+	stack := make([]StackFrame, len(ctx.stack))
+	copy(stack, ctx.stack)
+	return &basicContext{stack: stack}
 }
