@@ -22,9 +22,9 @@ func New(ctx parens.Context, opts ...Option) *REPL {
 		currentNS: func() string { return "" },
 	}
 
-	if ns, ok := ctx.(NamespacedContext); ok {
-		repl.currentNS = ns.CurrentNS
-	}
+	// if ns, ok := ctx.(NamespacedContext); ok {
+	// 	repl.currentNS = ns.CurrentNS
+	// }
 
 	for _, option := range withDefaults(opts) {
 		option(repl)
@@ -33,13 +33,13 @@ func New(ctx parens.Context, opts ...Option) *REPL {
 	return repl
 }
 
-// NamespacedContext can be implemented by Runtime implementations to allow
-// namespace based isolation (similar to Clojure). REPL will call CurrentNS()
-// method to get the current Namespace and display it as part of input prompt.
-type NamespacedContext interface {
-	parens.Context
-	CurrentNS() string
-}
+// // NamespacedContext can be implemented by Runtime implementations to allow
+// // namespace based isolation (similar to Clojure). REPL will call CurrentNS()
+// // method to get the current Namespace and display it as part of input prompt.
+// type NamespacedContext interface {
+// 	parens.Context
+// 	CurrentNS() string
+// }
 
 // REPL implements a read-eval-print loop for a generic Runtime.
 type REPL struct {
@@ -71,10 +71,6 @@ type Input interface {
 func (repl *REPL) Loop(ctx context.Context) error {
 	repl.printBanner()
 	repl.setPrompt(false)
-
-	if repl.ctx == nil {
-		panic("context is not set -- use repl.New() to instantiate REPL.")
-	}
 
 	for ctx.Err() == nil {
 		err := repl.readEvalPrint()

@@ -122,7 +122,10 @@ func (ie InvokeExpr) Eval(ctx Context, ev Evaluator) (value.Any, error) {
 		args = append(args, v)
 	}
 
-	ctx.Push(StackFrame{Name: ie.Name, Args: args})
+	frame := ctx.NewFrame()
+	frame.Name = ie.Name
+	frame.Args = args
+	ctx.Push(frame)
 	defer ctx.Pop()
 
 	return fn.Invoke(ev, args...)
