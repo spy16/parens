@@ -15,6 +15,22 @@ func New(opts ...Option) *Context {
 	return p
 }
 
+// EvalAll evaluates each value in the list against the given env and returns a list
+// of resultant value.
+func EvalAll(ctx *Context, vals []value.Any) (res []value.Any, err error) {
+	res = make([]value.Any, 0, len(vals))
+
+	for _, form := range vals {
+		if form, err = ctx.Eval(form); err != nil {
+			break
+		}
+
+		res = append(res, form)
+	}
+
+	return
+}
+
 // Context represents the environment/context in which forms are evaluated
 // for result. Context is not safe for concurrent use. Use fork() to get a
 // child context for concurrent executions.
