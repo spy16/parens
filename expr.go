@@ -73,7 +73,7 @@ func (ife IfExpr) Eval(ctx *Context) (value.Any, error) {
 	return ctx.Eval(ife.Else)
 }
 
-// DoExpr represents the (do expr*) form.
+// DoExpr represents the (do expt*) form.
 type DoExpr struct{ Forms []value.Any }
 
 // Eval the expression

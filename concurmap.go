@@ -23,6 +23,8 @@ type ConcurrentMap interface {
 	Map() map[string]value.Any
 }
 
+func newMutexMap() ConcurrentMap { return &mutexMap{} }
+
 // mutexMap implements a simple ConcurrentMap using sync.RWMutex locks. Zero
 // value is ready for use.
 type mutexMap struct {
