@@ -58,11 +58,11 @@ func ForEach(seq Seq, call func(item Any) (bool, error)) (err error) {
 	var v Any
 	var done bool
 	for seq != nil {
-		if v, err = seq.First(); err != nil {
+		if v, err = seq.First(); err != nil || v == nil {
 			break
 		}
 
-		if done, err = call(v); err != nil || done || v == nil {
+		if done, err = call(v); err != nil || done {
 			break
 		}
 

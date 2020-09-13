@@ -51,9 +51,19 @@ var (
 // type information of 'r' OR can be set manually on the Reader instance returned.
 func New(r io.Reader, opts ...Option) *Reader {
 	rd := &Reader{
-		File:     inferFileName(r),
-		rs:       bufio.NewReader(r),
-		macros:   map[rune]Macro{},
+		File: inferFileName(r),
+		rs:   bufio.NewReader(r),
+		macros: map[rune]Macro{
+			'"':  readString,
+			';':  readComment,
+			':':  readKeyword,
+			'\\': readCharacter,
+			'(':  readList,
+			')':  UnmatchedDelimiter(),
+			'\'': quoteFormReader("quote"),
+			'~':  quoteFormReader("unquote"),
+			'`':  quoteFormReader("syntax-quote"),
+		},
 		dispatch: map[rune]Macro{},
 	}
 
