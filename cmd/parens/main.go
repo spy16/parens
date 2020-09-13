@@ -1,18 +1,17 @@
 package main
 
 import (
-	"fmt"
-	"time"
+	"context"
 
 	"github.com/spy16/parens"
-	"github.com/spy16/parens/value"
+	"github.com/spy16/parens/repl"
 )
 
 func main() {
-	rootCtx := parens.New()
+	ctx := parens.New()
 
-	st := time.Now()
-	res, err := rootCtx.Eval(value.Int64(10))
-	doneAt := time.Since(st)
-	fmt.Println(res, err, doneAt)
+	_ = repl.New(ctx,
+		repl.WithBanner("Welcome to Parens!"),
+		repl.WithPrompts(">>", " |"),
+	).Loop(context.Background())
 }
