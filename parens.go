@@ -8,32 +8,30 @@ import (
 
 // New returns a new root context initialised based on given options.
 func New(opts ...Option) *Context {
-	ctx := &Context{}
+	ctx := &Context{ctx: context.Background()}
+	ctx.push(stackFrame{
+		Name:          "<global>",
+		ConcurrentMap: newMutexMap(),
+	})
+
 	for _, opt := range withDefaults(opts) {
 		opt(ctx)
 	}
-
-	ctx.push(stackFrame{
-		Name:          "<global>",
-		ConcurrentMap: ctx.mapFactory(),
-	})
 	return ctx
 }
 
 // EvalAll evaluates each value in the list against the given ctx and returns
 // a list of resultant value.
-func EvalAll(ctx *Context, vals []value.Any) (res []value.Any, err error) {
-	res = make([]value.Any, 0, len(vals))
-
+func EvalAll(ctx *Context, vals []value.Any) ([]value.Any, error) {
+	res := make([]value.Any, 0, len(vals))
 	for _, form := range vals {
-		if form, err = ctx.Eval(form); err != nil {
-			break
+		form, err := ctx.Eval(form)
+		if err != nil {
+			return nil, err
 		}
-
 		res = append(res, form)
 	}
-
-	return
+	return res, nil
 }
 
 // Context represents the environment/context in which forms are evaluated
@@ -79,7 +77,7 @@ func (ctx *Context) expandAnalyze(form value.Any) (Expr, error) {
 	return ctx.analyzer.Analyze(ctx, form)
 }
 
-// fork creates a child context from the parent and returns which can be
+// fork creates a child context from the parent and returns, which can be
 // used as context for an independent thread of execution.
 func (ctx *Context) fork() *Context {
 	return &Context{
@@ -101,7 +99,7 @@ func (ctx *Context) pop() (frame *stackFrame) {
 	if len(ctx.stack) == 0 {
 		panic("pop from empty stack")
 	}
-	frame, ctx.stack = &ctx.stack[len(ctx.stack)-1], ctx.stack[1:]
+	frame, ctx.stack = &ctx.stack[len(ctx.stack)-1], ctx.stack[:len(ctx.stack)-1]
 	return frame
 }
 

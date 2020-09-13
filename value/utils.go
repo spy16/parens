@@ -10,7 +10,6 @@ func IsNil(v Any) bool {
 	if v == nil {
 		return true
 	}
-
 	_, isNilType := v.(Nil)
 	return isNilType
 }
@@ -49,7 +48,6 @@ func SeqString(seq Seq, begin, end, sep string) (string, error) {
 	}
 
 	return strings.TrimRight(b.String(), sep) + end, err
-
 }
 
 // ForEach reads from the sequence and calls the given function for each item.

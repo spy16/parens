@@ -8,7 +8,7 @@ import (
 var (
 	// ErrSkip can be returned by reader macro to indicate a no-op form which
 	// should be discarded (e.g., Comments).
-	ErrSkip = errors.New("skip expr")
+	ErrSkip = errors.New("skip expt")
 
 	// ErrEOF is returned by reader when stream ends prematurely to indicate
 	// that more data is needed to complete the current form.

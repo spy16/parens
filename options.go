@@ -1,15 +1,26 @@
 package parens
 
+import "github.com/spy16/parens/value"
+
 // Option can be used with New() to customize initialization of Evaluator
 // Instance.
 type Option func(ctx *Context)
+
+// WithGlobals sets the global variables during initialisation.
+func WithGlobals(globals map[string]value.Any) Option {
+	return func(ctx *Context) {
+		for k, v := range globals {
+			ctx.root().stack[0].Store(k, v)
+		}
+	}
+}
 
 // WithMapFactory sets the factory to be used for creating variables map
 // in a stack frame.
 func WithMapFactory(factory func() ConcurrentMap) Option {
 	return func(ctx *Context) {
 		if factory == nil {
-			factory = func() ConcurrentMap { return &mutexMap{} }
+			factory = newMutexMap
 		}
 		ctx.mapFactory = factory
 	}

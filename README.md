@@ -4,4 +4,4 @@
 
 ![I've just received word that the Emperor has dissolved the MIT computer science program permanently.](https://imgs.xkcd.com/comics/lisp_cycles.png)
 
-Parens is a highly flexible, customisable, embeddable LISP toolkit.
+Parens is a highly customisable, embeddable LISP toolkit.
