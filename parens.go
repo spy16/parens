@@ -8,15 +8,20 @@ import (
 
 // New returns a new root context initialised based on given options.
 func New(opts ...Option) *Context {
-	p := &Context{}
+	ctx := &Context{}
 	for _, opt := range withDefaults(opts) {
-		opt(p)
+		opt(ctx)
 	}
-	return p
+
+	ctx.push(stackFrame{
+		Name:          "<global>",
+		ConcurrentMap: ctx.mapFactory(),
+	})
+	return ctx
 }
 
-// EvalAll evaluates each value in the list against the given env and returns a list
-// of resultant value.
+// EvalAll evaluates each value in the list against the given ctx and returns
+// a list of resultant value.
 func EvalAll(ctx *Context, vals []value.Any) (res []value.Any, err error) {
 	res = make([]value.Any, 0, len(vals))
 
@@ -101,13 +106,32 @@ func (ctx *Context) pop() (frame *stackFrame) {
 }
 
 func (ctx *Context) setGlobal(key string, value value.Any) {
+	// TODO: verify this. what is expected if this is a child context?
+	ctx.root().stack[0].Store(key, value)
+}
+
+func (ctx *Context) resolve(sym string) value.Any {
+	// TODO: verify this behaviour.
+
+	for i := len(ctx.stack) - 1; i >= 0; i-- {
+		v, found := ctx.stack[i].Load(sym)
+		if found {
+			return v
+		}
+	}
+
+	// not found in current context. load from root context's
+	// global frame.
+	v, _ := ctx.root().stack[0].Load(sym)
+	return v
+}
+
+func (ctx *Context) root() *Context {
 	rootCtx := ctx
 	for rootCtx.parent != nil {
 		rootCtx = ctx.parent
 	}
-
-	// TODO: verify this. what is expected if this is a child context?
-	rootCtx.stack[0].Store(key, value)
+	return rootCtx
 }
 
 // Analyzer implementation is responsible for performing syntax analysis

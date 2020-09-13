@@ -20,6 +20,16 @@ type BasicAnalyzer struct {
 // Analyze the form.
 func (ba BasicAnalyzer) Analyze(ctx *Context, form value.Any) (Expr, error) {
 	switch f := form.(type) {
+	case *value.Symbol:
+		v := ctx.resolve(f.Value)
+		if v == nil {
+			return nil, Error{
+				Cause:   ErrNotFound,
+				Message: fmt.Sprintf(f.Value),
+			}
+		}
+		return &ConstExpr{Const: v}, nil
+
 	case value.Seq:
 		cnt, err := f.Count()
 		if err != nil {
