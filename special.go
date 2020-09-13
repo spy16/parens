@@ -86,7 +86,7 @@ func parseGoExpr(_ *Context, args value.Seq) (Expr, error) {
 
 	if v == nil {
 		return nil, Error{
-			Cause: errors.New("go expr requires exactly one argument"),
+			Cause: errors.New("go expt requires exactly one argument"),
 		}
 	}
 
