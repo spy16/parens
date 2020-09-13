@@ -39,7 +39,13 @@ func WithExpander(expander Expander) Option {
 func WithAnalyzer(analyzer Analyzer) Option {
 	return func(ctx *Context) {
 		if analyzer == nil {
-			analyzer = &BasicAnalyzer{}
+			analyzer = &BasicAnalyzer{
+				SpecialForms: map[string]ParseSpecial{
+					"go":    parseGoExpr,
+					"def":   parseDefExpr,
+					"quote": parseQuoteExpr,
+				},
+			}
 		}
 		ctx.analyzer = analyzer
 	}
