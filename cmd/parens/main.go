@@ -2,12 +2,17 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/spy16/parens"
+	"github.com/spy16/parens/value"
 )
 
 func main() {
-	var ev parens.Evaluator
-	ctx := parens.NewContext()
-	fmt.Println(ev.Eval(ctx, "hello"))
+	rootCtx := parens.New()
+
+	st := time.Now()
+	res, err := rootCtx.Eval(value.Int64(10))
+	doneAt := time.Since(st)
+	fmt.Println(res, err, doneAt)
 }

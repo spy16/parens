@@ -1,7 +1,6 @@
 package parens
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -18,26 +17,26 @@ var (
 	_ Expr = (*DoExpr)(nil)
 )
 
-var (
-	// ErrInvalidBindName is returned by DefExpr when the bind name is invalid.
-	ErrInvalidBindName = errors.New("invalid name for def")
+// Invokable represents a value that can be invoked for result.
+type Invokable interface {
+	Invoke(ctx *Context, args ...value.Any) (value.Any, error)
+}
 
-	// ErrNotInvokable is returned by InvokeExpr when the target is not invokable.
-	ErrNotInvokable = errors.New("not invokable")
-)
+// Expr represents an expression that can be evaluated against a context.
+type Expr interface {
+	Eval(env *Context) (value.Any, error)
+}
 
 // ConstExpr returns the Const value wrapped inside when evaluated. It has
 // no side-effect on the VM.
 type ConstExpr struct{ Const value.Any }
 
-// Eval the expression
-func (ce ConstExpr) Eval(Context, Evaluator) (value.Any, error) { return ce.Const, nil }
+func (ce ConstExpr) Eval(_ *Context) (value.Any, error) { return ce.Const, nil }
 
 // QuoteExpr expression represents a quoted form and
 type QuoteExpr struct{ Form value.Any }
 
-// Eval the expression
-func (qe QuoteExpr) Eval(Context, Evaluator) (value.Any, error) {
+func (qe QuoteExpr) Eval(ctx *Context) (value.Any, error) {
 	// TODO: re-use this for syntax-quote and unquote?
 	return qe.Form, nil
 }
@@ -48,14 +47,14 @@ type DefExpr struct {
 	Value value.Any
 }
 
-// Eval the expression
-func (de DefExpr) Eval(ctx Context, ev Evaluator) (value.Any, error) {
+// Eval creates a global binding in the root context.
+func (de DefExpr) Eval(ctx *Context) (value.Any, error) {
 	de.Name = strings.TrimSpace(de.Name)
 	if de.Name == "" {
 		return nil, fmt.Errorf("%w: '%s'", ErrInvalidBindName, de.Name)
 	}
 
-	ctx.SetGlobal(de.Name, de.Value)
+	ctx.setGlobal(de.Name, de.Value)
 	return &value.Symbol{Value: de.Name}, nil
 }
 
@@ -63,27 +62,27 @@ func (de DefExpr) Eval(ctx Context, ev Evaluator) (value.Any, error) {
 type IfExpr struct{ Test, Then, Else value.Any }
 
 // Eval the expression
-func (ife IfExpr) Eval(ctx Context, ev Evaluator) (value.Any, error) {
-	test, err := ev.Eval(ctx, ife.Test)
+func (ife IfExpr) Eval(ctx *Context) (value.Any, error) {
+	test, err := ctx.Eval(ife.Test)
 	if err != nil {
 		return nil, err
 	}
 	if value.IsTruthy(test) {
-		return ev.Eval(ctx, ife.Then)
+		return ctx.Eval(ife.Then)
 	}
-	return ev.Eval(ctx, ife.Else)
+	return ctx.Eval(ife.Else)
 }
 
 // DoExpr represents the (do expr*) form.
 type DoExpr struct{ Forms []value.Any }
 
 // Eval the expression
-func (de DoExpr) Eval(ctx Context, ev Evaluator) (value.Any, error) {
+func (de DoExpr) Eval(ctx *Context) (value.Any, error) {
 	var res value.Any
 	var err error
 
 	for _, form := range de.Forms {
-		res, err = ev.Eval(ctx, form)
+		res, err = ctx.Eval(form)
 		if err != nil {
 			return nil, err
 		}
@@ -103,37 +102,50 @@ type InvokeExpr struct {
 }
 
 // Eval the expression
-func (ie InvokeExpr) Eval(ctx Context, ev Evaluator) (value.Any, error) {
-	val, err := ie.Target.Eval(ctx, ev)
+func (ie InvokeExpr) Eval(ctx *Context) (value.Any, error) {
+	val, err := ie.Target.Eval(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	fn, ok := val.(Invokable)
 	if !ok {
-		return nil, fmt.Errorf("%w: %s", ErrNotInvokable, reflect.TypeOf(val))
+		return nil, Error{
+			Cause:   ErrNotInvokable,
+			Message: fmt.Sprintf("value of type '%s' is not invokable", reflect.TypeOf(val)),
+		}
 	}
 
 	var args []value.Any
 	for _, ae := range ie.Args {
-		v, err := ae.Eval(ctx, ev)
+		v, err := ae.Eval(ctx)
 		if err != nil {
 			return nil, err
 		}
 		args = append(args, v)
 	}
 
-	ctx.Push(StackFrame{Name: ie.Name, Args: args})
-	defer ctx.Pop()
+	ctx.push(stackFrame{
+		Name:          ie.Name,
+		Args:          args,
+		ConcurrentMap: ctx.mapFactory(),
+	})
+	defer ctx.pop()
 
-	return fn.Invoke(ev, args...)
+	return fn.Invoke(ctx, args...)
 }
 
-// GoExpr evaluates a set of forms in a separate goroutine.
-type GoExpr struct{ Fn InvokeExpr }
+// GoExpr evaluates an expression in a separate goroutine.
+type GoExpr struct {
+	Value value.Any
+}
 
-// Eval the expression.
-func (ge GoExpr) Eval(ctx Context, ev Evaluator) (value.Any, error) {
-	go ev.Eval(ctx.NewChild(), ge.Fn)
+// Eval forks the given context to get a child context and launches goroutine
+// with the child context to evaluate the Value.
+func (ge GoExpr) Eval(ctx *Context) (value.Any, error) {
+	child := ctx.fork()
+	go func() {
+		_, _ = child.Eval(ge.Value)
+	}()
 	return nil, nil
 }
