@@ -9,9 +9,7 @@ type Option func(ctx *Context)
 func WithMapFactory(factory func() ConcurrentMap) Option {
 	return func(ctx *Context) {
 		if factory == nil {
-			factory = func() ConcurrentMap {
-				return &mutexMap{}
-			}
+			factory = func() ConcurrentMap { return &mutexMap{} }
 		}
 		ctx.mapFactory = factory
 	}
