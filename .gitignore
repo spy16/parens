@@ -13,6 +13,5 @@
 bin/
 .vscode/
 .idea/
-expt/
 sabre.iml
 temp.lisp
