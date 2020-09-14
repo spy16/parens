@@ -78,25 +78,25 @@ type String string
 
 // SExpr returns a valid s-expression representing String.
 func (str *String) SExpr() (string, error) {
-	return fmt.Sprintf("\"%s\"", str.Value), nil
+	return fmt.Sprintf("\"%s\"", str), nil
 }
 
 // Equals returns true if 'other' is string and has same Value.
 func (str *String) Equals(other Any) bool {
 	otherStr, isStr := other.(*String)
-	return isStr && (otherStr.Value == str.Value)
+	return isStr && (otherStr == str)
 }
 
 // Symbol represents a lisp symbol Value.
 type Symbol string
 
 // SExpr returns a valid s-expression representing Symbol.
-func (sym *Symbol) SExpr() (string, error) { return sym.Value, nil }
+func (sym *Symbol) SExpr() (string, error) { return sym, nil }
 
 // Equals returns true if the other Value is also a symbol and has same Value.
 func (sym *Symbol) Equals(other Any) bool {
 	otherSym, isSym := other.(*Symbol)
-	return isSym && (sym.Value == otherSym.Value)
+	return isSym && (sym == otherSym)
 }
 
 // Keyword represents a keyword Value.
