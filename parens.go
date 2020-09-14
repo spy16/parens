@@ -23,7 +23,6 @@ func New(opts ...Option) Env {
 // child context for concurrent executions.
 type Env struct {
 	ctx        context.Context
-	parent     *Env
 	analyzer   Analyzer
 	expander   Expander
 	stack      []stackFrame
@@ -66,7 +65,6 @@ func (env *Env) expandAnalyze(form value.Any) (Expr, error) {
 func (env *Env) fork() *Env {
 	return &Env{
 		ctx:        env.ctx,
-		parent:     env,
 		stack:      append([]stackFrame(nil), env.stack...),
 		expander:   env.expander,
 		analyzer:   env.analyzer,
@@ -88,28 +86,22 @@ func (env *Env) pop() (frame *stackFrame) {
 }
 
 func (env *Env) setGlobal(key string, value value.Any) {
-	env.root().stack[0].Store(key, value)
+	env.stack[0].Store(key, value)
 }
 
 func (env Env) resolve(sym string) value.Any {
-	// check in current frame of the current context.
-	v, found := env.stack[len(env.stack)-1].Load(sym)
-	if found {
-		return v
+	if len(env.stack) == 0 {
+		panic("runtime stack must never be empty")
 	}
 
-	// not found in current context. load from root context's
-	// global frame.
-	v, _ = env.root().stack[0].Load(sym)
-	return v
-}
-
-func (env Env) root() *Env {
-	root := &env
-	for root.parent != nil {
-		root = env.parent
+	// traverse from top of the stack until a binding is found.
+	for i := len(env.stack) - 1; i >= 0; i-- {
+		if v, found := env.stack[i].Load(sym); found {
+			return v
+		}
 	}
-	return root
+
+	return nil
 }
 
 // Analyzer implementation is responsible for performing syntax analysis

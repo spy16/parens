@@ -8,8 +8,7 @@ import (
 
 var _ ConcurrentMap = (*mutexMap)(nil)
 
-// ConcurrentMap implementation can be set on the root context to customise
-// the map used for storing variables in the stack frames.
+// ConcurrentMap is used by the Env to store variables in the stack frames.
 type ConcurrentMap interface {
 	// Store should store the key-value pair in the map.
 	Store(key string, val value.Any)
