@@ -3,7 +3,6 @@ package value
 import (
 	"fmt"
 	"math"
-	"sync"
 )
 
 // Nil represents the Value 'nil'.
@@ -75,11 +74,7 @@ func (char Char) Equals(other Any) bool {
 }
 
 // String represents a string of characters.
-type String struct {
-	Value string
-	hash  int64
-	once  sync.Once
-}
+type String string
 
 // SExpr returns a valid s-expression representing String.
 func (str *String) SExpr() (string, error) {
@@ -93,11 +88,7 @@ func (str *String) Equals(other Any) bool {
 }
 
 // Symbol represents a lisp symbol Value.
-type Symbol struct {
-	Value string
-	hash  int64
-	once  sync.Once
-}
+type Symbol string
 
 // SExpr returns a valid s-expression representing Symbol.
 func (sym *Symbol) SExpr() (string, error) { return sym.Value, nil }
@@ -109,14 +100,10 @@ func (sym *Symbol) Equals(other Any) bool {
 }
 
 // Keyword represents a keyword Value.
-type Keyword struct {
-	Value string
-	hash  int64
-	once  sync.Once
-}
+type Keyword string
 
 // SExpr returns a valid s-expression representing Keyword.
-func (kw *Keyword) SExpr() (string, error) { return fmt.Sprintf(":%s", kw.Value), nil }
+func (kw *Keyword) SExpr() (string, error) { return fmt.Sprintf(":%s", kw), nil }
 
 // Equals returns true if the other Value is keyword and has same Value.
 func (kw *Keyword) Equals(other Any) bool {
