@@ -77,13 +77,13 @@ func (char Char) Equals(other Any) bool {
 type String string
 
 // SExpr returns a valid s-expression representing String.
-func (str *String) SExpr() (string, error) {
+func (str String) SExpr() (string, error) {
 	return fmt.Sprintf("\"%s\"", str), nil
 }
 
 // Equals returns true if 'other' is string and has same Value.
-func (str *String) Equals(other Any) bool {
-	otherStr, isStr := other.(*String)
+func (str String) Equals(other Any) bool {
+	otherStr, isStr := other.(String)
 	return isStr && (otherStr == str)
 }
 
@@ -91,11 +91,11 @@ func (str *String) Equals(other Any) bool {
 type Symbol string
 
 // SExpr returns a valid s-expression representing Symbol.
-func (sym *Symbol) SExpr() (string, error) { return sym, nil }
+func (sym Symbol) SExpr() (string, error) { return string(sym), nil }
 
 // Equals returns true if the other Value is also a symbol and has same Value.
-func (sym *Symbol) Equals(other Any) bool {
-	otherSym, isSym := other.(*Symbol)
+func (sym Symbol) Equals(other Any) bool {
+	otherSym, isSym := other.(Symbol)
 	return isSym && (sym == otherSym)
 }
 
@@ -103,10 +103,10 @@ func (sym *Symbol) Equals(other Any) bool {
 type Keyword string
 
 // SExpr returns a valid s-expression representing Keyword.
-func (kw *Keyword) SExpr() (string, error) { return fmt.Sprintf(":%s", kw), nil }
+func (kw Keyword) SExpr() (string, error) { return fmt.Sprintf(":%s", kw), nil }
 
 // Equals returns true if the other Value is keyword and has same Value.
-func (kw *Keyword) Equals(other Any) bool {
-	otherKW, isKeyword := other.(*Keyword)
+func (kw Keyword) Equals(other Any) bool {
+	otherKW, isKeyword := other.(Keyword)
 	return isKeyword && (otherKW == kw)
 }

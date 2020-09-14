@@ -20,12 +20,12 @@ type BasicAnalyzer struct {
 // Analyze the form.
 func (ba BasicAnalyzer) Analyze(env *Env, form value.Any) (Expr, error) {
 	switch f := form.(type) {
-	case *value.Symbol:
-		v := env.resolve(f.Value)
+	case value.Symbol:
+		v := env.resolve(string(f))
 		if v == nil {
 			return nil, Error{
 				Cause:   ErrNotFound,
-				Message: fmt.Sprintf(f.Value),
+				Message: string(f),
 			}
 		}
 		return &ConstExpr{Const: v}, nil
@@ -58,8 +58,8 @@ func (ba BasicAnalyzer) analyzeSeq(env *Env, seq value.Seq) (Expr, error) {
 		corresponding parser function, which will take care of parsing/analyzing the
 		tail.
 	*/
-	if sym, ok := first.(*value.Symbol); ok {
-		if parse, found := ba.SpecialForms[sym.Value]; found {
+	if sym, ok := first.(value.Symbol); ok {
+		if parse, found := ba.SpecialForms[string(sym)]; found {
 			next, err := seq.Next()
 			if err != nil {
 				return nil, err

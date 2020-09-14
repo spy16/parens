@@ -358,7 +358,7 @@ func (rd *Reader) readOne() (value.Any, error) {
 	}
 
 	// TODO(performance):  type assertion necessary given the above call to `readSymbol`?
-	if predefVal, found := rd.predef[v.(*value.Symbol).Value]; found {
+	if predefVal, found := rd.predef[string(v.(value.Symbol))]; found {
 		return predefVal, nil
 	}
 
