@@ -49,7 +49,7 @@ func parseDefExpr(env *Env, args value.Seq) (Expr, error) {
 		return nil, err
 	}
 
-	sym, ok := first.(*value.Symbol)
+	sym, ok := first.(value.Symbol)
 	if !ok {
 		return nil, Error{
 			Cause:   errors.New("invalid def form"),
@@ -73,7 +73,7 @@ func parseDefExpr(env *Env, args value.Seq) (Expr, error) {
 	}
 
 	return &DefExpr{
-		Name:  sym.Value,
+		Name:  string(sym),
 		Value: res,
 	}, nil
 }
