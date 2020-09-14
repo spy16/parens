@@ -16,9 +16,9 @@ import (
 
 // New returns a new instance of REPL with given sabre Runtime. Option values
 // can be used to configure REPL input, output etc.
-func New(ctx *parens.Context, opts ...Option) *REPL {
+func New(env parens.Env, opts ...Option) *REPL {
 	repl := &REPL{
-		rootCtx:   ctx,
+		rootEnv:   &env,
 		currentNS: func() string { return "" },
 	}
 
@@ -33,13 +33,13 @@ func New(ctx *parens.Context, opts ...Option) *REPL {
 // // namespace based isolation (similar to Clojure). REPL will call CurrentNS()
 // // method to get the current Namespace and display it as part of input prompt.
 // type NamespacedContext interface {
-// 	parens.Context
+// 	parens.Env
 // 	CurrentNS() string
 // }
 
 // REPL implements a read-eval-print loop for a generic Runtime.
 type REPL struct {
-	rootCtx     *parens.Context
+	rootEnv     *parens.Env
 	input       Input
 	output      io.Writer
 	mapInputErr ErrMapper
@@ -96,7 +96,7 @@ func (repl *REPL) readEvalPrint() error {
 		return nil
 	}
 
-	res, err := parens.EvalAll(repl.rootCtx, forms)
+	res, err := parens.EvalAll(repl.rootEnv, forms)
 	if err != nil {
 		return repl.print(err)
 	}

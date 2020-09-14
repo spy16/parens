@@ -6,40 +6,24 @@ import (
 	"github.com/spy16/parens/value"
 )
 
+const globalFrame = "<global>"
+
 // New returns a new root context initialised based on given options.
-func New(opts ...Option) *Context {
-	ctx := &Context{ctx: context.Background()}
-	ctx.push(stackFrame{
-		Name:          "<global>",
-		ConcurrentMap: newMutexMap(),
-	})
-
+func New(opts ...Option) Env {
+	env := Env{ctx: context.Background()}
+	env.push(stackFrame{Name: globalFrame})
 	for _, opt := range withDefaults(opts) {
-		opt(ctx)
+		opt(&env)
 	}
-	return ctx
+	return env
 }
 
-// EvalAll evaluates each value in the list against the given ctx and returns
-// a list of resultant value.
-func EvalAll(ctx *Context, vals []value.Any) ([]value.Any, error) {
-	res := make([]value.Any, 0, len(vals))
-	for _, form := range vals {
-		form, err := ctx.Eval(form)
-		if err != nil {
-			return nil, err
-		}
-		res = append(res, form)
-	}
-	return res, nil
-}
-
-// Context represents the environment/context in which forms are evaluated
-// for result. Context is not safe for concurrent use. Use fork() to get a
+// Env represents the environment/context in which forms are evaluated
+// for result. Env is not safe for concurrent use. Use fork() to get a
 // child context for concurrent executions.
-type Context struct {
+type Env struct {
 	ctx        context.Context
-	parent     *Context
+	parent     *Env
 	analyzer   Analyzer
 	expander   Expander
 	stack      []stackFrame
@@ -49,24 +33,24 @@ type Context struct {
 
 // Eval performs macro-expansion if necessary, converts the expanded form
 // to an expression and evaluates the resulting expression.
-func (ctx *Context) Eval(form value.Any) (value.Any, error) {
-	expr, err := ctx.expandAnalyze(form)
+func (env *Env) Eval(form value.Any) (value.Any, error) {
+	expr, err := env.expandAnalyze(form)
 	if err != nil {
 		return nil, err
 	} else if expr == nil {
 		return nil, nil
 	}
 
-	return expr.Eval(ctx)
+	return expr.Eval(env)
 }
 
-func (ctx *Context) expandAnalyze(form value.Any) (Expr, error) {
+func (env *Env) expandAnalyze(form value.Any) (Expr, error) {
 	if expr, ok := form.(Expr); ok {
 		// Already an Expr, nothing to do.
 		return expr, nil
 	}
 
-	if expanded, err := ctx.expander.Expand(ctx, form); err != nil {
+	if expanded, err := env.expander.Expand(env, form); err != nil {
 		return nil, err
 	} else if expanded != nil {
 		// Expansion did happen. Throw away the old form and continue with
@@ -74,62 +58,58 @@ func (ctx *Context) expandAnalyze(form value.Any) (Expr, error) {
 		form = expanded
 	}
 
-	return ctx.analyzer.Analyze(ctx, form)
+	return env.analyzer.Analyze(env, form)
 }
 
-// fork creates a child context from the parent and returns, which can be
-// used as context for an independent thread of execution.
-func (ctx *Context) fork() *Context {
-	return &Context{
-		ctx:        ctx.ctx,
-		parent:     ctx,
-		stack:      append([]stackFrame(nil), ctx.stack...),
-		expander:   ctx.expander,
-		analyzer:   ctx.analyzer,
-		maxDepth:   ctx.maxDepth,
-		mapFactory: ctx.mapFactory,
+// fork creates a child context from Env and returns it. The child context
+// can be used as context for an independent thread of execution.
+func (env *Env) fork() *Env {
+	return &Env{
+		ctx:        env.ctx,
+		parent:     env,
+		stack:      append([]stackFrame(nil), env.stack...),
+		expander:   env.expander,
+		analyzer:   env.analyzer,
+		maxDepth:   env.maxDepth,
+		mapFactory: env.mapFactory,
 	}
 }
 
-func (ctx *Context) push(frame stackFrame) {
-	ctx.stack = append(ctx.stack, frame)
+func (env *Env) push(frame stackFrame) {
+	env.stack = append(env.stack, frame)
 }
 
-func (ctx *Context) pop() (frame *stackFrame) {
-	if len(ctx.stack) == 0 {
+func (env *Env) pop() (frame *stackFrame) {
+	if len(env.stack) == 0 {
 		panic("pop from empty stack")
 	}
-	frame, ctx.stack = &ctx.stack[len(ctx.stack)-1], ctx.stack[:len(ctx.stack)-1]
+	frame, env.stack = &env.stack[len(env.stack)-1], env.stack[:len(env.stack)-1]
 	return frame
 }
 
-func (ctx *Context) setGlobal(key string, value value.Any) {
-	// TODO: verify this. what is expected if this is a child context?
-	ctx.root().stack[0].Store(key, value)
+func (env *Env) setGlobal(key string, value value.Any) {
+	env.root().stack[0].Store(key, value)
 }
 
-func (ctx *Context) resolve(sym string) value.Any {
-	// TODO: verify this behaviour.
-
-	for i := len(ctx.stack) - 1; i >= 0; i-- {
-		v, found := ctx.stack[i].Load(sym)
-		if found {
-			return v
-		}
+func (env Env) resolve(sym string) value.Any {
+	// check in current frame of the current context.
+	v, found := env.stack[len(env.stack)-1].Load(sym)
+	if found {
+		return v
 	}
 
 	// not found in current context. load from root context's
 	// global frame.
-	v, _ := ctx.root().stack[0].Load(sym)
+	v, _ = env.root().stack[0].Load(sym)
 	return v
 }
 
-func (ctx *Context) root() *Context {
-	rootCtx := ctx
-	for rootCtx.parent != nil {
-		rootCtx = ctx.parent
+func (env Env) root() *Env {
+	root := &env
+	for root.parent != nil {
+		root = env.parent
 	}
-	return rootCtx
+	return root
 }
 
 // Analyzer implementation is responsible for performing syntax analysis
@@ -137,7 +117,7 @@ func (ctx *Context) root() *Context {
 type Analyzer interface {
 	// Analyze should perform syntax checks for special forms etc. and
 	// return Expr values that can be evaluated against a context.
-	Analyze(ctx *Context, form value.Any) (Expr, error)
+	Analyze(env *Env, form value.Any) (Expr, error)
 }
 
 // Expander implementation is responsible for performing macro-expansion
@@ -146,11 +126,12 @@ type Expander interface {
 	// Expand should expand/rewrite the given form if it's a macro form
 	// and return the expanded version. If given form is not macro form,
 	// it should return nil, nil.
-	Expand(p *Context, form value.Any) (value.Any, error)
+	Expand(env *Env, form value.Any) (value.Any, error)
 }
 
 type stackFrame struct {
+	ConcurrentMap
+
 	Name string
 	Args []value.Any
-	ConcurrentMap
 }
