@@ -5,8 +5,8 @@ var (
 	_ Seq = (*LinkedList)(nil)
 )
 
-// Cons returns a new seq with `v` added as the first and `seq` as the rest. Seq
-// can be nil as well.
+// Cons returns a new seq with `v` added as the first and `seq` as the rest.
+// seq can be nil as well.
 func Cons(v Any, seq Seq) (Seq, error) {
 	newSeq := &LinkedList{
 		first: v,
@@ -25,7 +25,7 @@ func Cons(v Any, seq Seq) (Seq, error) {
 	return newSeq, nil
 }
 
-// NewList containing given values.
+// NewList returns a new linked-list containing given values.
 func NewList(items []Any) (lst Seq, err error) {
 	if len(items) == 0 {
 		lst = Seq((*LinkedList)(nil))
