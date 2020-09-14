@@ -10,6 +10,9 @@ import (
 
 func main() {
 	globals := map[string]value.Any{
+		"nil":     value.Nil{},
+		"true":    value.Bool(true),
+		"false":   value.Bool(false),
 		"pi":      value.Float64(3.1416),
 		"version": &value.String{Value: "1.0"},
 	}
