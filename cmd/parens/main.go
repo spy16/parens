@@ -14,9 +14,9 @@ func main() {
 		"version": &value.String{Value: "1.0"},
 	}
 
-	ctx := parens.New(parens.WithGlobals(globals))
+	env := parens.New(parens.WithGlobals(globals))
 
-	_ = repl.New(ctx,
+	_ = repl.New(env,
 		repl.WithBanner("Welcome to Parens!"),
 		repl.WithPrompts(">>", " |"),
 	).Loop(context.Background())

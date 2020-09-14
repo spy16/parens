@@ -10,7 +10,7 @@ var _ Analyzer = (*BasicAnalyzer)(nil)
 
 // ParseSpecial validates a special form invocation, parse the form and
 // returns an expression that can be evaluated for result.
-type ParseSpecial func(ctx *Context, args value.Seq) (Expr, error)
+type ParseSpecial func(env *Env, args value.Seq) (Expr, error)
 
 // BasicAnalyzer can parse (optional) special forms.
 type BasicAnalyzer struct {
@@ -18,10 +18,10 @@ type BasicAnalyzer struct {
 }
 
 // Analyze the form.
-func (ba BasicAnalyzer) Analyze(ctx *Context, form value.Any) (Expr, error) {
+func (ba BasicAnalyzer) Analyze(env *Env, form value.Any) (Expr, error) {
 	switch f := form.(type) {
 	case *value.Symbol:
-		v := ctx.resolve(f.Value)
+		v := env.resolve(f.Value)
 		if v == nil {
 			return nil, Error{
 				Cause:   ErrNotFound,
@@ -38,13 +38,13 @@ func (ba BasicAnalyzer) Analyze(ctx *Context, form value.Any) (Expr, error) {
 			break
 		}
 
-		return ba.analyzeSeq(ctx, f)
+		return ba.analyzeSeq(env, f)
 	}
 
 	return &ConstExpr{Const: form}, nil
 }
 
-func (ba BasicAnalyzer) analyzeSeq(ctx *Context, seq value.Seq) (Expr, error) {
+func (ba BasicAnalyzer) analyzeSeq(env *Env, seq value.Seq) (Expr, error) {
 	/*
 		First we analyze the call target.  This is the first item in the sequence.
 	*/
@@ -65,7 +65,7 @@ func (ba BasicAnalyzer) analyzeSeq(ctx *Context, seq value.Seq) (Expr, error) {
 				return nil, err
 			}
 
-			return parse(ctx, next)
+			return parse(env, next)
 		}
 	}
 
@@ -77,13 +77,13 @@ func (ba BasicAnalyzer) analyzeSeq(ctx *Context, seq value.Seq) (Expr, error) {
 	var args []Expr
 	err = value.ForEach(seq, func(item value.Any) (done bool, err error) {
 		if target == nil {
-			if target, err = ba.Analyze(ctx, first); err != nil {
+			if target, err = ba.Analyze(env, first); err != nil {
 				return
 			}
 		}
 
 		var arg Expr
-		if arg, err = ba.Analyze(ctx, item); err == nil {
+		if arg, err = ba.Analyze(env, item); err == nil {
 			args = append(args, arg)
 		}
 

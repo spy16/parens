@@ -14,12 +14,12 @@ var (
 	_ = ParseSpecial(parseQuoteExpr)
 )
 
-func parseQuoteExpr(ctx *Context, args value.Seq) (Expr, error) {
+func parseQuoteExpr(_ *Env, args value.Seq) (Expr, error) {
 	if count, err := args.Count(); err != nil {
 		return nil, err
 	} else if count != 1 {
 		return nil, Error{
-			Cause:   errors.New("invalid def form"),
+			Cause:   errors.New("invalid quote form"),
 			Message: fmt.Sprintf("requires exactly 1 argument, got %d", count),
 		}
 	}
@@ -34,7 +34,7 @@ func parseQuoteExpr(ctx *Context, args value.Seq) (Expr, error) {
 	}, nil
 }
 
-func parseDefExpr(ctx *Context, args value.Seq) (Expr, error) {
+func parseDefExpr(env *Env, args value.Seq) (Expr, error) {
 	if count, err := args.Count(); err != nil {
 		return nil, err
 	} else if count != 2 {
@@ -67,7 +67,7 @@ func parseDefExpr(ctx *Context, args value.Seq) (Expr, error) {
 		return nil, err
 	}
 
-	res, err := ctx.Eval(second)
+	res, err := env.Eval(second)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func parseDefExpr(ctx *Context, args value.Seq) (Expr, error) {
 	}, nil
 }
 
-func parseGoExpr(_ *Context, args value.Seq) (Expr, error) {
+func parseGoExpr(_ *Env, args value.Seq) (Expr, error) {
 	v, err := args.First()
 	if err != nil {
 		return nil, err
@@ -86,7 +86,7 @@ func parseGoExpr(_ *Context, args value.Seq) (Expr, error) {
 
 	if v == nil {
 		return nil, Error{
-			Cause: errors.New("go expt requires exactly one argument"),
+			Cause: errors.New("go expr requires exactly one argument"),
 		}
 	}
 
