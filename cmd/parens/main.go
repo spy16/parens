@@ -14,7 +14,7 @@ func main() {
 		"true":    value.Bool(true),
 		"false":   value.Bool(false),
 		"pi":      value.Float64(3.1416),
-		"version": &value.String{Value: "1.0"},
+		"version": value.String("1.0"),
 	}
 
 	env := parens.New(parens.WithGlobals(globals))

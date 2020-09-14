@@ -137,7 +137,7 @@ func readSymbol(rd *Reader, init rune) (value.Any, error) {
 		return nil, err
 	}
 
-	return &value.Symbol{Value: s}, nil
+	return value.Symbol(s), nil
 }
 
 func readString(rd *Reader, _ rune) (value.Any, error) {
@@ -183,7 +183,7 @@ func readString(rd *Reader, _ rune) (value.Any, error) {
 		b.WriteRune(r)
 	}
 
-	return &value.String{Value: b.String()}, nil
+	return value.String(b.String()), nil
 }
 
 func readComment(rd *Reader, _ rune) (value.Any, error) {
@@ -207,7 +207,7 @@ func readKeyword(rd *Reader, init rune) (value.Any, error) {
 		return nil, err
 	}
 
-	return &value.Keyword{Value: token}, nil
+	return value.Keyword(token), nil
 }
 
 func readCharacter(rd *Reader, _ rune) (value.Any, error) {
@@ -273,6 +273,6 @@ func quoteFormReader(expandFunc string) Macro {
 			return nil, err
 		}
 
-		return value.NewList([]value.Any{&value.Symbol{Value: expandFunc}, expr})
+		return value.NewList([]value.Any{value.Symbol(expandFunc), expr})
 	}
 }

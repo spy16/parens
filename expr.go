@@ -31,11 +31,13 @@ type Expr interface {
 // no side-effect on the VM.
 type ConstExpr struct{ Const value.Any }
 
+// Eval returns the constant value unmodified.
 func (ce ConstExpr) Eval(_ *Env) (value.Any, error) { return ce.Const, nil }
 
 // QuoteExpr expression represents a quoted form and
 type QuoteExpr struct{ Form value.Any }
 
+// Eval returns the quoted form unmodified.
 func (qe QuoteExpr) Eval(_ *Env) (value.Any, error) {
 	// TODO: re-use this for syntax-quote and unquote?
 	return qe.Form, nil
@@ -55,7 +57,7 @@ func (de DefExpr) Eval(env *Env) (value.Any, error) {
 	}
 
 	env.setGlobal(de.Name, de.Value)
-	return &value.Symbol{Value: de.Name}, nil
+	return value.Symbol(de.Name), nil
 }
 
 // IfExpr represents the if-then-else form.
