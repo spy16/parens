@@ -34,10 +34,13 @@ func WithMapFactory(factory func() ConcurrentMap) Option {
 	}
 }
 
-// WithMaxDepth sets the max depth allowed for stack.
-func WithMaxDepth(depth int) Option {
+// WithMaxDepth sets the max depth allowed for stack.  Panics if depth == 0.
+func WithMaxDepth(depth uint) Option {
+	if depth == 0 {
+		panic("maxdepth must be nonzero.")
+	}
 	return func(env *Env) {
-		env.maxDepth = depth
+		env.maxDepth = int(depth)
 	}
 }
 
@@ -75,5 +78,6 @@ func withDefaults(opts []Option) []Option {
 		WithAnalyzer(nil),
 		WithExpander(nil),
 		WithMapFactory(nil),
+		WithMaxDepth(10000),
 	}, opts...)
 }
