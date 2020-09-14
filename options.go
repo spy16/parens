@@ -20,16 +20,21 @@ func WithGlobals(globals map[string]value.Any) Option {
 // WithMapFactory sets the factory to be used for creating variables map
 // in a stack frame.
 func WithMapFactory(factory func() ConcurrentMap) Option {
+	if factory == nil {
+		factory = newMutexMap
+	}
+
 	return func(env *Env) {
-		if factory == nil {
-			factory = newMutexMap
-		} else {
-			newMap := factory()
+		newMap := factory()
+
+		// WithGlobals previously called?
+		if env.stack[0].ConcurrentMap != nil {
 			for k, v := range env.stack[0].Map() {
 				newMap.Store(k, v)
 			}
-			env.stack[0].ConcurrentMap = newMap
 		}
+
+		env.stack[0].ConcurrentMap = newMap
 		env.mapFactory = factory
 	}
 }
