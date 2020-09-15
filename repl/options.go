@@ -79,7 +79,7 @@ func WithPrompts(oneLine, multiLine string) Option {
 	}
 }
 
-// WithReaderFactory can be used set factory function for initializing sabre
+// WithReaderFactory can be used set factory function for initializing lisp
 // Reader. This is useful when you want REPL to use custom reader instance.
 func WithReaderFactory(factory ReaderFactory) Option {
 	if factory == nil {

@@ -26,20 +26,20 @@ func Cons(v Any, seq Seq) (Seq, error) {
 }
 
 // NewList returns a new linked-list containing given values.
-func NewList(items []Any) (lst Seq, err error) {
+func NewList(items ...Any) Seq {
 	if len(items) == 0 {
-		lst = Seq((*LinkedList)(nil))
-		return
+		return Seq((*LinkedList)(nil))
 	}
 
-	lst = Seq(&LinkedList{})
+	var err error
+	lst := Seq(&LinkedList{})
 	for i := len(items) - 1; i >= 0; i-- {
 		if lst, err = Cons(items[i], lst); err != nil {
-			break
+			panic(err)
 		}
 	}
 
-	return
+	return lst
 }
 
 // LinkedList implements an immutable Seq using linked-list data structure.

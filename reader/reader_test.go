@@ -211,9 +211,9 @@ func TestReader_One(t *testing.T) {
 		{
 			name: "UnQuote",
 			src:  "~(x 3)",
-			want: mustSeq(
+			want: value.NewList(
 				value.Symbol("unquote"),
-				mustSeq(
+				value.NewList(
 					value.Symbol("x"),
 					value.Int64(3),
 				),
@@ -528,17 +528,17 @@ func TestReader_One_List(t *testing.T) {
 		{
 			name: "EmptyList",
 			src:  `()`,
-			want: mustSeq(),
+			want: value.NewList(),
 		},
 		{
 			name: "ListWithOneEntry",
 			src:  `(help)`,
-			want: mustSeq(value.Symbol("help")),
+			want: value.NewList(value.Symbol("help")),
 		},
 		{
 			name: "ListWithMultipleEntry",
 			src:  `(+ 0xF 3.1413)`,
-			want: mustSeq(
+			want: value.NewList(
 				value.Symbol("+"),
 				value.Int64(15),
 				value.Float64(3.1413),
@@ -547,7 +547,7 @@ func TestReader_One_List(t *testing.T) {
 		{
 			name: "ListWithCommaSeparator",
 			src:  `(+,0xF,3.1413)`,
-			want: mustSeq(
+			want: value.NewList(
 				value.Symbol("+"),
 				value.Int64(15),
 				value.Float64(3.1413),
@@ -559,7 +559,7 @@ func TestReader_One_List(t *testing.T) {
                       0xF
                       3.1413
 					)`,
-			want: mustSeq(
+			want: value.NewList(
 				value.Symbol("+"),
 				value.Int64(15),
 				value.Float64(3.1413),
@@ -571,7 +571,7 @@ func TestReader_One_List(t *testing.T) {
                       0xF    ; hex representation of 15
                       3.1413 ; value of math constant pi
                   )`,
-			want: mustSeq(
+			want: value.NewList(
 				value.Symbol("+"),
 				value.Int64(15),
 				value.Float64(3.1413),
@@ -607,13 +607,4 @@ func executeReaderTests(t *testing.T, tests []readerTestCase) {
 			}
 		})
 	}
-}
-
-func mustSeq(vs ...value.Any) value.Seq {
-	seq, err := value.NewList(vs)
-	if err != nil {
-		panic(err)
-	}
-
-	return seq
 }

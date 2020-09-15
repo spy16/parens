@@ -49,7 +49,7 @@ func WithExpander(expander Expander) Option {
 func WithAnalyzer(analyzer Analyzer) Option {
 	return func(env *Env) {
 		if analyzer == nil {
-			analyzer = &BasicAnalyzer{
+			analyzer = &BuiltinAnalyzer{
 				SpecialForms: map[string]ParseSpecial{
 					"go":    parseGoExpr,
 					"def":   parseDefExpr,

@@ -23,7 +23,7 @@ func TestGoExpr(t *testing.T) {
 		return
 	}
 
-	env.Eval(val)
+	_, _ = env.Eval(val)
 	time.Sleep(time.Millisecond)
 
 	val, err = env.Eval(value.Symbol("test"))

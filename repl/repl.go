@@ -1,5 +1,4 @@
-// Package repl provides facilities to build an interactive REPL using sabre
-// Runtime instance.
+// Package repl provides facilities to build an interactive REPL using parens.
 package repl
 
 import (
@@ -14,7 +13,7 @@ import (
 	"github.com/spy16/parens/value"
 )
 
-// New returns a new instance of REPL with given sabre Runtime. Option values
+// New returns a new instance of REPL with given parens Env. Option values
 // can be used to configure REPL input, output etc.
 func New(env *parens.Env, opts ...Option) *REPL {
 	repl := &REPL{

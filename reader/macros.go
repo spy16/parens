@@ -252,7 +252,7 @@ func readList(rd *Reader, _ rune) (value.Any, error) {
 		return nil, err
 	}
 
-	return value.NewList(forms)
+	return value.NewList(forms...), nil
 }
 
 func quoteFormReader(expandFunc string) Macro {
@@ -273,6 +273,6 @@ func quoteFormReader(expandFunc string) Macro {
 			return nil, err
 		}
 
-		return value.NewList([]value.Any{value.Symbol(expandFunc), expr})
+		return value.NewList(value.Symbol(expandFunc), expr), nil
 	}
 }

@@ -6,19 +6,26 @@ import (
 	"github.com/spy16/parens/value"
 )
 
-var _ Analyzer = (*BasicAnalyzer)(nil)
+var _ Analyzer = (*BuiltinAnalyzer)(nil)
+
+// BuiltinAnalyzer parses builtin value forms and returns Expr that can
+// be evaluated against parens Env. Custom special form parsers can be
+// set using WithAnalyzer().
+type BuiltinAnalyzer struct {
+	SpecialForms map[string]ParseSpecial
+}
 
 // ParseSpecial validates a special form invocation, parse the form and
 // returns an expression that can be evaluated for result.
 type ParseSpecial func(env *Env, args value.Seq) (Expr, error)
 
-// BasicAnalyzer can parse (optional) special forms.
-type BasicAnalyzer struct {
-	SpecialForms map[string]ParseSpecial
-}
+// Analyze performs syntactic analysis of given form and returns an Expr
+// that can be evaluated for result against an Env.
+func (ba BuiltinAnalyzer) Analyze(env *Env, form value.Any) (Expr, error) {
+	if value.IsNil(form) {
+		return &ConstExpr{Const: value.Nil{}}, nil
+	}
 
-// Analyze the form.
-func (ba BasicAnalyzer) Analyze(env *Env, form value.Any) (Expr, error) {
 	switch f := form.(type) {
 	case value.Symbol:
 		v := env.resolve(string(f))
@@ -44,55 +51,40 @@ func (ba BasicAnalyzer) Analyze(env *Env, form value.Any) (Expr, error) {
 	return &ConstExpr{Const: form}, nil
 }
 
-func (ba BasicAnalyzer) analyzeSeq(env *Env, seq value.Seq) (Expr, error) {
-	/*
-		First we analyze the call target.  This is the first item in the sequence.
-	*/
+func (ba BuiltinAnalyzer) analyzeSeq(env *Env, seq value.Seq) (Expr, error) {
+	//	Analyze the call target.  This is the first item in the sequence.
 	first, err := seq.First()
 	if err != nil {
 		return nil, err
 	}
 
-	/*
-		The call target may be a special form.  In this case, we need to get the
-		corresponding parser function, which will take care of parsing/analyzing the
-		tail.
-	*/
+	// The call target may be a special form.  In this case, we need to get the
+	// corresponding parser function, which will take care of parsing/analyzing
+	// the tail.
 	if sym, ok := first.(value.Symbol); ok {
 		if parse, found := ba.SpecialForms[string(sym)]; found {
 			next, err := seq.Next()
 			if err != nil {
 				return nil, err
 			}
-
 			return parse(env, next)
 		}
 	}
 
-	/*
-		If we get here, the call target is a standard invokable (usually a function or
-		a macro), so we are responsible for analyzing the call target and its arguments.
-	*/
-	var target Expr
-	var args []Expr
+	// Call target is not a special form and must be a Invokable value. Analyze
+	// the arguments and create an InvokeExpr.
+	ie := InvokeExpr{Name: fmt.Sprintf("%s", first)}
 	err = value.ForEach(seq, func(item value.Any) (done bool, err error) {
-		if target == nil {
-			if target, err = ba.Analyze(env, first); err != nil {
-				return
-			}
+		if ie.Target == nil {
+			ie.Target, err = ba.Analyze(env, first)
+			return
 		}
 
 		var arg Expr
 		if arg, err = ba.Analyze(env, item); err == nil {
-			args = append(args, arg)
+			ie.Args = append(ie.Args, arg)
 		}
-
 		return
 	})
-
-	return &InvokeExpr{
-		Name:   fmt.Sprintf("%s", target),
-		Target: target,
-		Args:   args,
-	}, err
+	return &ie, err
 }
