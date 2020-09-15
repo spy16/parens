@@ -6,36 +6,19 @@ import "github.com/spy16/parens/value"
 // Instance.
 type Option func(env *Env)
 
-// WithGlobals sets the global variables during initialisation.
-func WithGlobals(globals map[string]value.Any) Option {
+// WithGlobals sets the global variables during initialisation. If factory
+// is nil, a mutex based concurrent map will be used.
+func WithGlobals(globals map[string]value.Any, factory func() ConcurrentMap) Option {
 	return func(env *Env) {
-		vars := env.mapFactory()
+		if factory == nil {
+			factory = newMutexMap
+		}
+		if env.globals == nil {
+			env.globals = factory()
+		}
 		for k, v := range globals {
-			vars.Store(k, v)
+			env.globals.Store(k, v)
 		}
-		env.stack[0].ConcurrentMap = vars
-	}
-}
-
-// WithMapFactory sets the factory to be used for creating variables map
-// in a stack frame.
-func WithMapFactory(factory func() ConcurrentMap) Option {
-	if factory == nil {
-		factory = newMutexMap
-	}
-
-	return func(env *Env) {
-		newMap := factory()
-
-		// WithGlobals previously called?
-		if env.stack[0].ConcurrentMap != nil {
-			for k, v := range env.stack[0].Map() {
-				newMap.Store(k, v)
-			}
-		}
-
-		env.stack[0].ConcurrentMap = newMap
-		env.mapFactory = factory
 	}
 }
 
@@ -82,7 +65,6 @@ func withDefaults(opts []Option) []Option {
 	return append([]Option{
 		WithAnalyzer(nil),
 		WithExpander(nil),
-		WithMapFactory(nil),
 		WithMaxDepth(10000),
 	}, opts...)
 }

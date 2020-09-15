@@ -13,5 +13,9 @@
 bin/
 .vscode/
 .idea/
+
+
+# experimental files + directories.
+expt/
 sabre.iml
 temp.lisp

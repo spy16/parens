@@ -128,9 +128,9 @@ func (ie InvokeExpr) Eval(env *Env) (value.Any, error) {
 	}
 
 	env.push(stackFrame{
-		Name:          ie.Name,
-		Args:          args,
-		ConcurrentMap: env.mapFactory(),
+		Name: ie.Name,
+		Args: args,
+		Vars: map[string]value.Any{},
 	})
 	defer env.pop()
 
