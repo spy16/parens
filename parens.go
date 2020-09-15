@@ -6,12 +6,9 @@ import (
 	"github.com/spy16/parens/value"
 )
 
-const globalFrame = "<global>"
-
 // New returns a new root context initialised based on given options.
 func New(opts ...Option) Env {
-	env := Env{ctx: context.Background()}
-	env.push(stackFrame{Name: globalFrame})
+	env := Env{ctx: context.Background(), globals: newMutexMap()}
 	for _, opt := range withDefaults(opts) {
 		opt(&env)
 	}
@@ -22,12 +19,12 @@ func New(opts ...Option) Env {
 // for result. Env is not safe for concurrent use. Use fork() to get a
 // child context for concurrent executions.
 type Env struct {
-	ctx        context.Context
-	analyzer   Analyzer
-	expander   Expander
-	stack      []stackFrame
-	maxDepth   int
-	mapFactory func() ConcurrentMap
+	ctx      context.Context
+	analyzer Analyzer
+	expander Expander
+	globals  ConcurrentMap
+	stack    []stackFrame
+	maxDepth int
 }
 
 // Eval performs macro-expansion if necessary, converts the expanded form
@@ -64,12 +61,11 @@ func (env *Env) expandAnalyze(form value.Any) (Expr, error) {
 // can be used as context for an independent thread of execution.
 func (env *Env) fork() *Env {
 	return &Env{
-		ctx:        env.ctx,
-		stack:      append([]stackFrame(nil), env.stack...),
-		expander:   env.expander,
-		analyzer:   env.analyzer,
-		maxDepth:   env.maxDepth,
-		mapFactory: env.mapFactory,
+		ctx:      env.ctx,
+		globals:  env.globals,
+		expander: env.expander,
+		analyzer: env.analyzer,
+		maxDepth: env.maxDepth,
 	}
 }
 
@@ -86,22 +82,20 @@ func (env *Env) pop() (frame *stackFrame) {
 }
 
 func (env *Env) setGlobal(key string, value value.Any) {
-	env.stack[0].Store(key, value)
+	env.globals.Store(key, value)
 }
 
 func (env Env) resolve(sym string) value.Any {
-	if len(env.stack) == 0 {
-		panic("runtime stack must never be empty")
-	}
-
-	// traverse from top of the stack until a binding is found.
-	for i := len(env.stack) - 1; i >= 0; i-- {
-		if v, found := env.stack[i].Load(sym); found {
+	if len(env.stack) > 0 {
+		// check inside top of the stack for local bindings.
+		top := env.stack[len(env.stack)-1]
+		if v, found := top.Vars[sym]; found {
 			return v
 		}
 	}
-
-	return nil
+	// return the value from global bindings if found.
+	v, _ := env.globals.Load(sym)
+	return v
 }
 
 // Analyzer implementation is responsible for performing syntax analysis
@@ -122,8 +116,7 @@ type Expander interface {
 }
 
 type stackFrame struct {
-	ConcurrentMap
-
 	Name string
 	Args []value.Any
+	Vars map[string]value.Any
 }
