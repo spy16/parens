@@ -1,19 +1,19 @@
 package reader
 
 import (
-	"github.com/spy16/parens/value"
+	"github.com/spy16/parens"
 )
 
 // Option for Reader
 type Option func(*Reader)
 
 // WithPredefinedSymbols maps a set of symbols to a set of values globally.
-func WithPredefinedSymbols(ss map[string]value.Any) Option {
+func WithPredefinedSymbols(ss map[string]parens.Any) Option {
 	if ss == nil {
-		ss = map[string]value.Any{
-			"nil":   value.Nil{},
-			"true":  value.Bool(true),
-			"false": value.Bool(false),
+		ss = map[string]parens.Any{
+			"nil":   parens.Nil{},
+			"true":  parens.Bool(true),
+			"false": parens.Bool(false),
 		}
 	}
 

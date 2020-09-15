@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/spy16/parens/value"
+	"github.com/spy16/parens"
 )
 
 func TestNew(t *testing.T) {
@@ -51,7 +51,7 @@ func TestReader_SetMacro(t *testing.T) {
 		rd := New(strings.NewReader("~hello"))
 		rd.SetMacro('~', false, nil) // remove unquote operator
 
-		want := value.Symbol("~hello")
+		want := parens.Symbol("~hello")
 
 		got, err := rd.One()
 		if err != nil {
@@ -66,11 +66,11 @@ func TestReader_SetMacro(t *testing.T) {
 	t.Run("DispatchMacro", func(t *testing.T) {
 		rd := New(strings.NewReader("#$123"))
 		// `#$` returns string "USD"
-		rd.SetMacro('$', true, func(rd *Reader, init rune) (value.Any, error) {
-			return value.String("USD"), nil
+		rd.SetMacro('$', true, func(rd *Reader, init rune) (parens.Any, error) {
+			return parens.String("USD"), nil
 		}) // remove unquote operator
 
-		want := value.String("USD")
+		want := parens.String("USD")
 
 		got, err := rd.One()
 		if err != nil {
@@ -84,7 +84,7 @@ func TestReader_SetMacro(t *testing.T) {
 
 	t.Run("CustomMacro", func(t *testing.T) {
 		rd := New(strings.NewReader("~hello"))
-		rd.SetMacro('~', false, func(rd *Reader, _ rune) (value.Any, error) {
+		rd.SetMacro('~', false, func(rd *Reader, _ rune) (parens.Any, error) {
 			var ru []rune
 			for {
 				r, err := rd.NextRune()
@@ -101,10 +101,10 @@ func TestReader_SetMacro(t *testing.T) {
 				ru = append(ru, r)
 			}
 
-			return value.String(ru), nil
+			return parens.String(ru), nil
 		}) // override unquote operator
 
-		want := value.String("hello")
+		want := parens.String("hello")
 
 		got, err := rd.One()
 		if err != nil {
@@ -121,29 +121,29 @@ func TestReader_All(t *testing.T) {
 	tests := []struct {
 		name    string
 		src     string
-		want    []value.Any
+		want    []parens.Any
 		wantErr bool
 	}{
 		{
 			name: "ValidLiteralSample",
 			src:  `123 "Hello World" 12.34 -0xF +010 true nil 0b1010 \a :hello`,
-			want: []value.Any{
-				value.Int64(123),
-				value.String("Hello World"),
-				value.Float64(12.34),
-				value.Int64(-15),
-				value.Int64(8),
-				value.Bool(true),
-				value.Nil{},
-				value.Int64(10),
-				value.Char('a'),
-				value.Keyword("hello"),
+			want: []parens.Any{
+				parens.Int64(123),
+				parens.String("Hello World"),
+				parens.Float64(12.34),
+				parens.Int64(-15),
+				parens.Int64(8),
+				parens.Bool(true),
+				parens.Nil{},
+				parens.Int64(10),
+				parens.Char('a'),
+				parens.Keyword("hello"),
 			},
 		},
 		{
 			name: "WithComment",
 			src:  `:valid-keyword ; comment should return errSkip`,
-			want: []value.Any{value.Keyword("valid-keyword")},
+			want: []parens.Any{parens.Keyword("valid-keyword")},
 		},
 		{
 			name:    "UnterminatedString",
@@ -153,7 +153,7 @@ func TestReader_All(t *testing.T) {
 		{
 			name: "CommentFollowedByForm",
 			src:  `; comment should return errSkip` + "\n" + `:valid-keyword`,
-			want: []value.Any{value.Keyword("valid-keyword")},
+			want: []parens.Any{parens.Keyword("valid-keyword")},
 		},
 		{
 			name:    "UnterminatedList",
@@ -211,11 +211,11 @@ func TestReader_One(t *testing.T) {
 		{
 			name: "UnQuote",
 			src:  "~(x 3)",
-			want: value.NewList(
-				value.Symbol("unquote"),
-				value.NewList(
-					value.Symbol("x"),
-					value.Int64(3),
+			want: parens.NewList(
+				parens.Symbol("unquote"),
+				parens.NewList(
+					parens.Symbol("x"),
+					parens.Int64(3),
 				),
 			),
 		},
@@ -227,97 +227,97 @@ func TestReader_One_Number(t *testing.T) {
 		{
 			name: "NumberWithLeadingSpaces",
 			src:  "    +1234",
-			want: value.Int64(1234),
+			want: parens.Int64(1234),
 		},
 		{
 			name: "PositiveInt",
 			src:  "+1245",
-			want: value.Int64(1245),
+			want: parens.Int64(1245),
 		},
 		{
 			name: "NegativeInt",
 			src:  "-234",
-			want: value.Int64(-234),
+			want: parens.Int64(-234),
 		},
 		{
 			name: "PositiveFloat",
 			src:  "+1.334",
-			want: value.Float64(1.334),
+			want: parens.Float64(1.334),
 		},
 		{
 			name: "NegativeFloat",
 			src:  "-1.334",
-			want: value.Float64(-1.334),
+			want: parens.Float64(-1.334),
 		},
 		{
 			name: "PositiveHex",
 			src:  "0x124",
-			want: value.Int64(0x124),
+			want: parens.Int64(0x124),
 		},
 		{
 			name: "NegativeHex",
 			src:  "-0x124",
-			want: value.Int64(-0x124),
+			want: parens.Int64(-0x124),
 		},
 		{
 			name: "PositiveOctal",
 			src:  "0123",
-			want: value.Int64(0123),
+			want: parens.Int64(0123),
 		},
 		{
 			name: "NegativeOctal",
 			src:  "-0123",
-			want: value.Int64(-0123),
+			want: parens.Int64(-0123),
 		},
 		{
 			name: "PositiveBinary",
 			src:  "0b10",
-			want: value.Int64(2),
+			want: parens.Int64(2),
 		},
 		{
 			name: "NegativeBinary",
 			src:  "-0b10",
-			want: value.Int64(-2),
+			want: parens.Int64(-2),
 		},
 		{
 			name: "PositiveBase2Radix",
 			src:  "2r10",
-			want: value.Int64(2),
+			want: parens.Int64(2),
 		},
 		{
 			name: "NegativeBase2Radix",
 			src:  "-2r10",
-			want: value.Int64(-2),
+			want: parens.Int64(-2),
 		},
 		{
 			name: "PositiveBase4Radix",
 			src:  "4r123",
-			want: value.Int64(27),
+			want: parens.Int64(27),
 		},
 		{
 			name: "NegativeBase4Radix",
 			src:  "-4r123",
-			want: value.Int64(-27),
+			want: parens.Int64(-27),
 		},
 		{
 			name: "ScientificSimple",
 			src:  "1e10",
-			want: value.Float64(1e10),
+			want: parens.Float64(1e10),
 		},
 		{
 			name: "ScientificNegativeExponent",
 			src:  "1e-10",
-			want: value.Float64(1e-10),
+			want: parens.Float64(1e-10),
 		},
 		{
 			name: "ScientificWithDecimal",
 			src:  "1.5e10",
-			want: value.Float64(1.5e+10),
+			want: parens.Float64(1.5e+10),
 		},
 		{
 			name:    "FloatStartingWith0",
 			src:     "012.3",
-			want:    value.Float64(012.3),
+			want:    parens.Float64(012.3),
 			wantErr: false,
 		},
 		{
@@ -383,22 +383,22 @@ func TestReader_One_String(t *testing.T) {
 		{
 			name: "SimpleString",
 			src:  `"hello"`,
-			want: value.String("hello"),
+			want: parens.String("hello"),
 		},
 		{
 			name: "EscapeQuote",
 			src:  `"double quote is \""`,
-			want: value.String(`double quote is "`),
+			want: parens.String(`double quote is "`),
 		},
 		{
 			name: "EscapeTab",
 			src:  `"hello\tworld"`,
-			want: value.String("hello\tworld"),
+			want: parens.String("hello\tworld"),
 		},
 		{
 			name: "EscapeSlash",
 			src:  `"hello\\world"`,
-			want: value.String(`hello\world`),
+			want: parens.String(`hello\world`),
 		},
 		{
 			name:    "UnexpectedEOF",
@@ -423,27 +423,27 @@ func TestReader_One_Keyword(t *testing.T) {
 		{
 			name: "SimpleASCII",
 			src:  `:test`,
-			want: value.Keyword("test"),
+			want: parens.Keyword("test"),
 		},
 		{
 			name: "LeadingTrailingSpaces",
 			src:  "          :test          ",
-			want: value.Keyword("test"),
+			want: parens.Keyword("test"),
 		},
 		{
 			name: "SimpleUnicode",
 			src:  `:∂`,
-			want: value.Keyword("∂"),
+			want: parens.Keyword("∂"),
 		},
 		{
 			name: "WithSpecialChars",
 			src:  `:this-is-valid?`,
-			want: value.Keyword("this-is-valid?"),
+			want: parens.Keyword("this-is-valid?"),
 		},
 		{
 			name: "FollowedByMacroChar",
 			src:  `:this-is-valid'hello`,
-			want: value.Keyword("this-is-valid"),
+			want: parens.Keyword("this-is-valid"),
 		},
 	})
 }
@@ -453,32 +453,32 @@ func TestReader_One_Character(t *testing.T) {
 		{
 			name: "ASCIILetter",
 			src:  `\a`,
-			want: value.Char('a'),
+			want: parens.Char('a'),
 		},
 		{
 			name: "ASCIIDigit",
 			src:  `\1`,
-			want: value.Char('1'),
+			want: parens.Char('1'),
 		},
 		{
 			name: "Unicode",
 			src:  `\∂`,
-			want: value.Char('∂'),
+			want: parens.Char('∂'),
 		},
 		{
 			name: "Newline",
 			src:  `\newline`,
-			want: value.Char('\n'),
+			want: parens.Char('\n'),
 		},
 		{
 			name: "FormFeed",
 			src:  `\formfeed`,
-			want: value.Char('\f'),
+			want: parens.Char('\f'),
 		},
 		{
 			name: "Unicode",
 			src:  `\u00AE`,
-			want: value.Char('®'),
+			want: parens.Char('®'),
 		},
 		{
 			name:    "InvalidUnicode",
@@ -508,17 +508,17 @@ func TestReader_One_Symbol(t *testing.T) {
 		{
 			name: "SimpleASCII",
 			src:  `hello`,
-			want: value.Symbol("hello"),
+			want: parens.Symbol("hello"),
 		},
 		{
 			name: "Unicode",
 			src:  `find-∂`,
-			want: value.Symbol("find-∂"),
+			want: parens.Symbol("find-∂"),
 		},
 		{
 			name: "SingleChar",
 			src:  `+`,
-			want: value.Symbol("+"),
+			want: parens.Symbol("+"),
 		},
 	})
 }
@@ -528,29 +528,29 @@ func TestReader_One_List(t *testing.T) {
 		{
 			name: "EmptyList",
 			src:  `()`,
-			want: value.NewList(),
+			want: parens.NewList(),
 		},
 		{
 			name: "ListWithOneEntry",
 			src:  `(help)`,
-			want: value.NewList(value.Symbol("help")),
+			want: parens.NewList(parens.Symbol("help")),
 		},
 		{
 			name: "ListWithMultipleEntry",
 			src:  `(+ 0xF 3.1413)`,
-			want: value.NewList(
-				value.Symbol("+"),
-				value.Int64(15),
-				value.Float64(3.1413),
+			want: parens.NewList(
+				parens.Symbol("+"),
+				parens.Int64(15),
+				parens.Float64(3.1413),
 			),
 		},
 		{
 			name: "ListWithCommaSeparator",
 			src:  `(+,0xF,3.1413)`,
-			want: value.NewList(
-				value.Symbol("+"),
-				value.Int64(15),
-				value.Float64(3.1413),
+			want: parens.NewList(
+				parens.Symbol("+"),
+				parens.Int64(15),
+				parens.Float64(3.1413),
 			),
 		},
 		{
@@ -559,10 +559,10 @@ func TestReader_One_List(t *testing.T) {
                       0xF
                       3.1413
 					)`,
-			want: value.NewList(
-				value.Symbol("+"),
-				value.Int64(15),
-				value.Float64(3.1413),
+			want: parens.NewList(
+				parens.Symbol("+"),
+				parens.Int64(15),
+				parens.Float64(3.1413),
 			),
 		},
 		{
@@ -571,10 +571,10 @@ func TestReader_One_List(t *testing.T) {
                       0xF    ; hex representation of 15
                       3.1413 ; value of math constant pi
                   )`,
-			want: value.NewList(
-				value.Symbol("+"),
-				value.Int64(15),
-				value.Float64(3.1413),
+			want: parens.NewList(
+				parens.Symbol("+"),
+				parens.Int64(15),
+				parens.Float64(3.1413),
 			),
 		},
 		{
@@ -588,7 +588,7 @@ func TestReader_One_List(t *testing.T) {
 type readerTestCase struct {
 	name    string
 	src     string
-	want    value.Any
+	want    parens.Any
 	wantErr bool
 }
 

@@ -17,7 +17,6 @@ import (
 	"unicode"
 
 	"github.com/spy16/parens"
-	"github.com/spy16/parens/value"
 )
 
 const dispatchTrigger = '#'
@@ -87,13 +86,13 @@ type Reader struct {
 	macros      map[rune]Macro
 	dispatch    map[rune]Macro
 	dispatching bool
-	predef      map[string]value.Any // TODO(performance):  consider making this a parens.Expr
+	predef      map[string]parens.Any // TODO(performance):  consider making this a parens.Expr
 }
 
 // All consumes characters from stream until EOF and returns a list of all the forms
 // parsed. Any no-op forms (e.g., comment) will not be included in the result.
-func (rd *Reader) All() ([]value.Any, error) {
-	var forms []value.Any
+func (rd *Reader) All() ([]parens.Any, error) {
+	var forms []parens.Any
 
 	for {
 		form, err := rd.One()
@@ -113,7 +112,7 @@ func (rd *Reader) All() ([]value.Any, error) {
 // returns the form while ignoring the no-op forms like comments. Except EOF, all other
 // errors will be wrapped with reader Error type along with the positional information
 // obtained using Position().
-func (rd *Reader) One() (value.Any, error) {
+func (rd *Reader) One() (parens.Any, error) {
 	for {
 		// pi := rd.Position()
 		form, err := rd.readOne()
@@ -274,7 +273,7 @@ func (rd *Reader) Token(init rune) (string, error) {
 
 // Container reads multiple forms until 'end' rune is reached. Should be used to read
 // collection types like List etc. formType is only used to annotate errors.
-func (rd Reader) Container(end rune, formType string, f func(value.Any) error) error {
+func (rd Reader) Container(end rune, formType string, f func(parens.Any) error) error {
 	for {
 		if err := rd.SkipSpaces(); err != nil {
 			if err == io.EOF {
@@ -314,7 +313,7 @@ func (rd Reader) Container(end rune, formType string, f func(value.Any) error) e
 }
 
 // readOne is same as One() but always returns un-annotated errors.
-func (rd *Reader) readOne() (value.Any, error) {
+func (rd *Reader) readOne() (parens.Any, error) {
 	if err := rd.SkipSpaces(); err != nil {
 		return nil, err
 	}
@@ -358,14 +357,14 @@ func (rd *Reader) readOne() (value.Any, error) {
 	}
 
 	// TODO(performance):  type assertion necessary given the above call to `readSymbol`?
-	if predefVal, found := rd.predef[string(v.(value.Symbol))]; found {
+	if predefVal, found := rd.predef[string(v.(parens.Symbol))]; found {
 		return predefVal, nil
 	}
 
 	return v, nil
 }
 
-func (rd *Reader) execDispatch() (value.Any, error) {
+func (rd *Reader) execDispatch() (parens.Any, error) {
 	r2, err := rd.NextRune()
 	if err != nil {
 		// ignore the error and let readOne handle it.
@@ -409,7 +408,7 @@ func (rd *Reader) annotateErr(err error) error {
 	}
 }
 
-func readUnicodeChar(token string, base int) (value.Char, error) {
+func readUnicodeChar(token string, base int) (parens.Char, error) {
 	num, err := strconv.ParseInt(token, base, 64)
 	if err != nil {
 		return -1, fmt.Errorf("invalid unicode character: '\\%s'", token)
@@ -419,10 +418,10 @@ func readUnicodeChar(token string, base int) (value.Char, error) {
 		return -1, fmt.Errorf("invalid unicode character: '\\%s'", token)
 	}
 
-	return value.Char(num), nil
+	return parens.Char(num), nil
 }
 
-func parseRadix(numStr string) (value.Int64, error) {
+func parseRadix(numStr string) (parens.Int64, error) {
 	parts := strings.Split(numStr, "r")
 	if len(parts) != 2 {
 		return 0, fmt.Errorf("illegal radix notation '%s'", numStr)
@@ -444,10 +443,10 @@ func parseRadix(numStr string) (value.Int64, error) {
 		return 0, fmt.Errorf("illegal radix notation '%s'", numStr)
 	}
 
-	return value.Int64(v), nil
+	return parens.Int64(v), nil
 }
 
-func parseScientific(numStr string) (value.Float64, error) {
+func parseScientific(numStr string) (parens.Float64, error) {
 	parts := strings.Split(numStr, "e")
 	if len(parts) != 2 {
 		return 0, fmt.Errorf("illegal scientific notation '%s'", numStr)
@@ -463,7 +462,7 @@ func parseScientific(numStr string) (value.Float64, error) {
 		return 0, fmt.Errorf("illegal scientific notation '%s'", numStr)
 	}
 
-	return value.Float64(base * math.Pow(10, float64(pow))), nil
+	return parens.Float64(base * math.Pow(10, float64(pow))), nil
 }
 
 func getEscape(r rune) (rune, error) {

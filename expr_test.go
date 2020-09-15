@@ -8,7 +8,6 @@ import (
 
 	"github.com/spy16/parens"
 	"github.com/spy16/parens/reader"
-	"github.com/spy16/parens/value"
 )
 
 func TestGoExpr(t *testing.T) {
@@ -26,15 +25,15 @@ func TestGoExpr(t *testing.T) {
 	_, _ = env.Eval(val)
 	time.Sleep(time.Millisecond)
 
-	val, err = env.Eval(value.Symbol("test"))
+	val, err = env.Eval(parens.Symbol("test"))
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	kw, ok := val.(value.Keyword)
+	kw, ok := val.(parens.Keyword)
 	if !ok {
-		t.Errorf("expected value.Keyword, got %s", reflect.TypeOf(kw))
+		t.Errorf("expected parens.Keyword, got %s", reflect.TypeOf(kw))
 		return
 	}
 

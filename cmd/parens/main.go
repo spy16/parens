@@ -6,15 +6,14 @@ import (
 
 	"github.com/spy16/parens"
 	"github.com/spy16/parens/repl"
-	"github.com/spy16/parens/value"
 )
 
 func main() {
-	globals := map[string]value.Any{
-		"nil":       value.Nil{},
-		"true":      value.Bool(true),
-		"false":     value.Bool(false),
-		"*version*": value.String("1.0"),
+	globals := map[string]parens.Any{
+		"nil":       parens.Nil{},
+		"true":      parens.Bool(true),
+		"false":     parens.Bool(false),
+		"*version*": parens.String("1.0"),
 	}
 
 	env := parens.New(parens.WithGlobals(globals, nil))

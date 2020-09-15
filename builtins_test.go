@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/spy16/parens"
-	"github.com/spy16/parens/value"
 )
 
 func TestBasicAnalyzer_Analyze(t *testing.T) {
@@ -13,39 +12,39 @@ func TestBasicAnalyzer_Analyze(t *testing.T) {
 
 	table := []struct {
 		title   string
-		form    value.Any
+		form    parens.Any
 		want    parens.Expr
 		wantErr bool
 	}{
 		{
 			title: "Nil",
 			form:  nil,
-			want:  &parens.ConstExpr{Const: value.Nil{}},
+			want:  &parens.ConstExpr{Const: parens.Nil{}},
 		},
 		{
 			title: "Symbol",
-			form:  value.Symbol("str"),
-			want:  &parens.ConstExpr{Const: value.String("hello")},
+			form:  parens.Symbol("str"),
+			want:  &parens.ConstExpr{Const: parens.String("hello")},
 		},
 		{
 			title:   "Unknown Symbol",
-			form:    value.Symbol("unknown"),
+			form:    parens.Symbol("unknown"),
 			wantErr: true,
 		},
 		{
 			title: "List",
-			form:  value.NewList(value.String("hello")),
+			form:  parens.NewList(parens.Keyword("hello")),
 			want: &parens.InvokeExpr{
-				Name:   "hello",
-				Target: &parens.ConstExpr{Const: value.String("hello")},
+				Name:   ":hello",
+				Target: &parens.ConstExpr{Const: parens.Keyword("hello")},
 			},
 		},
 	}
 
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
-			env := parens.New(parens.WithGlobals(map[string]value.Any{
-				"str": value.String("hello"),
+			env := parens.New(parens.WithGlobals(map[string]parens.Any{
+				"str": parens.String("hello"),
 			}, nil))
 
 			az := &parens.BuiltinAnalyzer{}

@@ -1,14 +1,12 @@
 package parens
 
-import "github.com/spy16/parens/value"
-
 // Option can be used with New() to customize initialization of Evaluator
 // Instance.
 type Option func(env *Env)
 
 // WithGlobals sets the global variables during initialisation. If factory
 // is nil, a mutex based concurrent map will be used.
-func WithGlobals(globals map[string]value.Any, factory func() ConcurrentMap) Option {
+func WithGlobals(globals map[string]Any, factory func() ConcurrentMap) Option {
 	return func(env *Env) {
 		if factory == nil {
 			factory = newMutexMap
@@ -37,7 +35,7 @@ func WithMaxDepth(depth uint) Option {
 func WithExpander(expander Expander) Option {
 	return func(env *Env) {
 		if expander == nil {
-			expander = &basicExpander{}
+			expander = &builtinExpander{}
 		}
 		env.expander = expander
 	}
