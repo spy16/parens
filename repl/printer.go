@@ -23,9 +23,9 @@ func (p BasicPrinter) Fprintln(w io.Writer, val interface{}) error {
 // following interfaces (in decreasing order of preference) before printing the default
 // Go value.
 //
-//  1. Renderer
-//  2. fmt.Formatter
-//  3. fmt.Stringer
+//  1. fmt.Formatter
+//  2. fmt.Stringer
+//  3. SExpr
 type Renderer struct{}
 
 // SExpr can render a parseable s-expression
