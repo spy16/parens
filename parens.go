@@ -7,10 +7,10 @@ import (
 )
 
 // New returns a new root context initialised based on given options.
-func New(opts ...Option) Env {
-	env := Env{ctx: context.Background(), globals: newMutexMap()}
+func New(opts ...Option) *Env {
+	env := &Env{ctx: context.Background(), globals: newMutexMap()}
 	for _, opt := range withDefaults(opts) {
-		opt(&env)
+		opt(env)
 	}
 	return env
 }

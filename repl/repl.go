@@ -16,9 +16,9 @@ import (
 
 // New returns a new instance of REPL with given sabre Runtime. Option values
 // can be used to configure REPL input, output etc.
-func New(env parens.Env, opts ...Option) *REPL {
+func New(env *parens.Env, opts ...Option) *REPL {
 	repl := &REPL{
-		rootEnv:   &env,
+		rootEnv:   env,
 		currentNS: func() string { return "" },
 	}
 
