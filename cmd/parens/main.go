@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 
 	"github.com/spy16/parens"
 	"github.com/spy16/parens/repl"
@@ -18,8 +19,12 @@ func main() {
 
 	env := parens.New(parens.WithGlobals(globals, nil))
 
-	_ = repl.New(env,
+	err := repl.New(env,
 		repl.WithBanner("Welcome to Parens!"),
 		repl.WithPrompts(">>", " |"),
 	).Loop(context.Background())
+
+	if err != nil {
+		log.Fatal(err)
+	}
 }
