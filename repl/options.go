@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"io"
 	"os"
-	"strings"
 
 	"github.com/spy16/parens/reader"
 )
@@ -67,7 +66,7 @@ func WithOutput(w io.Writer) Option {
 // starts.
 func WithBanner(banner string) Option {
 	return func(repl *REPL) {
-		repl.banner = strings.TrimSpace(banner)
+		repl.banner = banner
 	}
 }
 
