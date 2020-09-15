@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/spy16/parens"
-	"github.com/spy16/parens/value"
 )
 
 func TestEvalAll(t *testing.T) {
@@ -14,27 +13,27 @@ func TestEvalAll(t *testing.T) {
 	table := []struct {
 		title   string
 		env     *parens.Env
-		vals    []value.Any
-		want    []value.Any
+		vals    []parens.Any
+		want    []parens.Any
 		wantErr bool
 	}{
 		{
 			title: "EmptyList",
 			env:   parens.New(),
 			vals:  nil,
-			want:  []value.Any{},
+			want:  []parens.Any{},
 		},
 		{
 			title:   "EvalFails",
 			env:     parens.New(),
-			vals:    []value.Any{value.Symbol("foo")},
+			vals:    []parens.Any{parens.Symbol("foo")},
 			wantErr: true,
 		},
 		{
 			title: "Success",
 			env:   parens.New(),
-			vals:  []value.Any{value.String("foo"), value.Keyword("hello")},
-			want:  []value.Any{value.String("foo"), value.Keyword("hello")},
+			vals:  []parens.Any{parens.String("foo"), parens.Keyword("hello")},
+			want:  []parens.Any{parens.String("foo"), parens.Keyword("hello")},
 		},
 	}
 

@@ -7,17 +7,17 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/spy16/parens/value"
+	"github.com/spy16/parens"
 )
 
 // Macro implementations can be plugged into the Reader to extend, override
 // or customize behavior of the reader.
-type Macro func(rd *Reader, init rune) (value.Any, error)
+type Macro func(rd *Reader, init rune) (parens.Any, error)
 
-// // TODO(enhancement):  implement value.Set
+// // TODO(enhancement):  implement parens.Set
 // // SetReader implements the reader macro for reading set from source.
-// func SetReader(setEnd rune, factory func() value.Set) Macro {
-// 	return func(rd *Reader, _ rune) (value.Any, error) {
+// func SetReader(setEnd rune, factory func() parens.Set) Macro {
+// 	return func(rd *Reader, _ rune) (parens.Any, error) {
 // 		forms, err := rd.Container(setEnd, "Set")
 // 		if err != nil {
 // 			return nil, err
@@ -26,10 +26,10 @@ type Macro func(rd *Reader, init rune) (value.Any, error)
 // 	}
 // }
 
-// // TODO(enhancement): implement value.Vector
+// // TODO(enhancement): implement parens.Vector
 // // VectorReader implements the reader macro for reading vector from source.
-// func VectorReader(vecEnd rune, factory func() value.Vector) Macro {
-// 	return func(rd *Reader, _ rune) (value.Any, error) {
+// func VectorReader(vecEnd rune, factory func() parens.Vector) Macro {
+// 	return func(rd *Reader, _ rune) (parens.Any, error) {
 // 		forms, err := rd.Container(vecEnd, "Vector")
 // 		if err != nil {
 // 			return nil, err
@@ -44,11 +44,11 @@ type Macro func(rd *Reader, init rune) (value.Any, error)
 // 	}
 // }
 
-// // TODO(enhancement) implement value.Map
+// // TODO(enhancement) implement parens.Map
 // // MapReader returns a reader macro for reading map values from source. factory
 // // is used to construct the map and `Assoc` is called for every pair read.
-// func MapReader(mapEnd rune, factory func() value.Map) Macro {
-// 	return func(rd *Reader, _ rune) (value.Any, error) {
+// func MapReader(mapEnd rune, factory func() parens.Map) Macro {
+// 	return func(rd *Reader, _ rune) (parens.Any, error) {
 // 		forms, err := rd.Container(mapEnd, "Map")
 // 		if err != nil {
 // 			return nil, err
@@ -77,7 +77,7 @@ type Macro func(rd *Reader, init rune) (value.Any, error)
 // UnmatchedDelimiter implements a reader macro that can be used to capture
 // unmatched delimiters such as closing parenthesis etc.
 func UnmatchedDelimiter() Macro {
-	return func(_ *Reader, initRune rune) (value.Any, error) {
+	return func(_ *Reader, initRune rune) (parens.Any, error) {
 		return nil, Error{
 			Cause: ErrUnmatchedDelimiter,
 			Rune:  initRune,
@@ -85,7 +85,7 @@ func UnmatchedDelimiter() Macro {
 	}
 }
 
-func readNumber(rd *Reader, init rune) (value.Any, error) {
+func readNumber(rd *Reader, init rune) (parens.Any, error) {
 	numStr, err := rd.Token(init)
 	if err != nil {
 		return nil, err
@@ -113,7 +113,7 @@ func readNumber(rd *Reader, init rune) (value.Any, error) {
 				Form:  numStr,
 			}
 		}
-		return value.Float64(v), nil
+		return parens.Float64(v), nil
 
 	case isRadix:
 		return parseRadix(numStr)
@@ -127,20 +127,20 @@ func readNumber(rd *Reader, init rune) (value.Any, error) {
 			}
 		}
 
-		return value.Int64(v), nil
+		return parens.Int64(v), nil
 	}
 }
 
-func readSymbol(rd *Reader, init rune) (value.Any, error) {
+func readSymbol(rd *Reader, init rune) (parens.Any, error) {
 	s, err := rd.Token(init)
 	if err != nil {
 		return nil, err
 	}
 
-	return value.Symbol(s), nil
+	return parens.Symbol(s), nil
 }
 
-func readString(rd *Reader, _ rune) (value.Any, error) {
+func readString(rd *Reader, _ rune) (parens.Any, error) {
 	var b strings.Builder
 
 	for {
@@ -183,10 +183,10 @@ func readString(rd *Reader, _ rune) (value.Any, error) {
 		b.WriteRune(r)
 	}
 
-	return value.String(b.String()), nil
+	return parens.String(b.String()), nil
 }
 
-func readComment(rd *Reader, _ rune) (value.Any, error) {
+func readComment(rd *Reader, _ rune) (parens.Any, error) {
 	for {
 		r, err := rd.NextRune()
 		if err != nil {
@@ -201,16 +201,16 @@ func readComment(rd *Reader, _ rune) (value.Any, error) {
 	return nil, ErrSkip
 }
 
-func readKeyword(rd *Reader, init rune) (value.Any, error) {
+func readKeyword(rd *Reader, init rune) (parens.Any, error) {
 	token, err := rd.Token(-1)
 	if err != nil {
 		return nil, err
 	}
 
-	return value.Keyword(token), nil
+	return parens.Keyword(token), nil
 }
 
-func readCharacter(rd *Reader, _ rune) (value.Any, error) {
+func readCharacter(rd *Reader, _ rune) (parens.Any, error) {
 	r, err := rd.NextRune()
 	if err != nil {
 		return nil, Error{
@@ -226,12 +226,12 @@ func readCharacter(rd *Reader, _ rune) (value.Any, error) {
 	runes := []rune(token)
 
 	if len(runes) == 1 {
-		return value.Char(runes[0]), nil
+		return parens.Char(runes[0]), nil
 	}
 
 	v, found := charLiterals[token]
 	if found {
-		return value.Char(v), nil
+		return parens.Char(v), nil
 	}
 
 	if token[0] == 'u' {
@@ -241,22 +241,22 @@ func readCharacter(rd *Reader, _ rune) (value.Any, error) {
 	return nil, fmt.Errorf("unsupported character: '\\%s'", token)
 }
 
-func readList(rd *Reader, _ rune) (value.Any, error) {
+func readList(rd *Reader, _ rune) (parens.Any, error) {
 	const listEnd = ')'
 
-	forms := make([]value.Any, 0, 32) // pre-allocate to improve performance on small lists
-	if err := rd.Container(listEnd, "list", func(val value.Any) error {
+	forms := make([]parens.Any, 0, 32) // pre-allocate to improve performance on small lists
+	if err := rd.Container(listEnd, "list", func(val parens.Any) error {
 		forms = append(forms, val)
 		return nil
 	}); err != nil {
 		return nil, err
 	}
 
-	return value.NewList(forms...), nil
+	return parens.NewList(forms...), nil
 }
 
 func quoteFormReader(expandFunc string) Macro {
-	return func(rd *Reader, _ rune) (value.Any, error) {
+	return func(rd *Reader, _ rune) (parens.Any, error) {
 		expr, err := rd.One()
 		if err != nil {
 			if err == io.EOF {
@@ -273,6 +273,6 @@ func quoteFormReader(expandFunc string) Macro {
 			return nil, err
 		}
 
-		return value.NewList(value.Symbol(expandFunc), expr), nil
+		return parens.NewList(parens.Symbol(expandFunc), expr), nil
 	}
 }

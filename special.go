@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-
-	"github.com/spy16/parens/value"
 )
 
 var (
@@ -14,7 +12,7 @@ var (
 	_ = ParseSpecial(parseQuoteExpr)
 )
 
-func parseQuoteExpr(_ *Env, args value.Seq) (Expr, error) {
+func parseQuoteExpr(_ *Env, args Seq) (Expr, error) {
 	if count, err := args.Count(); err != nil {
 		return nil, err
 	} else if count != 1 {
@@ -34,7 +32,7 @@ func parseQuoteExpr(_ *Env, args value.Seq) (Expr, error) {
 	}, nil
 }
 
-func parseDefExpr(env *Env, args value.Seq) (Expr, error) {
+func parseDefExpr(env *Env, args Seq) (Expr, error) {
 	if count, err := args.Count(); err != nil {
 		return nil, err
 	} else if count != 2 {
@@ -49,7 +47,7 @@ func parseDefExpr(env *Env, args value.Seq) (Expr, error) {
 		return nil, err
 	}
 
-	sym, ok := first.(value.Symbol)
+	sym, ok := first.(Symbol)
 	if !ok {
 		return nil, Error{
 			Cause:   errors.New("invalid def form"),
@@ -78,7 +76,7 @@ func parseDefExpr(env *Env, args value.Seq) (Expr, error) {
 	}, nil
 }
 
-func parseGoExpr(_ *Env, args value.Seq) (Expr, error) {
+func parseGoExpr(_ *Env, args Seq) (Expr, error) {
 	v, err := args.First()
 	if err != nil {
 		return nil, err

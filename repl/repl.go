@@ -10,7 +10,6 @@ import (
 
 	"github.com/spy16/parens"
 	"github.com/spy16/parens/reader"
-	"github.com/spy16/parens/value"
 )
 
 // New returns a new instance of REPL with given parens Env. Option values
@@ -114,7 +113,7 @@ func (repl *REPL) print(v interface{}) error {
 	return repl.printer.Fprintln(repl.output, v)
 }
 
-func (repl *REPL) read() ([]value.Any, error) {
+func (repl *REPL) read() ([]parens.Any, error) {
 	var src string
 	lineNo := 1
 
