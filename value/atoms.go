@@ -3,6 +3,7 @@ package value
 import (
 	"fmt"
 	"math"
+	"strconv"
 )
 
 // Nil represents the Value 'nil'.
@@ -10,6 +11,8 @@ type Nil struct{}
 
 // SExpr returns a valid s-expression representing Nil.
 func (Nil) SExpr() (string, error) { return "nil", nil }
+
+func (Nil) String() string { return "nil" }
 
 // Int64 represents a 64-bit integer Value.
 type Int64 int64
@@ -22,6 +25,8 @@ func (i64 Int64) Equals(other Any) bool {
 	val, isInt := other.(Int64)
 	return isInt && (val == i64)
 }
+
+func (i64 Int64) String() string { return strconv.Itoa(int(i64)) }
 
 // Float64 represents a 64-bit double precision floating point Value.
 type Float64 float64
@@ -40,6 +45,8 @@ func (f64 Float64) Equals(other Any) bool {
 	val, isFloat := other.(Float64)
 	return isFloat && (val == f64)
 }
+
+func (f64 Float64) String() string { return fmt.Sprintf("%f", f64) }
 
 // Bool represents a boolean Value.
 type Bool bool

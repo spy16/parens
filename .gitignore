@@ -17,5 +17,4 @@ bin/
 
 # experimental files + directories.
 expt/
-sabre.iml
 temp.lisp
