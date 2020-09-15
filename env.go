@@ -19,7 +19,7 @@ type Env struct {
 	maxDepth int
 }
 
-// ConcurrentMap is used by the Env to store variables in the stack frames.
+// ConcurrentMap is used by the Env to store variables in the global stack frame.
 type ConcurrentMap interface {
 	// Store should store the key-value pair in the map.
 	Store(key string, val Any)

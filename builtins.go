@@ -72,7 +72,7 @@ func (ba BuiltinAnalyzer) analyzeSeq(env *Env, seq Seq) (Expr, error) {
 		}
 	}
 
-	// Call target is not a special form and must be a Invokable  Analyze
+	// Call target is not a special form and must be a Invokable.  Analyze
 	// the arguments and create an InvokeExpr.
 	ie := InvokeExpr{Name: fmt.Sprintf("%s", first)}
 	err = ForEach(seq, func(item Any) (done bool, err error) {
