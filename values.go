@@ -72,9 +72,9 @@ type Int64 int64
 func (i64 Int64) SExpr() (string, error) { return i64.String(), nil }
 
 // Equals returns true if the other Value is also an integer and has same Value.
-func (i64 Int64) Equals(other Any) bool {
+func (i64 Int64) Equals(other Any) (bool, error) {
 	val, isInt := other.(Int64)
-	return isInt && (val == i64)
+	return isInt && (val == i64), nil
 }
 
 func (i64 Int64) String() string { return strconv.Itoa(int(i64)) }
@@ -86,9 +86,9 @@ type Float64 float64
 func (f64 Float64) SExpr() (string, error) { return f64.String(), nil }
 
 // Equals returns true if 'other' is also a float and has same Value.
-func (f64 Float64) Equals(other Any) bool {
+func (f64 Float64) Equals(other Any) (bool, error) {
 	val, isFloat := other.(Float64)
-	return isFloat && (val == f64)
+	return isFloat && (val == f64), nil
 }
 
 func (f64 Float64) String() string {
@@ -105,9 +105,9 @@ type Bool bool
 func (b Bool) SExpr() (string, error) { return b.String(), nil }
 
 // Equals returns true if 'other' is a boolean and has same logical Value.
-func (b Bool) Equals(other Any) bool {
+func (b Bool) Equals(other Any) (bool, error) {
 	val, ok := other.(Bool)
-	return ok && (val == b)
+	return ok && (val == b), nil
 }
 
 func (b Bool) String() string {
@@ -126,9 +126,9 @@ func (char Char) SExpr() (string, error) {
 }
 
 // Equals returns true if the other Value is also a character and has same Value.
-func (char Char) Equals(other Any) bool {
+func (char Char) Equals(other Any) (bool, error) {
 	val, isChar := other.(Char)
-	return isChar && (val == char)
+	return isChar && (val == char), nil
 }
 
 func (char Char) String() string { return fmt.Sprintf("\\%c", char) }
@@ -140,9 +140,9 @@ type String string
 func (str String) SExpr() (string, error) { return str.String(), nil }
 
 // Equals returns true if 'other' is string and has same Value.
-func (str String) Equals(other Any) bool {
+func (str String) Equals(other Any) (bool, error) {
 	otherStr, isStr := other.(String)
-	return isStr && (otherStr == str)
+	return isStr && (otherStr == str), nil
 }
 
 func (str String) String() string { return fmt.Sprintf("\"%s\"", string(str)) }
@@ -154,9 +154,9 @@ type Symbol string
 func (sym Symbol) SExpr() (string, error) { return string(sym), nil }
 
 // Equals returns true if the other Value is also a symbol and has same Value.
-func (sym Symbol) Equals(other Any) bool {
+func (sym Symbol) Equals(other Any) (bool, error) {
 	otherSym, isSym := other.(Symbol)
-	return isSym && (sym == otherSym)
+	return isSym && (sym == otherSym), nil
 }
 
 func (sym Symbol) String() string { return string(sym) }
@@ -168,9 +168,9 @@ type Keyword string
 func (kw Keyword) SExpr() (string, error) { return kw.String(), nil }
 
 // Equals returns true if the other Value is keyword and has same Value.
-func (kw Keyword) Equals(other Any) bool {
+func (kw Keyword) Equals(other Any) (bool, error) {
 	otherKW, isKeyword := other.(Keyword)
-	return isKeyword && (otherKW == kw)
+	return isKeyword && (otherKW == kw), nil
 }
 
 func (kw Keyword) String() string { return fmt.Sprintf(":%s", string(kw)) }
