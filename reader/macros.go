@@ -77,15 +77,16 @@ type Macro func(rd *Reader, init rune) (parens.Any, error)
 // UnmatchedDelimiter implements a reader macro that can be used to capture
 // unmatched delimiters such as closing parenthesis etc.
 func UnmatchedDelimiter() Macro {
-	return func(_ *Reader, initRune rune) (parens.Any, error) {
-		return nil, Error{
-			Cause: ErrUnmatchedDelimiter,
-			Rune:  initRune,
-		}
+	return func(rd *Reader, initRune rune) (parens.Any, error) {
+		e := rd.annotateErr(ErrUnmatchedDelimiter, rd.Position(), "").(Error)
+		e.Rune = initRune
+		return nil, e
 	}
 }
 
 func readNumber(rd *Reader, init rune) (parens.Any, error) {
+	beginPos := rd.Position()
+
 	numStr, err := rd.Token(init)
 	if err != nil {
 		return nil, err
@@ -97,76 +98,71 @@ func readNumber(rd *Reader, init rune) (parens.Any, error) {
 
 	switch {
 	case isRadix && (decimalPoint || isScientific):
-		return nil, Error{
-			Cause: ErrNumberFormat,
-			Form:  numStr,
-		}
+		return nil, rd.annotateErr(ErrNumberFormat, beginPos, numStr)
 
 	case isScientific:
-		return parseScientific(numStr)
+		v, err := parseScientific(numStr)
+		if err != nil {
+			return nil, rd.annotateErr(err, beginPos, numStr)
+		}
+		return v, nil
 
 	case decimalPoint:
 		v, err := strconv.ParseFloat(numStr, 64)
 		if err != nil {
-			return nil, Error{
-				Cause: ErrNumberFormat,
-				Form:  numStr,
-			}
+			return nil, rd.annotateErr(ErrNumberFormat, beginPos, numStr)
 		}
 		return parens.Float64(v), nil
 
 	case isRadix:
-		return parseRadix(numStr)
+		v, err := parseRadix(numStr)
+		if err != nil {
+			return nil, rd.annotateErr(err, beginPos, numStr)
+		}
+		return v, nil
 
 	default:
 		v, err := strconv.ParseInt(numStr, 0, 64)
 		if err != nil {
-			return nil, Error{
-				Cause: ErrNumberFormat,
-				Form:  numStr,
-			}
+			return nil, rd.annotateErr(ErrNumberFormat, beginPos, numStr)
 		}
 
 		return parens.Int64(v), nil
 	}
 }
 
-func readSymbol(rd *Reader, init rune) (parens.Any, error) {
+func readSymbol(rd *Reader, init rune) (parens.Symbol, error) {
+	beginPos := rd.Position()
+
 	s, err := rd.Token(init)
 	if err != nil {
-		return nil, err
+		return "", rd.annotateErr(err, beginPos, s)
 	}
 
 	return parens.Symbol(s), nil
 }
 
-func readString(rd *Reader, _ rune) (parens.Any, error) {
-	var b strings.Builder
+func readString(rd *Reader, init rune) (parens.Any, error) {
+	beginPos := rd.Position()
 
+	var b strings.Builder
 	for {
 		r, err := rd.NextRune()
 		if err != nil {
-			if err == io.EOF {
-				return nil, Error{
-					Form:  "string",
-					Cause: ErrEOF,
-				}
+			if errors.Is(err, io.EOF) {
+				err = ErrEOF
 			}
-
-			return nil, err
+			return nil, rd.annotateErr(err, beginPos, string(init)+b.String())
 		}
 
 		if r == '\\' {
 			r2, err := rd.NextRune()
 			if err != nil {
-				if err == io.EOF {
-					return nil, Error{
-						Form:  "string",
-						Cause: ErrEOF,
-					}
+				if errors.Is(err, io.EOF) {
+					err = ErrEOF
 				}
 
-				return nil, err
+				return nil, rd.annotateErr(err, beginPos, string(init)+b.String())
 			}
 
 			// TODO: Support for Unicode escape \uNN format.
@@ -202,21 +198,22 @@ func readComment(rd *Reader, _ rune) (parens.Any, error) {
 }
 
 func readKeyword(rd *Reader, init rune) (parens.Any, error) {
+	beginPos := rd.Position()
+
 	token, err := rd.Token(-1)
 	if err != nil {
-		return nil, err
+		return nil, rd.annotateErr(err, beginPos, token)
 	}
 
 	return parens.Keyword(token), nil
 }
 
 func readCharacter(rd *Reader, _ rune) (parens.Any, error) {
+	beginPos := rd.Position()
+
 	r, err := rd.NextRune()
 	if err != nil {
-		return nil, Error{
-			Form:  "character",
-			Cause: ErrEOF,
-		}
+		return nil, rd.annotateErr(err, beginPos, "")
 	}
 
 	token, err := rd.Token(r)
@@ -244,12 +241,14 @@ func readCharacter(rd *Reader, _ rune) (parens.Any, error) {
 func readList(rd *Reader, _ rune) (parens.Any, error) {
 	const listEnd = ')'
 
+	beginPos := rd.Position()
+
 	forms := make([]parens.Any, 0, 32) // pre-allocate to improve performance on small lists
 	if err := rd.Container(listEnd, "list", func(val parens.Any) error {
 		forms = append(forms, val)
 		return nil
 	}); err != nil {
-		return nil, err
+		return nil, rd.annotateErr(err, beginPos, "")
 	}
 
 	return parens.NewList(forms...), nil
