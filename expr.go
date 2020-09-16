@@ -49,30 +49,37 @@ func (de DefExpr) Eval(env *Env) (Any, error) {
 }
 
 // IfExpr represents the if-then-else form.
-type IfExpr struct{ Test, Then, Else Any }
+type IfExpr struct{ Test, Then, Else Expr }
 
 // Eval the expression
 func (ife IfExpr) Eval(env *Env) (Any, error) {
-	test, err := env.Eval(ife.Test)
-	if err != nil {
-		return nil, err
+	target := ife.Else
+	if ife.Test != nil {
+		test, err := ife.Test.Eval(env)
+		if err != nil {
+			return nil, err
+		}
+		if IsTruthy(test) {
+			target = ife.Then
+		}
 	}
-	if IsTruthy(test) {
-		return env.Eval(ife.Then)
+
+	if target == nil {
+		return Nil{}, nil
 	}
-	return env.Eval(ife.Else)
+	return target.Eval(env)
 }
 
 // DoExpr represents the (do expr*) form.
-type DoExpr struct{ Forms []Any }
+type DoExpr struct{ Exprs []Expr }
 
 // Eval the expression
 func (de DoExpr) Eval(env *Env) (Any, error) {
 	var res Any
 	var err error
 
-	for _, form := range de.Forms {
-		res, err = env.Eval(form)
+	for _, expr := range de.Exprs {
+		res, err = expr.Eval(env)
 		if err != nil {
 			return nil, err
 		}

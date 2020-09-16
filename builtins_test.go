@@ -32,11 +32,22 @@ func TestBasicAnalyzer_Analyze(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			title: "List",
+			title: "List With One Entry",
 			form:  parens.NewList(parens.Keyword("hello")),
 			want: &parens.InvokeExpr{
 				Name:   ":hello",
 				Target: &parens.ConstExpr{Const: parens.Keyword("hello")},
+			},
+		},
+		{
+			title: "List With Multi Entry",
+			form:  parens.NewList(parens.Keyword("hello"), parens.Int64(1)),
+			want: &parens.InvokeExpr{
+				Name:   ":hello",
+				Target: &parens.ConstExpr{Const: parens.Keyword("hello")},
+				Args: []parens.Expr{
+					&parens.ConstExpr{Const: parens.Int64(1)},
+				},
 			},
 		},
 	}
