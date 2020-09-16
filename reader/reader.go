@@ -6,6 +6,7 @@ package reader
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -63,7 +64,8 @@ func New(r io.Reader, opts ...Option) *Reader {
 			'~':  quoteFormReader("unquote"),
 			'`':  quoteFormReader("syntax-quote"),
 		},
-		dispatch: map[rune]Macro{},
+		dispatch:  map[rune]Macro{},
+		numReader: readNumber,
 	}
 
 	for _, option := range withDefaults(opts) {
@@ -86,7 +88,8 @@ type Reader struct {
 	macros      map[rune]Macro
 	dispatch    map[rune]Macro
 	dispatching bool
-	predef      map[string]parens.Any // TODO(performance):  consider making this a parens.Expr
+	predef      map[string]parens.Any
+	numReader   Macro
 }
 
 // All consumes characters from stream until EOF and returns a list of all the forms
@@ -97,7 +100,7 @@ func (rd *Reader) All() ([]parens.Any, error) {
 	for {
 		form, err := rd.One()
 		if err != nil {
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				break
 			}
 			return nil, err
@@ -114,22 +117,20 @@ func (rd *Reader) All() ([]parens.Any, error) {
 // obtained using Position().
 func (rd *Reader) One() (parens.Any, error) {
 	for {
-		// pi := rd.Position()
 		form, err := rd.readOne()
 		if err != nil {
-			if err == ErrSkip {
+			if errors.Is(err, ErrSkip) {
 				continue
 			}
-			return nil, rd.annotateErr(err)
+			return nil, err
 		}
-		// setPosition(form, pi)
 		return form, nil
 	}
 }
 
 // IsTerminal returns true if the rune should terminate a form. Macro trigger runes
 // defined in the read table and all whitespace characters are considered terminal.
-// "," is also considered whitespace character.
+// "," is also considered a whitespace character and hence a terminal.
 func (rd *Reader) IsTerminal(r rune) bool {
 	if isSpace(r) {
 		return true
@@ -187,7 +188,6 @@ func (rd *Reader) NextRune() (rune, error) {
 	} else {
 		rd.col++
 	}
-
 	return r, nil
 }
 
@@ -257,7 +257,7 @@ func (rd *Reader) Token(init rune) (string, error) {
 			if err == io.EOF {
 				break
 			}
-			return "", err
+			return b.String(), err
 		}
 
 		if rd.IsTerminal(r) {
@@ -324,7 +324,7 @@ func (rd *Reader) readOne() (parens.Any, error) {
 	}
 
 	if unicode.IsNumber(r) {
-		return readNumber(rd, r)
+		return rd.numReader(rd, r)
 	} else if r == '+' || r == '-' {
 		r2, err := rd.NextRune()
 		if err != nil && err != io.EOF {
@@ -334,7 +334,7 @@ func (rd *Reader) readOne() (parens.Any, error) {
 		if err != io.EOF {
 			rd.Unread(r2)
 			if unicode.IsNumber(r2) {
-				return readNumber(rd, r)
+				return rd.numReader(rd, r)
 			}
 		}
 	}
@@ -356,8 +356,7 @@ func (rd *Reader) readOne() (parens.Any, error) {
 		return nil, err
 	}
 
-	// TODO(performance):  type assertion necessary given the above call to `readSymbol`?
-	if predefVal, found := rd.predef[string(v.(parens.Symbol))]; found {
+	if predefVal, found := rd.predef[string(v)]; found {
 		return predefVal, nil
 	}
 
@@ -390,22 +389,22 @@ func (rd *Reader) execDispatch() (parens.Any, error) {
 	return form, nil
 }
 
-func (rd *Reader) annotateErr(err error) error {
+func (rd *Reader) annotateErr(err error, beginPos Position, form string) error {
 	if err == io.EOF || err == ErrSkip {
 		return err
 	}
 
-	if _, ok := err.(parens.Error); ok {
-		return err
+	readErr := Error{}
+	if e, ok := err.(Error); ok {
+		readErr = e
+	} else {
+		readErr = Error{Cause: err}
 	}
 
-	pos := rd.Position()
-	return Error{
-		Cause: err,
-		File:  pos.File,
-		Line:  pos.Ln,
-		Col:   pos.Col,
-	}
+	readErr.Form = form
+	readErr.Begin = beginPos
+	readErr.End = rd.Position()
+	return readErr
 }
 
 func readUnicodeChar(token string, base int) (parens.Char, error) {
@@ -424,12 +423,12 @@ func readUnicodeChar(token string, base int) (parens.Char, error) {
 func parseRadix(numStr string) (parens.Int64, error) {
 	parts := strings.Split(numStr, "r")
 	if len(parts) != 2 {
-		return 0, fmt.Errorf("illegal radix notation '%s'", numStr)
+		return 0, fmt.Errorf("%w (radix notation): '%s'", ErrNumberFormat, numStr)
 	}
 
 	base, err := strconv.ParseInt(parts[0], 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("illegal radix notation '%s'", numStr)
+		return 0, fmt.Errorf("%w (radix notation): '%s'", ErrNumberFormat, numStr)
 	}
 
 	repr := parts[1]
@@ -440,7 +439,7 @@ func parseRadix(numStr string) (parens.Int64, error) {
 
 	v, err := strconv.ParseInt(repr, int(base), 64)
 	if err != nil {
-		return 0, fmt.Errorf("illegal radix notation '%s'", numStr)
+		return 0, fmt.Errorf("%w (radix notation): '%s'", ErrNumberFormat, numStr)
 	}
 
 	return parens.Int64(v), nil
@@ -449,17 +448,17 @@ func parseRadix(numStr string) (parens.Int64, error) {
 func parseScientific(numStr string) (parens.Float64, error) {
 	parts := strings.Split(numStr, "e")
 	if len(parts) != 2 {
-		return 0, fmt.Errorf("illegal scientific notation '%s'", numStr)
+		return 0, fmt.Errorf("%w (scientific notation): '%s'", ErrNumberFormat, numStr)
 	}
 
 	base, err := strconv.ParseFloat(parts[0], 64)
 	if err != nil {
-		return 0, fmt.Errorf("illegal scientific notation '%s'", numStr)
+		return 0, fmt.Errorf("%w (scientific notation): '%s'", ErrNumberFormat, numStr)
 	}
 
 	pow, err := strconv.ParseInt(parts[1], 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("illegal scientific notation '%s'", numStr)
+		return 0, fmt.Errorf("%w (scientific notation): '%s'", ErrNumberFormat, numStr)
 	}
 
 	return parens.Float64(base * math.Pow(10, float64(pow))), nil

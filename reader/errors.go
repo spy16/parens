@@ -27,11 +27,10 @@ var (
 // Error is returned by all parens operations. Cause indicates the underlying
 // error type. Use errors.Is() with Cause to check for specific errors.
 type Error struct {
-	Form      string
-	Cause     error
-	Rune      rune
-	File      string
-	Line, Col int
+	Form       string
+	Cause      error
+	Rune       rune
+	Begin, End Position
 }
 
 // Is returns true if the other error is same as the cause of this error.
@@ -41,14 +40,10 @@ func (e Error) Is(other error) bool { return errors.Is(e.Cause, other) }
 func (e Error) Unwrap() error { return e.Cause }
 
 func (e Error) Error() string {
-	switch {
-	case errors.Is(e.Cause, ErrUnmatchedDelimiter):
-		return fmt.Sprintf("unmatched delimiter '%c'", e.Rune)
-
-	case errors.Is(e.Cause, ErrNumberFormat):
-		return fmt.Sprintf("illegal number format: \"%s\"", e.Form)
-
-	default:
-		return fmt.Sprintf("error while reading %s: %v", e.Form, e.Cause)
+	cause := e.Cause
+	if errors.Is(cause, ErrUnmatchedDelimiter) {
+		cause = fmt.Errorf("unmatched delimiter '%c'", e.Rune)
 	}
+
+	return fmt.Sprintf("error while reading: %v", cause)
 }
