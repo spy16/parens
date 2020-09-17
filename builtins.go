@@ -29,7 +29,7 @@ func (ba BuiltinAnalyzer) Analyze(env *Env, form Any) (Expr, error) {
 
 	switch f := form.(type) {
 	case Symbol:
-		v := env.resolve(string(f))
+		v := env.Resolve(string(f))
 		if v == nil {
 			return nil, Error{
 				Cause:   ErrNotFound,
