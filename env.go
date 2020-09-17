@@ -77,9 +77,9 @@ func (env *Env) expandAnalyze(form Any) (Expr, error) {
 	return env.analyzer.Analyze(env, form)
 }
 
-// fork creates a child context from Env and returns it. The child context
+// Fork creates a child context from Env and returns it. The child context
 // can be used as context for an independent thread of execution.
-func (env *Env) fork() *Env {
+func (env *Env) Fork() *Env {
 	return &Env{
 		ctx:      env.ctx,
 		globals:  env.globals,
