@@ -131,7 +131,7 @@ func readNumber(rd *Reader, init rune) (parens.Any, error) {
 	}
 }
 
-func readSymbol(rd *Reader, init rune) (parens.Symbol, error) {
+func readRawSymbol(rd *Reader, init rune) (string, error) {
 	beginPos := rd.Position()
 
 	s, err := rd.Token(init)
@@ -139,7 +139,7 @@ func readSymbol(rd *Reader, init rune) (parens.Symbol, error) {
 		return "", rd.annotateErr(err, beginPos, s)
 	}
 
-	return parens.Symbol(s), nil
+	return s, nil
 }
 
 func readString(rd *Reader, init rune) (parens.Any, error) {

@@ -90,6 +90,7 @@ type Reader struct {
 	dispatching bool
 	predef      map[string]parens.Any
 	numReader   Macro
+	newSymbol   func(string) (parens.Any, error)
 }
 
 // All consumes characters from stream until EOF and returns a list of all the forms
@@ -351,16 +352,16 @@ func (rd *Reader) readOne() (parens.Any, error) {
 		}
 	}
 
-	v, err := readSymbol(rd, r)
+	rsym, err := readRawSymbol(rd, r)
 	if err != nil {
 		return nil, err
 	}
 
-	if predefVal, found := rd.predef[string(v)]; found {
+	if predefVal, found := rd.predef[rsym]; found {
 		return predefVal, nil
 	}
 
-	return v, nil
+	return rd.newSymbol(rsym)
 }
 
 func (rd *Reader) execDispatch() (parens.Any, error) {
