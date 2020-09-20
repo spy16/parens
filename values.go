@@ -20,6 +20,72 @@ var (
 	_ Seq = (*LinkedList)(nil)
 )
 
+// Comparable values define a partial ordering.
+type Comparable interface {
+	// Comp(pare) the value to another value.  Returns:
+	//
+	// * 0 if v == other
+	// * 1 if v > other
+	// * -1 if v < other
+	//
+	// If the values are not comparable, ErrIncomparableTypes is returned.
+	Comp(other Any) (int, error)
+}
+
+// EqualityProvider asserts equality between two values.
+type EqualityProvider interface {
+	Equals(other Any) (bool, error)
+}
+
+// Eq returns true if two values are equal.
+func Eq(a, b Any) (bool, error) {
+	if eq, ok := a.(EqualityProvider); ok {
+		return eq.Equals(b)
+	}
+
+	return false, nil
+}
+
+// Lt returns true if a < b
+func Lt(a, b Any) (bool, error) {
+	if acmp, ok := a.(Comparable); ok {
+		i, err := acmp.Comp(b)
+		return i == -1, err
+	}
+
+	return false, ErrIncomparableTypes
+}
+
+// Gt returns true if a > b
+func Gt(a, b Any) (bool, error) {
+	if acmp, ok := a.(Comparable); ok {
+		i, err := acmp.Comp(b)
+		return i == 1, err
+	}
+
+	return false, ErrIncomparableTypes
+}
+
+// Le returns true if a <= b
+func Le(a, b Any) (bool, error) {
+	if acmp, ok := a.(Comparable); ok {
+		i, err := acmp.Comp(b)
+		return i <= 0, err
+	}
+
+	return false, ErrIncomparableTypes
+}
+
+// Ge returns true if a >= b
+func Ge(a, b Any) (bool, error) {
+	if acmp, ok := a.(Comparable); ok {
+		i, err := acmp.Comp(b)
+		return i >= 0, err
+	}
+
+	return false, ErrIncomparableTypes
+}
+
 // Cons returns a new seq with `v` added as the first and `seq` as the rest.
 // seq can be nil as well.
 func Cons(v Any, seq Seq) (Seq, error) {
@@ -63,6 +129,9 @@ type Nil struct{}
 // SExpr returns a valid s-expression representing Nil.
 func (Nil) SExpr() (string, error) { return "nil", nil }
 
+// Equals returns true IFF other is nil.
+func (Nil) Equals(other Any) (bool, error) { return IsNil(other), nil }
+
 func (Nil) String() string { return "nil" }
 
 // Int64 represents a 64-bit integer Value.
@@ -71,10 +140,26 @@ type Int64 int64
 // SExpr returns a valid s-expression representing Int64.
 func (i64 Int64) SExpr() (string, error) { return i64.String(), nil }
 
-// Equals returns true if the other Value is also an integer and has same Value.
+// Equals returns true if 'other' is also an integer and has same Value.
 func (i64 Int64) Equals(other Any) (bool, error) {
-	val, isInt := other.(Int64)
-	return isInt && (val == i64), nil
+	val, ok := other.(Int64)
+	return ok && (val == i64), nil
+}
+
+// Comp performs comparison against another Int64.
+func (i64 Int64) Comp(other Any) (int, error) {
+	if n, ok := other.(Int64); ok {
+		switch {
+		case i64 > n:
+			return 1, nil
+		case i64 < n:
+			return -1, nil
+		default:
+			return 0, nil
+		}
+	}
+
+	return 0, ErrIncomparableTypes
 }
 
 func (i64 Int64) String() string { return strconv.Itoa(int(i64)) }
@@ -87,8 +172,24 @@ func (f64 Float64) SExpr() (string, error) { return f64.String(), nil }
 
 // Equals returns true if 'other' is also a float and has same Value.
 func (f64 Float64) Equals(other Any) (bool, error) {
-	val, isFloat := other.(Float64)
-	return isFloat && (val == f64), nil
+	val, ok := other.(Float64)
+	return ok && (val == f64), nil
+}
+
+// Comp performs comparison against another Float64.
+func (f64 Float64) Comp(other Any) (int, error) {
+	if n, ok := other.(Float64); ok {
+		switch {
+		case f64 > n:
+			return 1, nil
+		case f64 < n:
+			return -1, nil
+		default:
+			return 0, nil
+		}
+	}
+
+	return 0, ErrIncomparableTypes
 }
 
 func (f64 Float64) String() string {
@@ -189,6 +290,34 @@ func (ll *LinkedList) SExpr() (string, error) {
 	}
 
 	return SeqString(ll, "(", ")", " ")
+}
+
+// Equals returns true if the other value is a LinkedList and contains the same
+// values.
+func (ll *LinkedList) Equals(other Any) (eq bool, err error) {
+	o, ok := other.(*LinkedList)
+	if !ok || o.count != ll.count {
+		return
+	}
+
+	var s Seq = ll
+	err = ForEach(o, func(any Any) (bool, error) {
+		v, _ := s.First()
+
+		veq, ok := v.(EqualityProvider)
+		if !ok {
+			return false, nil
+		}
+
+		if eq, err = veq.Equals(any); err != nil || !eq {
+			return true, err
+		}
+
+		s, _ = s.Next()
+		return false, nil
+	})
+
+	return
 }
 
 // Conj returns a new list with all the items added at the head of the list.
