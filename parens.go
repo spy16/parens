@@ -15,6 +15,11 @@ var (
 
 	// ErrNotInvokable is returned by InvokeExpr when the target is not invokable.
 	ErrNotInvokable = errors.New("not invokable")
+
+	// ErrIncomparableTypes is returned by Any.Comp when a comparison between two tpyes
+	// is undefined.  Users should generally consider the types to be not equal in such
+	// cases, but not assume any ordering.
+	ErrIncomparableTypes = errors.New("incomparable types")
 )
 
 // New returns a new root context initialised based on given options.
