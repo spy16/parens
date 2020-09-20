@@ -131,15 +131,19 @@ func readNumber(rd *Reader, init rune) (parens.Any, error) {
 	}
 }
 
-func readRawSymbol(rd *Reader, init rune) (string, error) {
+func readSymbol(rd *Reader, init rune) (parens.Any, error) {
 	beginPos := rd.Position()
 
 	s, err := rd.Token(init)
 	if err != nil {
-		return "", rd.annotateErr(err, beginPos, s)
+		return nil, rd.annotateErr(err, beginPos, s)
 	}
 
-	return s, nil
+	if predefVal, found := rd.predef[s]; found {
+		return predefVal, nil
+	}
+
+	return parens.Symbol(s), nil
 }
 
 func readString(rd *Reader, init rune) (parens.Any, error) {

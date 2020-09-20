@@ -18,16 +18,14 @@ func WithNumReader(m Macro) Option {
 	}
 }
 
-// WithSymbolFactory sets the symbol factory function for the Reader.
-// This function will be used to transform a native Go string into a symbol
-// type that satisfies parens.Any.  Builds a parens.Symbol if nil.
-func WithSymbolFactory(f func(string) (parens.Any, error)) Option {
-	if f == nil {
-		f = func(s string) (parens.Any, error) { return parens.Symbol(s), nil }
+// WithSymbolReader sets the symbol reader macro to be used by the Reader.
+// Builds a parens.Symbol if nil.
+func WithSymbolReader(m Macro) Option {
+	if m == nil {
+		m = readSymbol
 	}
-
 	return func(rd *Reader) {
-		rd.newSymbol = f
+		rd.symReader = m
 	}
 }
 
@@ -51,7 +49,7 @@ func WithPredefinedSymbols(ss map[string]parens.Any) Option {
 func withDefaults(opt []Option) []Option {
 	return append([]Option{
 		WithNumReader(nil),
-		WithSymbolFactory(nil),
+		WithSymbolReader(nil),
 		WithPredefinedSymbols(nil),
 	}, opt...)
 }

@@ -81,16 +81,15 @@ func New(r io.Reader, opts ...Option) *Reader {
 type Reader struct {
 	File string
 
-	rs          io.RuneReader
-	buf         []rune
-	line, col   int
-	lastCol     int
-	macros      map[rune]Macro
-	dispatch    map[rune]Macro
-	dispatching bool
-	predef      map[string]parens.Any
-	numReader   Macro
-	newSymbol   func(string) (parens.Any, error)
+	rs                   io.RuneReader
+	buf                  []rune
+	line, col            int
+	lastCol              int
+	macros               map[rune]Macro
+	dispatch             map[rune]Macro
+	dispatching          bool
+	predef               map[string]parens.Any
+	numReader, symReader Macro
 }
 
 // All consumes characters from stream until EOF and returns a list of all the forms
@@ -313,6 +312,12 @@ func (rd Reader) Container(end rune, formType string, f func(parens.Any) error) 
 	return nil
 }
 
+// Resolve a predefined symbol.
+func (rd *Reader) Resolve(s string) (v parens.Any, found bool) {
+	v, found = rd.predef[s]
+	return
+}
+
 // readOne is same as One() but always returns un-annotated errors.
 func (rd *Reader) readOne() (parens.Any, error) {
 	if err := rd.SkipSpaces(); err != nil {
@@ -352,16 +357,7 @@ func (rd *Reader) readOne() (parens.Any, error) {
 		}
 	}
 
-	rsym, err := readRawSymbol(rd, r)
-	if err != nil {
-		return nil, err
-	}
-
-	if predefVal, found := rd.predef[rsym]; found {
-		return predefVal, nil
-	}
-
-	return rd.newSymbol(rsym)
+	return rd.symReader(rd, r)
 }
 
 func (rd *Reader) execDispatch() (parens.Any, error) {
