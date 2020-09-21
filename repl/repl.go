@@ -27,14 +27,6 @@ func New(env *parens.Env, opts ...Option) *REPL {
 	return repl
 }
 
-// // NamespacedContext can be implemented by Runtime implementations to allow
-// // namespace based isolation (similar to Clojure). REPL will call CurrentNS()
-// // method to get the current Namespace and display it as part of input prompt.
-// type NamespacedContext interface {
-// 	parens.Env
-// 	CurrentNS() string
-// }
-
 // REPL implements a read-eval-print loop for a generic Runtime.
 type REPL struct {
 	rootEnv     *parens.Env
@@ -83,7 +75,7 @@ func (repl *REPL) readEvalPrint() error {
 	forms, err := repl.read()
 	if err != nil {
 		switch err.(type) {
-		case parens.Error:
+		case reader.Error:
 			_ = repl.print(err)
 		default:
 			return err
@@ -110,6 +102,10 @@ func (repl *REPL) Write(b []byte) (int, error) {
 }
 
 func (repl *REPL) print(v interface{}) error {
+	if e, ok := v.(reader.Error); ok {
+		s := fmt.Sprintf("%v (begin=%s, end=%s)", e, e.Begin, e.End)
+		return repl.printer.Fprintln(repl.output, s)
+	}
 	return repl.printer.Fprintln(repl.output, v)
 }
 
