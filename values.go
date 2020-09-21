@@ -41,6 +41,12 @@ type EqualityProvider interface {
 func Eq(a, b Any) (bool, error) {
 	if eq, ok := a.(EqualityProvider); ok {
 		return eq.Equals(b)
+	} else if cmp, ok := a.(Comparable); ok {
+		val, err := cmp.Comp(b)
+		return val == 0, err
+	} else if cmp, ok := b.(Comparable); ok {
+		val, err := cmp.Comp(a)
+		return val == 0, err
 	}
 
 	return false, nil

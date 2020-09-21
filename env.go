@@ -19,7 +19,8 @@ type Env struct {
 	maxDepth int
 }
 
-// ConcurrentMap is used by the Env to store variables in the global stack frame.
+// ConcurrentMap is used by the Env to store variables in the global stack
+// frame.
 type ConcurrentMap interface {
 	// Store should store the key-value pair in the map.
 	Store(key string, val Any)
@@ -112,8 +113,8 @@ type stackFrame struct {
 
 func newMutexMap() ConcurrentMap { return &mutexMap{} }
 
-// mutexMap implements a simple ConcurrentMap using sync.RWMutex locks. Zero
-// value is ready for use.
+// mutexMap implements a simple ConcurrentMap using sync.RWMutex locks.
+// Zero value is ready for use.
 type mutexMap struct {
 	sync.RWMutex
 	vs map[string]Any
