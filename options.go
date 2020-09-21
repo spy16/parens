@@ -50,6 +50,7 @@ func WithAnalyzer(analyzer Analyzer) Option {
 			analyzer = &BuiltinAnalyzer{
 				SpecialForms: map[string]ParseSpecial{
 					"go":    parseGoExpr,
+					"if":    parseIfExpr,
 					"def":   parseDefExpr,
 					"quote": parseQuoteExpr,
 				},

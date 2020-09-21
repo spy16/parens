@@ -12,6 +12,43 @@ var (
 	_ = ParseSpecial(parseQuoteExpr)
 )
 
+func parseIfExpr(env *Env, args Seq) (Expr, error) {
+	count, err := args.Count()
+	if err != nil {
+		return nil, err
+	} else if count != 2 && count != 3 {
+		return nil, Error{
+			Cause:   errors.New("invalid if form"),
+			Message: fmt.Sprintf("requires 2 or 3 arguments, got %d", count),
+		}
+	}
+
+	exprs := [3]Expr{}
+	for i := 0; i < count; i++ {
+		f, err := args.First()
+		if err != nil {
+			return nil, err
+		}
+
+		expr, err := env.analyzer.Analyze(env, f)
+		if err != nil {
+			return nil, err
+		}
+		exprs[i] = expr
+
+		args, err = args.Next()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &IfExpr{
+		Test: exprs[0],
+		Then: exprs[1],
+		Else: exprs[2],
+	}, nil
+}
+
 func parseQuoteExpr(_ *Env, args Seq) (Expr, error) {
 	if count, err := args.Count(); err != nil {
 		return nil, err
