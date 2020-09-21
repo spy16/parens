@@ -34,7 +34,7 @@ func (qe QuoteExpr) Eval(_ *Env) (Any, error) {
 // DefExpr creates a global binding with the Name when evaluated.
 type DefExpr struct {
 	Name  string
-	Value Any
+	Value Expr
 }
 
 // Eval creates a symbol binding in the global (root) stack frame.
@@ -44,7 +44,12 @@ func (de DefExpr) Eval(env *Env) (Any, error) {
 		return nil, fmt.Errorf("%w: '%s'", ErrInvalidBindName, de.Name)
 	}
 
-	env.setGlobal(de.Name, de.Value)
+	val, err := de.Value.Eval(env)
+	if err != nil {
+		return nil, err
+	}
+
+	env.setGlobal(de.Name, val)
 	return Symbol(de.Name), nil
 }
 

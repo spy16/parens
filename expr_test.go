@@ -82,14 +82,14 @@ func TestDefExpr_Eval(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Invalid Name", func(t *testing.T) {
-		de := parens.DefExpr{Name: "", Value: parens.Int64(10)}
+		de := parens.DefExpr{Name: "", Value: &parens.ConstExpr{Const: parens.Int64(10)}}
 		v, err := de.Eval(nil)
 		assertErr(t, err)
 		assertEqual(t, nil, v)
 	})
 
 	t.Run("Success", func(t *testing.T) {
-		de := parens.DefExpr{Name: "foo", Value: parens.Int64(10)}
+		de := parens.DefExpr{Name: "foo", Value: &parens.ConstExpr{Const: parens.Int64(10)}}
 		v, err := de.Eval(parens.New())
 		requireNoErr(t, err)
 		assertEqual(t, parens.Symbol("foo"), v)

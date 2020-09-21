@@ -7,10 +7,25 @@ import (
 )
 
 var (
+	_ = ParseSpecial(parseDoExpr)
+	_ = ParseSpecial(parseIfExpr)
 	_ = ParseSpecial(parseGoExpr)
 	_ = ParseSpecial(parseDefExpr)
 	_ = ParseSpecial(parseQuoteExpr)
 )
+
+func parseDoExpr(env *Env, args Seq) (Expr, error) {
+	var de DoExpr
+	err := ForEach(args, func(item Any) (bool, error) {
+		expr, err := env.analyzer.Analyze(env, item)
+		if err != nil {
+			return true, err
+		}
+		de.Exprs = append(de.Exprs, expr)
+		return false, nil
+	})
+	return de, err
+}
 
 func parseIfExpr(env *Env, args Seq) (Expr, error) {
 	count, err := args.Count()
@@ -102,7 +117,7 @@ func parseDefExpr(env *Env, args Seq) (Expr, error) {
 		return nil, err
 	}
 
-	res, err := env.Eval(second)
+	res, err := env.analyzer.Analyze(env, second)
 	if err != nil {
 		return nil, err
 	}
