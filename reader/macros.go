@@ -84,6 +84,23 @@ func UnmatchedDelimiter() Macro {
 	}
 }
 
+func symbolReader(symTable map[string]parens.Any) Macro {
+	return func(rd *Reader, init rune) (parens.Any, error) {
+		beginPos := rd.Position()
+
+		s, err := rd.Token(init)
+		if err != nil {
+			return nil, rd.annotateErr(err, beginPos, s)
+		}
+
+		if predefVal, found := symTable[s]; found {
+			return predefVal, nil
+		}
+
+		return parens.Symbol(s), nil
+	}
+}
+
 func readNumber(rd *Reader, init rune) (parens.Any, error) {
 	beginPos := rd.Position()
 
@@ -129,21 +146,6 @@ func readNumber(rd *Reader, init rune) (parens.Any, error) {
 
 		return parens.Int64(v), nil
 	}
-}
-
-func readSymbol(rd *Reader, init rune) (parens.Any, error) {
-	beginPos := rd.Position()
-
-	s, err := rd.Token(init)
-	if err != nil {
-		return nil, rd.annotateErr(err, beginPos, s)
-	}
-
-	if predefVal, found := rd.predef[s]; found {
-		return predefVal, nil
-	}
-
-	return parens.Symbol(s), nil
 }
 
 func readString(rd *Reader, init rune) (parens.Any, error) {

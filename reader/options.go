@@ -4,6 +4,12 @@ import (
 	"github.com/spy16/parens"
 )
 
+var defaultSymTable = map[string]parens.Any{
+	"nil":   parens.Nil{},
+	"true":  parens.Bool(true),
+	"false": parens.Bool(false),
+}
+
 // Option values can be used with New() to configure the reader during init.
 type Option func(*Reader)
 
@@ -22,34 +28,25 @@ func WithNumReader(m Macro) Option {
 // Builds a parens.Symbol if nil.
 func WithSymbolReader(m Macro) Option {
 	if m == nil {
-		m = readSymbol
+		return WithBuiltinSymbolReader(defaultSymTable)
 	}
 	return func(rd *Reader) {
 		rd.symReader = m
 	}
 }
 
-// WithPredefinedSymbols maps a set of symbols to a set of values globally.
-// Reader directly returns the value in the map instead of returning the
-// symbol itself.
-func WithPredefinedSymbols(ss map[string]parens.Any) Option {
-	if ss == nil {
-		ss = map[string]parens.Any{
-			"nil":   parens.Nil{},
-			"true":  parens.Bool(true),
-			"false": parens.Bool(false),
-		}
-	}
-
-	return func(r *Reader) {
-		r.predef = ss
+// WithBuiltinSymbolReader configures the default symbol reader with given
+// symbol table.
+func WithBuiltinSymbolReader(symTable map[string]parens.Any) Option {
+	m := symbolReader(symTable)
+	return func(rd *Reader) {
+		rd.symReader = m
 	}
 }
 
 func withDefaults(opt []Option) []Option {
 	return append([]Option{
 		WithNumReader(nil),
-		WithSymbolReader(nil),
-		WithPredefinedSymbols(nil),
+		WithBuiltinSymbolReader(defaultSymTable),
 	}, opt...)
 }

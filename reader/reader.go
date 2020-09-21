@@ -64,8 +64,7 @@ func New(r io.Reader, opts ...Option) *Reader {
 			'~':  quoteFormReader("unquote"),
 			'`':  quoteFormReader("syntax-quote"),
 		},
-		dispatch:  map[rune]Macro{},
-		numReader: readNumber,
+		dispatch: map[rune]Macro{},
 	}
 
 	for _, option := range withDefaults(opts) {
@@ -85,10 +84,9 @@ type Reader struct {
 	buf                  []rune
 	line, col            int
 	lastCol              int
-	macros               map[rune]Macro
-	dispatch             map[rune]Macro
 	dispatching          bool
-	predef               map[string]parens.Any
+	dispatch             map[rune]Macro
+	macros               map[rune]Macro
 	numReader, symReader Macro
 }
 
@@ -310,12 +308,6 @@ func (rd Reader) Container(end rune, formType string, f func(parens.Any) error) 
 	}
 
 	return nil
-}
-
-// Resolve a predefined symbol.
-func (rd *Reader) Resolve(s string) (v parens.Any, found bool) {
-	v, found = rd.predef[s]
-	return
 }
 
 // readOne is same as One() but always returns un-annotated errors.
