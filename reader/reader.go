@@ -64,8 +64,7 @@ func New(r io.Reader, opts ...Option) *Reader {
 			'~':  quoteFormReader("unquote"),
 			'`':  quoteFormReader("syntax-quote"),
 		},
-		dispatch:  map[rune]Macro{},
-		numReader: readNumber,
+		dispatch: map[rune]Macro{},
 	}
 
 	for _, option := range withDefaults(opts) {
@@ -81,15 +80,14 @@ func New(r io.Reader, opts ...Option) *Reader {
 type Reader struct {
 	File string
 
-	rs          io.RuneReader
-	buf         []rune
-	line, col   int
-	lastCol     int
-	macros      map[rune]Macro
-	dispatch    map[rune]Macro
-	dispatching bool
-	predef      map[string]parens.Any
-	numReader   Macro
+	rs                   io.RuneReader
+	buf                  []rune
+	line, col            int
+	lastCol              int
+	dispatching          bool
+	dispatch             map[rune]Macro
+	macros               map[rune]Macro
+	numReader, symReader Macro
 }
 
 // All consumes characters from stream until EOF and returns a list of all the forms
@@ -351,16 +349,7 @@ func (rd *Reader) readOne() (parens.Any, error) {
 		}
 	}
 
-	v, err := readSymbol(rd, r)
-	if err != nil {
-		return nil, err
-	}
-
-	if predefVal, found := rd.predef[string(v)]; found {
-		return predefVal, nil
-	}
-
-	return v, nil
+	return rd.symReader(rd, r)
 }
 
 func (rd *Reader) execDispatch() (parens.Any, error) {

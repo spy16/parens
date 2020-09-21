@@ -47,6 +47,20 @@ func (env *Env) Eval(form Any) (Any, error) {
 	return expr.Eval(env)
 }
 
+// Resolve a symbol.
+func (env Env) Resolve(sym string) Any {
+	if len(env.stack) > 0 {
+		// check inside top of the stack for local bindings.
+		top := env.stack[len(env.stack)-1]
+		if v, found := top.Vars[sym]; found {
+			return v
+		}
+	}
+	// return the value from global bindings if found.
+	v, _ := env.globals.Load(sym)
+	return v
+}
+
 func (env *Env) expandAnalyze(form Any) (Expr, error) {
 	if expr, ok := form.(Expr); ok {
 		// Already an Expr, nothing to do.
@@ -64,9 +78,9 @@ func (env *Env) expandAnalyze(form Any) (Expr, error) {
 	return env.analyzer.Analyze(env, form)
 }
 
-// fork creates a child context from Env and returns it. The child context
+// Fork creates a child context from Env and returns it. The child context
 // can be used as context for an independent thread of execution.
-func (env *Env) fork() *Env {
+func (env *Env) Fork() *Env {
 	return &Env{
 		ctx:      env.ctx,
 		globals:  env.globals,
@@ -90,19 +104,6 @@ func (env *Env) pop() (frame *stackFrame) {
 
 func (env *Env) setGlobal(key string, value Any) {
 	env.globals.Store(key, value)
-}
-
-func (env Env) resolve(sym string) Any {
-	if len(env.stack) > 0 {
-		// check inside top of the stack for local bindings.
-		top := env.stack[len(env.stack)-1]
-		if v, found := top.Vars[sym]; found {
-			return v
-		}
-	}
-	// return the value from global bindings if found.
-	v, _ := env.globals.Load(sym)
-	return v
 }
 
 type stackFrame struct {

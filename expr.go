@@ -140,7 +140,7 @@ type GoExpr struct {
 // Eval forks the given context to get a child context and launches goroutine
 // with the child context to evaluate the
 func (ge GoExpr) Eval(env *Env) (Any, error) {
-	child := env.fork()
+	child := env.Fork()
 	go func() {
 		_, _ = child.Eval(ge.Value)
 	}()
