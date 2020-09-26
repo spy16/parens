@@ -17,7 +17,7 @@ var (
 func parseDoExpr(env *Env, args Seq) (Expr, error) {
 	var de DoExpr
 	err := ForEach(args, func(item Any) (bool, error) {
-		expr, err := env.analyzer.Analyze(env, item)
+		expr, err := env.Analyze(item)
 		if err != nil {
 			return true, err
 		}
@@ -45,7 +45,7 @@ func parseIfExpr(env *Env, args Seq) (Expr, error) {
 			return nil, err
 		}
 
-		expr, err := env.analyzer.Analyze(env, f)
+		expr, err := env.Analyze(f)
 		if err != nil {
 			return nil, err
 		}
@@ -117,7 +117,7 @@ func parseDefExpr(env *Env, args Seq) (Expr, error) {
 		return nil, err
 	}
 
-	res, err := env.analyzer.Analyze(env, second)
+	res, err := env.Analyze(second)
 	if err != nil {
 		return nil, err
 	}
