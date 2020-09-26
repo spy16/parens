@@ -15,7 +15,7 @@ func TestDoExpr_Eval(t *testing.T) {
 
 	t.Run("No Body", func(t *testing.T) {
 		de := parens.DoExpr{}
-		res, err := de.Eval(parens.New())
+		res, err := de.Eval()
 		requireNoErr(t, err)
 		assertEqual(t, parens.Nil{}, res)
 	})
@@ -26,7 +26,7 @@ func TestDoExpr_Eval(t *testing.T) {
 				&parens.ConstExpr{Const: parens.Symbol("foo")},
 			},
 		}
-		res, err := de.Eval(parens.New())
+		res, err := de.Eval()
 		requireNoErr(t, err)
 		assertEqual(t, parens.Symbol("foo"), res)
 	})
@@ -41,7 +41,7 @@ func TestIfExpr_Eval(t *testing.T) {
 			Then: &parens.ConstExpr{Const: parens.String("then")},
 			Else: &parens.ConstExpr{Const: parens.String("else")},
 		}
-		res, err := ie.Eval(parens.New())
+		res, err := ie.Eval()
 		requireNoErr(t, err)
 		assertEqual(t, parens.String("else"), res)
 	})
@@ -52,7 +52,7 @@ func TestIfExpr_Eval(t *testing.T) {
 			Then: &parens.ConstExpr{Const: parens.String("then")},
 			Else: &parens.ConstExpr{Const: parens.String("else")},
 		}
-		res, err := ie.Eval(parens.New())
+		res, err := ie.Eval()
 		requireNoErr(t, err)
 		assertEqual(t, parens.String("then"), res)
 	})
@@ -63,7 +63,7 @@ func TestIfExpr_Eval(t *testing.T) {
 			Then: &parens.ConstExpr{Const: parens.String("then")},
 			Else: &parens.ConstExpr{Const: parens.String("else")},
 		}
-		res, err := ie.Eval(parens.New())
+		res, err := ie.Eval()
 		requireNoErr(t, err)
 		assertEqual(t, parens.String("then"), res)
 	})
@@ -72,7 +72,7 @@ func TestIfExpr_Eval(t *testing.T) {
 		ie := parens.IfExpr{
 			Test: &parens.ConstExpr{Const: parens.String("foo")},
 		}
-		res, err := ie.Eval(parens.New())
+		res, err := ie.Eval()
 		requireNoErr(t, err)
 		assertEqual(t, parens.Nil{}, res)
 	})
@@ -82,15 +82,23 @@ func TestDefExpr_Eval(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Invalid Name", func(t *testing.T) {
-		de := parens.DefExpr{Name: "", Value: &parens.ConstExpr{Const: parens.Int64(10)}}
-		v, err := de.Eval(nil)
+		de := parens.DefExpr{
+			Env:   parens.New(),
+			Name:  "",
+			Value: &parens.ConstExpr{Const: parens.Int64(10)},
+		}
+		v, err := de.Eval()
 		assertErr(t, err)
 		assertEqual(t, nil, v)
 	})
 
 	t.Run("Success", func(t *testing.T) {
-		de := parens.DefExpr{Name: "foo", Value: &parens.ConstExpr{Const: parens.Int64(10)}}
-		v, err := de.Eval(parens.New())
+		de := parens.DefExpr{
+			Env:   parens.New(),
+			Name:  "foo",
+			Value: &parens.ConstExpr{Const: parens.Int64(10)},
+		}
+		v, err := de.Eval()
 		requireNoErr(t, err)
 		assertEqual(t, parens.Symbol("foo"), v)
 	})
@@ -100,7 +108,7 @@ func TestQuoteExpr_Eval(t *testing.T) {
 	want := parens.NewList()
 
 	qe := parens.QuoteExpr{Form: want}
-	got, err := qe.Eval(parens.New())
+	got, err := qe.Eval()
 	requireNoErr(t, err)
 
 	assertEqual(t, want, got)

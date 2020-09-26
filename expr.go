@@ -20,36 +20,37 @@ var (
 type ConstExpr struct{ Const Any }
 
 // Eval returns the constant value unmodified.
-func (ce ConstExpr) Eval(_ *Env) (Any, error) { return ce.Const, nil }
+func (ce ConstExpr) Eval() (Any, error) { return ce.Const, nil }
 
 // QuoteExpr expression represents a quoted form and
 type QuoteExpr struct{ Form Any }
 
 // Eval returns the quoted form unmodified.
-func (qe QuoteExpr) Eval(_ *Env) (Any, error) {
+func (qe QuoteExpr) Eval() (Any, error) {
 	// TODO: re-use this for syntax-quote and unquote?
 	return qe.Form, nil
 }
 
 // DefExpr creates a global binding with the Name when evaluated.
 type DefExpr struct {
+	Env   *Env
 	Name  string
 	Value Expr
 }
 
 // Eval creates a symbol binding in the global (root) stack frame.
-func (de DefExpr) Eval(env *Env) (Any, error) {
+func (de DefExpr) Eval() (Any, error) {
 	de.Name = strings.TrimSpace(de.Name)
 	if de.Name == "" {
 		return nil, fmt.Errorf("%w: '%s'", ErrInvalidBindName, de.Name)
 	}
 
-	val, err := de.Value.Eval(env)
+	val, err := de.Value.Eval()
 	if err != nil {
 		return nil, err
 	}
 
-	env.setGlobal(de.Name, val)
+	de.Env.setGlobal(de.Name, val)
 	return Symbol(de.Name), nil
 }
 
@@ -57,10 +58,10 @@ func (de DefExpr) Eval(env *Env) (Any, error) {
 type IfExpr struct{ Test, Then, Else Expr }
 
 // Eval the expression
-func (ife IfExpr) Eval(env *Env) (Any, error) {
+func (ife IfExpr) Eval() (Any, error) {
 	target := ife.Else
 	if ife.Test != nil {
-		test, err := ife.Test.Eval(env)
+		test, err := ife.Test.Eval()
 		if err != nil {
 			return nil, err
 		}
@@ -72,19 +73,19 @@ func (ife IfExpr) Eval(env *Env) (Any, error) {
 	if target == nil {
 		return Nil{}, nil
 	}
-	return target.Eval(env)
+	return target.Eval()
 }
 
 // DoExpr represents the (do expr*) form.
 type DoExpr struct{ Exprs []Expr }
 
 // Eval the expression
-func (de DoExpr) Eval(env *Env) (Any, error) {
+func (de DoExpr) Eval() (Any, error) {
 	var res Any
 	var err error
 
 	for _, expr := range de.Exprs {
-		res, err = expr.Eval(env)
+		res, err = expr.Eval()
 		if err != nil {
 			return nil, err
 		}
@@ -98,14 +99,15 @@ func (de DoExpr) Eval(env *Env) (Any, error) {
 
 // InvokeExpr performs invocation of target when evaluated.
 type InvokeExpr struct {
+	Env    *Env
 	Name   string
 	Target Expr
 	Args   []Expr
 }
 
 // Eval the expression
-func (ie InvokeExpr) Eval(env *Env) (Any, error) {
-	val, err := ie.Target.Eval(env)
+func (ie InvokeExpr) Eval() (Any, error) {
+	val, err := ie.Target.Eval()
 	if err != nil {
 		return nil, err
 	}
@@ -120,32 +122,33 @@ func (ie InvokeExpr) Eval(env *Env) (Any, error) {
 
 	var args []Any
 	for _, ae := range ie.Args {
-		v, err := ae.Eval(env)
+		v, err := ae.Eval()
 		if err != nil {
 			return nil, err
 		}
 		args = append(args, v)
 	}
 
-	env.push(stackFrame{
+	ie.Env.push(stackFrame{
 		Name: ie.Name,
 		Args: args,
 		Vars: map[string]Any{},
 	})
-	defer env.pop()
+	defer ie.Env.pop()
 
-	return fn.Invoke(env, args...)
+	return fn.Invoke(ie.Env, args...)
 }
 
 // GoExpr evaluates an expression in a separate goroutine.
 type GoExpr struct {
+	Env   *Env
 	Value Any
 }
 
 // Eval forks the given context to get a child context and launches goroutine
 // with the child context to evaluate the
-func (ge GoExpr) Eval(env *Env) (Any, error) {
-	child := env.Fork()
+func (ge GoExpr) Eval() (Any, error) {
+	child := ge.Env.Fork()
 	go func() {
 		_, _ = child.Eval(ge.Value)
 	}()
