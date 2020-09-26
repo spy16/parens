@@ -73,7 +73,7 @@ type Invokable interface {
 
 // Expr represents an expression that can be evaluated against a context.
 type Expr interface {
-	Eval(env *Env) (Any, error)
+	Eval() (Any, error)
 }
 
 // Error is returned by all parens operations. Cause indicates the underlying

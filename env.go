@@ -44,7 +44,7 @@ func (env *Env) Eval(form Any) (Any, error) {
 		return nil, nil
 	}
 
-	return expr.Eval(env)
+	return expr.Eval()
 }
 
 // Resolve a symbol.

@@ -123,12 +123,13 @@ func parseDefExpr(env *Env, args Seq) (Expr, error) {
 	}
 
 	return &DefExpr{
+		Env:   env,
 		Name:  string(sym),
 		Value: res,
 	}, nil
 }
 
-func parseGoExpr(_ *Env, args Seq) (Expr, error) {
+func parseGoExpr(env *Env, args Seq) (Expr, error) {
 	v, err := args.First()
 	if err != nil {
 		return nil, err
@@ -140,5 +141,5 @@ func parseGoExpr(_ *Env, args Seq) (Expr, error) {
 		}
 	}
 
-	return GoExpr{v}, nil
+	return GoExpr{Env: env, Value: v}, nil
 }
