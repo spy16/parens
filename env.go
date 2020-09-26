@@ -61,6 +61,10 @@ func (env Env) Resolve(sym string) Any {
 	return v
 }
 
+// Analyze performs syntax checks for special forms etc. and returns an Expr value that
+// can be evaluated against the env.
+func (env *Env) Analyze(form Any) (Expr, error) { return env.analyzer.Analyze(env, form) }
+
 func (env *Env) expandAnalyze(form Any) (Expr, error) {
 	if expr, ok := form.(Expr); ok {
 		// Already an Expr, nothing to do.
