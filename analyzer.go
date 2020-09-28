@@ -4,10 +4,7 @@ import (
 	"fmt"
 )
 
-var (
-	_ Analyzer = (*BuiltinAnalyzer)(nil)
-	_ Expander = (*builtinExpander)(nil)
-)
+var _ Analyzer = (*BuiltinAnalyzer)(nil)
 
 // BuiltinAnalyzer parses builtin value forms and returns Expr that can
 // be evaluated against parens Env. Custom special form parsers can be
@@ -24,7 +21,7 @@ type ParseSpecial func(env *Env, args Seq) (Expr, error)
 // that can be evaluated for result against an Env.
 func (ba BuiltinAnalyzer) Analyze(env *Env, form Any) (Expr, error) {
 	if IsNil(form) {
-		return &ConstExpr{Const: Nil{}}, nil
+		return ConstExpr{Const: Nil{}}, nil
 	}
 
 	switch f := form.(type) {
@@ -36,7 +33,7 @@ func (ba BuiltinAnalyzer) Analyze(env *Env, form Any) (Expr, error) {
 				Message: string(f),
 			}
 		}
-		return &ConstExpr{Const: v}, nil
+		return ConstExpr{Const: v}, nil
 
 	case Seq:
 		cnt, err := f.Count()
@@ -49,7 +46,7 @@ func (ba BuiltinAnalyzer) Analyze(env *Env, form Any) (Expr, error) {
 		return ba.analyzeSeq(env, f)
 	}
 
-	return &ConstExpr{Const: form}, nil
+	return ConstExpr{Const: form}, nil
 }
 
 func (ba BuiltinAnalyzer) analyzeSeq(env *Env, seq Seq) (Expr, error) {
@@ -87,12 +84,5 @@ func (ba BuiltinAnalyzer) analyzeSeq(env *Env, seq Seq) (Expr, error) {
 		}
 		return
 	})
-	return &ie, err
-}
-
-type builtinExpander struct{}
-
-func (be builtinExpander) Expand(_ *Env, _ Any) (Any, error) {
-	// TODO: implement macro expansion.
-	return nil, nil
+	return ie, err
 }
