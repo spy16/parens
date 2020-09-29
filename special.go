@@ -12,6 +12,7 @@ var (
 	_ = ParseSpecial(parseGoExpr)
 	_ = ParseSpecial(parseDefExpr)
 	_ = ParseSpecial(parseQuoteExpr)
+	// _ = ParseSpecial(parseMacroExpr)
 )
 
 func parseDoExpr(env *Env, args Seq) (Expr, error) {
@@ -143,3 +144,10 @@ func parseGoExpr(env *Env, args Seq) (Expr, error) {
 
 	return GoExpr{Env: env, Value: v}, nil
 }
+
+// // (defmacro name (parameter*)
+// //   "Optional documentation string."
+// //   body-form*)
+// func parseMacroExpr(_ *Env, args Seq) (Expr, error) {
+// 	return nil, errors.New("parseMacroExpr() NOT IMPLEMENTED")
+// }

@@ -120,13 +120,11 @@ func (ie InvokeExpr) Eval() (Any, error) {
 		}
 	}
 
-	var args []Any
-	for _, ae := range ie.Args {
-		v, err := ae.Eval()
-		if err != nil {
+	args := make([]Any, len(ie.Args))
+	for i, ae := range ie.Args {
+		if args[i], err = ae.Eval(); err != nil {
 			return nil, err
 		}
-		args = append(args, v)
 	}
 
 	ie.Env.push(stackFrame{
