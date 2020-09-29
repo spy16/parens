@@ -1,6 +1,7 @@
 package parens
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 )
@@ -47,12 +48,17 @@ func SeqString(seq Seq, begin, end, sep string) (string, error) {
 	var b strings.Builder
 	b.WriteString(begin)
 	err := ForEach(seq, func(item Any) (bool, error) {
-		sexpr, err := item.SExpr()
-		if err != nil {
-			return false, err
+		if sxpr, ok := item.(SExpressable); ok {
+			s, err := sxpr.SExpr()
+			if err != nil {
+				return false, err
+			}
+			b.WriteString(s)
+
+		} else {
+			b.WriteString(fmt.Sprintf("%#v", item))
 		}
 
-		b.WriteString(sexpr)
 		b.WriteString(sep)
 		return false, nil
 	})

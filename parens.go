@@ -31,12 +31,11 @@ func New(opts ...Option) *Env {
 	return env
 }
 
-// Any represents any
-type Any interface {
-	// SExpr MUST return a parsable s-expression that can be consumed by
-	// a reader.Reader.
-	//
-	// For a human-readable implementation, implement `repl.Renderable`.
+// Any represents any form
+type Any interface{}
+
+// SExpressable forms can be rendered as s-expressions.
+type SExpressable interface {
 	SExpr() (string, error)
 }
 
