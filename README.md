@@ -2,6 +2,9 @@
 
 [![GoDoc](https://godoc.org/github.com/spy16/parens?status.svg)](https://godoc.org/github.com/spy16/parens) [![Go Report Card](https://goreportcard.com/badge/github.com/spy16/parens)](https://goreportcard.com/report/github.com/spy16/parens) ![Go](https://github.com/spy16/parens/workflows/Go/badge.svg?branch=master)
 
+
+**DEPRECATED**: *This repository is deprecated in favour much better [slurp](github.com/spy16/slurp) project and will be archived/removed soon.*
+
 Parens is a highly customisable, embeddable LISP toolkit.
 
 ## Features
